@@ -69,6 +69,15 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "docker:up":[
+            "docker compose -f development-infra/compose.yaml up -d"
+        ],
+        "docker:stop":[
+            "docker compose -f development-infra/compose.yaml stop"
+        ],
+        "docker:down":[
+            "docker compose -f development-infra/compose.yaml down"
         ]
     },
     "extra": {
