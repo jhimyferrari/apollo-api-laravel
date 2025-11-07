@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Uf extends Model
+class Municipio extends Model
 {
-    protected $table = 'ufs';
+    protected $table = 'municipios';
 
     protected $primaryKey = 'codigo_ibge';
 
@@ -19,11 +19,11 @@ class Uf extends Model
     protected $fillable = [
         'codigo_ibge',
         'nome',
-        'sigla',
+        'uf_codigo_ibge',
     ];
 
-    public function municipios()
+    public function uf()
     {
-        return $this->hasMany(Municipio::class, 'uf_codigo_ibge', 'codigo_ibge');
+        return $this->belongsTo(Uf::class, 'uf_codigo_ibge', 'codigo_ibge');
     }
 }

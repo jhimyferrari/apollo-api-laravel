@@ -12,10 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ufs', function (Blueprint $table) {
-            $table->id();
+            $table->char('codigo_ibge', 2)->primary();
             $table->string('nome', 30);
             $table->char('sigla', 2)->unique();
-            $table->char('codigo_ibge', 2)->unique();
         });
     }
 
