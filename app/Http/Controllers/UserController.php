@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -12,7 +13,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        return view('user.index');
+        $users = User::all(['id', 'name', 'email']);
+
+        return view('users.index', compact('users'));
     }
 
     /**
@@ -20,7 +23,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('user.create');
+        return view('users.create');
     }
 
     /**
@@ -36,7 +39,7 @@ class UserController extends Controller
         ]);
         User::create($data);
 
-        // return view('user.create');
+        return redirect()->back()->with('success', 'Usuário cadastrado com sucesso');
     }
 
     /**
@@ -44,7 +47,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return view('users.show', compact('user'));
     }
 
     /**
@@ -52,7 +55,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        //
+        return view('users.edit', compact('user'));
     }
 
     /**
@@ -60,7 +63,20 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        $request->validate([
+            'name' => 'required|string',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ]]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return redirect()->route('users.edit', $user)->with('success', 'Usuário atualizado com sucesso!');
     }
 
     /**
@@ -68,6 +84,12 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $userFind = User::findOrFail($user->id);
+
+        if ($userFind->deleteOrFail()) {
+            return redirect()->route('users.index')->with('success', 'Usuário excluído com sucesso!');
+        } else {
+            return redirect()->route('users.index')->with('error', 'Não foi possível excluir o usuário!');
+        }
     }
 }
