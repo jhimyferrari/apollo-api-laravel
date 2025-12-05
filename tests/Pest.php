@@ -1,5 +1,7 @@
 <?php
 
+use function Pest\Laravel\artisan;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -41,7 +43,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function runPendingMigrations()
 {
-    // ..
+    artisan('migrate:fresh');
 }

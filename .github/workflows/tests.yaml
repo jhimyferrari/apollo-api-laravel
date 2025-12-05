@@ -1,6 +1,6 @@
 name: Tests
  
-on: 'pull_request'
+on: [push,'pull_request']
  
 jobs:
   ci:
@@ -16,9 +16,17 @@ jobs:
           php-version: 8.3
           tools: composer:v2
           coverage: xdebug
+      
+      - name: Inicialize Docker Images
+        run: composer run services:docker:up 
  
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
  
       - name: Tests
         run: ./vendor/bin/pest --ci
+
+         # Derruba o docker mesmo se der erro
+      - name: Shutdown Docker
+        if: always()
+        run: composer run services:docker:down
