@@ -11,7 +11,7 @@ class Organization extends Model
 
     protected $primaryKey = 'id';
 
-    public $incrementing = false;
+    public $incrementing = true;
 
     protected $keyType = 'string';
 
@@ -19,7 +19,6 @@ class Organization extends Model
 
     protected $fillable = [
         'name',
-        'email',
         'document',
     ];
 
@@ -31,6 +30,7 @@ class Organization extends Model
             if (! $model->getKey()) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
+
         });
     }
 

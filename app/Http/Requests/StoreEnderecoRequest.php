@@ -12,6 +12,7 @@ class StoreEnderecoRequest extends FormRequest
     public function authorize(): bool
     {
         return false;
+
     }
 
     /**

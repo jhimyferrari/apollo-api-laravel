@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
@@ -25,18 +26,46 @@ class OrganizationController extends Controller
             'name' => [
                 'required',
                 'string', ],
-            'email' => [
-                'required',
-                'email'],
             'document' => [
                 'required',
                 'unique:organizations,document',
+                'regex:/^(\d{11}|\d{14})$/',
+            ],
+            'email' => [
+                'required',
+                'email'],
+            'password' => [
+                'required',
+                'min_digits:8',
             ],
         ]);
 
-        $organization = Organization::create($validated);
+        // todo
+        // Verificar com API
 
-        return $this->success($organization, 'Organization created successfully.', 201);
+        $organization = Organization::create(
+            [
+                'name' => $validated['name'],
+                'document' => $validated['document'],
+            ]
+        );
+
+        $adminUser = User::create([
+            'name' => 'Administrador',
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'organization_id' => $organization->id,
+        ]);
+
+        // todo
+        // 1 - Create AdminUser with the email provided
+        // 2 - Send Confirmating email for Admin
+        // OBS: The Email provided here must to be the Admin Email
+        // On login, the user need to informate the document of his organization
+
+        return $this->success([
+            'organization' => $organization,
+            'admin_email' => $adminUser->email], 'Organization created successfully.', 201);
     }
 
     /**

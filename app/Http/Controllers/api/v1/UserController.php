@@ -32,6 +32,9 @@ class UserController extends Controller
             'password' => [
                 'required',
                 'min:6'],
+            'organization_id' => [
+                'required',
+            ],
         ]);
         $user = User::create($validated);
 
