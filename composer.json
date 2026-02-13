@@ -51,10 +51,9 @@
             "Composer\\Config::disableProcessTimeout",
             "bash -c 'trap \"composer run services:docker:down \" INT EXIT && composer run services:docker:up && composer run services:wait:db && php artisan migrate && composer run services:web:up'"
         ],
-
         "test": [
             "@php artisan config:clear --ansi",
-            "bash -c 'trap \"composer run services:docker:down\" INT EXIT && composer run services:docker:up && composer run services:wait:db && php artisan migrate && php artisan test --parallel --processes=4'"
+            "bash -c 'trap \"composer run services:docker:down\" INT EXIT && composer run services:docker:up && composer run services:wait:db && php artisan migrate --env=testing --force && php artisan test '"
 
         ],
          

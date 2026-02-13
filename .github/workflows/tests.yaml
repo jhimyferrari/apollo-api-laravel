@@ -17,14 +17,11 @@ jobs:
           tools: composer:v2
           coverage: xdebug
       
-      - name: Inicialize Docker Images
-        run: composer run services:docker:up 
- 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
  
       - name: Tests
-        run: ./vendor/bin/pest --ci
+        run: composer run test
 
          # Derruba o docker mesmo se der erro
       - name: Shutdown Docker
