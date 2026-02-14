@@ -31,7 +31,7 @@ class LoginController extends Controller
             ], 404);
         }
 
-        $token = 'sdsd'; // $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return $this->success([
             'token' => $token,
