@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->enum('status', ['Ativo', 'Inativo']);
             $table->string('name', 45);
-            $table->tinyText('description');
             $table->timestamps();
         });
 

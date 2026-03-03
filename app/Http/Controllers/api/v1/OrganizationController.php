@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -56,6 +57,10 @@ class OrganizationController extends Controller
             'password' => $validated['password'],
             'organization_id' => $organization->id,
         ]);
+
+        $permissions = Permission::pluck('id');
+
+        $adminUser->permissions()->sync($permissions);
 
         // todo
         // 1 - Create AdminUser with the email provided
