@@ -19,11 +19,10 @@ class Permission extends Model
     protected $fillable = [
         'status_permission',
         'name',
-        'description',
     ];
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'user_permissions');
     }
 }
