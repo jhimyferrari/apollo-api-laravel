@@ -58,7 +58,7 @@ class OrganizationController extends Controller
             'organization_id' => $organization->id,
         ]);
 
-        $permissions = Permission::pluck('id');
+        $permissions = Permission::all();
 
         $adminUser->permissions()->sync($permissions);
 
