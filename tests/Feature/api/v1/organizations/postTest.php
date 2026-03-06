@@ -1,26 +1,32 @@
 <?php
 
+use App\Models\Organization;
+use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 describe('POST api/organizations', function () {
     describe('anonymous user', function () {
         test('With Unique and Valid data', function () {
+            $this->seed(PermissionSeeder::class);
+
             $data = [
                 'name' => 'newOrganization',
                 'document' => '81185396012',
                 'email' => 'uniqueEmail@email.com',
                 'password' => '12345678',
             ];
-            $header = [
-                'Accept' => 'application/json',
-            ];
-            $response = $this->post(route('v1.organizations.store'),
+            $response = $this->postJson(route('v1.organizations.store'),
                 $data,
-                $header);
+            );
 
-            $response->assertStatus(201);
-            $responseBody = $response->json();
+            $response
+                ->assertStatus(201)
+                ->assertJson(['message' => 'Organization created successfully.']);
 
-            expect($responseBody['message'])->toBe('Organization created successfully.');
-
+            $organization = Organization::where('document', $data['document'])->first();
+            $user = User::where('organization_id', $organization['id'])->first();
         });
 
     });
