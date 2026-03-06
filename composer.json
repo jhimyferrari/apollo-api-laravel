@@ -53,7 +53,7 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "bash -c 'trap \"composer run services:docker:down\" INT EXIT && composer run services:docker:up && composer run services:wait:db && php artisan migrate --env=testing --force && php artisan db:seed && php artisan test '"
+            "bash -c 'trap \"composer run services:docker:down\" INT EXIT && composer run services:docker:up && composer run services:wait:db && php artisan migrate --env=testing --force && php artisan test '"
         ],
         "lint:check": [
             "./vendor/bin/pint --parallel --max-processes=4 --test"
