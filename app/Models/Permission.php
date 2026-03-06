@@ -17,7 +17,7 @@ class Permission extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'status_permission',
+        'status',
         'name',
     ];
 

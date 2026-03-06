@@ -13,11 +13,13 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            ['status' => 'Ativo', 'name' => 'user.create'],
+            ['name' => 'user.create'],
+            ['name' => 'user.view'],
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
-                $permission
+                $permission,
+                ['status' => 'active']
             );
 
         }
