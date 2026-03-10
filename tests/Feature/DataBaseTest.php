@@ -14,6 +14,7 @@ describe('Integrit of the database', function () {
             );
         });
         test('User Model', function () {
+            $this->assertDatabaseCount('users', 0);
             $user = User::factory()->create();
             $this->assertDatabaseCount('users', 1);
             $this->assertDatabaseHas(
