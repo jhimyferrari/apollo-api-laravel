@@ -22,7 +22,7 @@ Route::prefix('v1')
         Route::post('/login', [LoginControllerV1::class, 'login'])->name('login');
 
         // Authenticated routes
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware('auth:sanctum', 'ability:user.create')->group(function () {
             Route::group(['as' => 'users.'], function () {
                 Route::post('/users', [UserControllerV1::class, 'store'])->name('store');
 

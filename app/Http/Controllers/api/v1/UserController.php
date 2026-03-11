@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -34,9 +35,26 @@ class UserController extends Controller
                 'min:6'],
             'organization_id' => [
                 'required',
+                'uuid',
+                'exists:organizations,id',
             ],
+            'permissions' => [
+                'nullable',
+                'array',
+            ],
+            'permissions.*' => [
+                'required_with:permissions',
+                'string',
+                'exists:permissions,name',
+            ],
+
         ]);
         $user = User::create($validated);
+
+        if (isset($validated['permissions'])) {
+            $permissions = Permission::whereIn('name', $validated['permissions'])->get();
+            $user->permissions()->sync($permissions);
+        }
 
         return $this->success($user, 'User created successfully.', 201);
     }
