@@ -3,52 +3,44 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
+    public static function middleware()
+    {
+        return [
+            new Middleware('abilities:user.view', only: ['index']),
+            new Middleware('abilities:user.create', only: ['store']),
+        ];
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $user = Auth::user();
+        $listOfUsers = UserResource::collection(User::where('organization_id', $user['organization_id'])->with('permissions')->paginate(15));
+
+        return $listOfUsers;
+        // todo
+        // listar todos os usuários da organization
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string'],
-            'email' => [
-                'required',
-                'email',
-                'unique:users,email'],
-            'password' => [
-                'required',
-                'min:6'],
-            'organization_id' => [
-                'required',
-                'uuid',
-                'exists:organizations,id',
-            ],
-            'permissions' => [
-                'nullable',
-                'array',
-            ],
-            'permissions.*' => [
-                'required_with:permissions',
-                'string',
-                'exists:permissions,name',
-            ],
-
-        ]);
+        $validated = $request->validated();
         $user = User::create($validated);
 
         if (isset($validated['permissions'])) {
@@ -62,10 +54,7 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
-    {
-        //
-    }
+    public function show(User $user) {}
 
     /**
      * Update the specified resource in storage.
