@@ -15,16 +15,17 @@ Route::prefix('v1')
     ->group(callback: function () {
 
         // Non authenticated routes
-        Route::group(['as' => 'organizations.'], function () {
-            Route::post('/organizations', [OrganizationControllerV1::class, 'store'])->name('store');
+        Route::group(['as' => 'organizations.', 'prefix' => '/organizations'], function () {
+            Route::post('/', [OrganizationControllerV1::class, 'store'])->name('store');
         });
 
         Route::post('/login', [LoginControllerV1::class, 'login'])->name('login');
 
         // Authenticated routes
-        Route::middleware('auth:sanctum', 'ability:user.create')->group(function () {
-            Route::group(['as' => 'users.'], function () {
-                Route::post('/users', [UserControllerV1::class, 'store'])->name('store');
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::group(['as' => 'users.', 'prefix' => '/users'], function () {
+                Route::post('/', [UserControllerV1::class, 'store'])->name('store');
+                Route::get('/', [UserControllerV1::class, 'get'])->name('index');
 
             });
 

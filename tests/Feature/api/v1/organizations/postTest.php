@@ -16,6 +16,8 @@ describe('POST api/organizations', function () {
             'email' => 'uniqueEmail@email.com',
             'password' => '12345678',
         ];
+        echo fakePassword(8, 20);
+
         $response = $this->postJson(route('v1.organizations.store'),
             $data,
         );
