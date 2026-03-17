@@ -17,8 +17,9 @@ class UserController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware('abilities:user.view', only: ['index']),
+            new Middleware('abilities:user.view', only: ['index', 'show']),
             new Middleware('abilities:user.create', only: ['store']),
+
         ];
     }
 
@@ -54,7 +55,10 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(User $user) {}
+    public function show(User $user)
+    {
+        return response()->json($user);
+    }
 
     /**
      * Update the specified resource in storage.

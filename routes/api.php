@@ -26,6 +26,7 @@ Route::prefix('v1')
             Route::group(['as' => 'users.', 'prefix' => '/users'], function () {
                 Route::post('/', [UserControllerV1::class, 'store'])->name('store');
                 Route::get('/', [UserControllerV1::class, 'index'])->name('index');
+                Route::get('/{user}', [UserControllerV1::class, 'show'])->name('show');
 
             });
 
