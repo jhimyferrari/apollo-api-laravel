@@ -36,7 +36,7 @@ describe('POST api/users', function () {
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
-            'password' => fake()->password,
+            'password' => fake()->password(minLength: 8),
             'organization_id' => $user['organization_id'],
             'permissions' => $permissions,
         ];
@@ -70,7 +70,7 @@ describe('POST api/users', function () {
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
-            'password' => fake()->password,
+            'password' => fake()->password(minLength: 8),
             'organization_id' => '9',
         ];
         $reponse = $this->postJson(
@@ -78,5 +78,11 @@ describe('POST api/users', function () {
             $data
         );
         $reponse->assertStatus(422);
+    });
+    test('Logged user without permission', function () {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+        $response = $this->postJson(route('v1.users.store'));
+        $response->assertStatus(403);
     });
 });

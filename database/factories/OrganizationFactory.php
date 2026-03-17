@@ -18,7 +18,7 @@ class OrganizationFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'document' => fake()->regexify('[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}'),
+            'document' => (random_int(0, 1) == 0) ? fake()->cnpj() : fake()->cpf(),
 
         ];
     }

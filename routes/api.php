@@ -25,7 +25,7 @@ Route::prefix('v1')
         Route::middleware('auth:sanctum')->group(function () {
             Route::group(['as' => 'users.', 'prefix' => '/users'], function () {
                 Route::post('/', [UserControllerV1::class, 'store'])->name('store');
-                Route::get('/', [UserControllerV1::class, 'get'])->name('index');
+                Route::get('/', [UserControllerV1::class, 'index'])->name('index');
 
             });
 
