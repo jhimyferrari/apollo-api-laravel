@@ -19,7 +19,7 @@ describe('POST api/users', function () {
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
-            'password' => fake()->password,
+            'password' => fake()->password(8),
             'organization_id' => $user['organization_id'],
         ];
         $response = $this->postJson(
@@ -36,7 +36,7 @@ describe('POST api/users', function () {
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
-            'password' => fake()->password(minLength: 8),
+            'password' => fake()->password(8),
             'organization_id' => $user['organization_id'],
             'permissions' => $permissions,
         ];
