@@ -4,10 +4,10 @@ namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Permission;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +19,8 @@ class UserController extends Controller implements HasMiddleware
         return [
             new Middleware('abilities:user.view', only: ['index', 'show']),
             new Middleware('abilities:user.create', only: ['store']),
-
+            new Middleware('abilities:user.update', only: ['update']),
+            new Middleware(['abilities:user.delete', 'can:delete,user'], only: ['destroy']),
         ];
     }
 
@@ -63,9 +64,15 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    // This field updatePermissions of users
+    public function update(UpdateUserRequest $request, User $user)
     {
-        //
+        $validated = $request->validated();
+        $permissions = Permission::whereIn('name', $validated['permissions'])->get();
+        $user->permissions()->sync($permissions);
+
+        return response()->noContent();
+
     }
 
     /**
@@ -73,6 +80,8 @@ class UserController extends Controller implements HasMiddleware
      */
     public function destroy(User $user)
     {
-        //
+        $user->delete();
+
+        return response()->noContent();
     }
 }

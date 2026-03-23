@@ -27,6 +27,8 @@ Route::prefix('v1')
                 Route::post('/', [UserControllerV1::class, 'store'])->name('store');
                 Route::get('/', [UserControllerV1::class, 'index'])->name('index');
                 Route::get('/{user}', [UserControllerV1::class, 'show'])->name('show');
+                Route::delete('/{user}', [UserControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{user}', [UserControllerV1::class, 'update'])->name('update');
 
             });
 

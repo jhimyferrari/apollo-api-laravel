@@ -15,6 +15,8 @@ class PermissionSeeder extends Seeder
         $permissions = [
             ['name' => 'user.create'],
             ['name' => 'user.view'],
+            ['name' => 'user.delete'],
+            ['name' => 'user.update'],
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(

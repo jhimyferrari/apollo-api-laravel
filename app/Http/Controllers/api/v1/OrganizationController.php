@@ -34,6 +34,7 @@ class OrganizationController extends Controller
             'name' => 'Administrador',
             'email' => $validated['email'],
             'password' => $validated['password'],
+            'is_administrator' => true,
             'organization_id' => $organization->id,
         ]);
 
