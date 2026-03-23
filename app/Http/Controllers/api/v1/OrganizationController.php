@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Models\Organization;
+use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -12,36 +14,14 @@ class OrganizationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
-    }
+    public function index() {}
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOrganizationRequest $request)
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string', ],
-            'document' => [
-                'required',
-                'unique:organizations,document',
-                'regex:/^(\d{11}|\d{14})$/',
-            ],
-            'email' => [
-                'required',
-                'email'],
-            'password' => [
-                'required',
-                'min_digits:8',
-            ],
-        ]);
-
-        // todo
-        // Verificar com API
+        $validated = $request->validated();
 
         $organization = Organization::create(
             [
@@ -54,8 +34,13 @@ class OrganizationController extends Controller
             'name' => 'Administrador',
             'email' => $validated['email'],
             'password' => $validated['password'],
+            'is_administrator' => true,
             'organization_id' => $organization->id,
         ]);
+
+        $permissions = Permission::all();
+
+        $adminUser->permissions()->sync($permissions);
 
         // todo
         // 1 - Create AdminUser with the email provided

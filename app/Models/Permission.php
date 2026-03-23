@@ -17,13 +17,12 @@ class Permission extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'status_permission',
+        'status',
         'name',
-        'description',
     ];
 
     public function users()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'user_permissions');
     }
 }

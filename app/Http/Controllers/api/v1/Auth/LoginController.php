@@ -3,20 +3,16 @@
 namespace App\Http\Controllers\api\v1\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Organization;
 use App\Models\User;
-use Hash;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'min:8'],
-            'organization_document' => ['required'],
-        ]);
+        $request->validated();
 
         $organization = Organization::where('document', $request['organization_document'])->get()->first();
         if (! $organization) {
@@ -31,7 +27,9 @@ class LoginController extends Controller
             ], 404);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $abilities = $user->permissions()->pluck('name')->toArray();
+
+        $token = $user->createToken('api-token', $abilities)->plainTextToken;
 
         return $this->success([
             'token' => $token,
