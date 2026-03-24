@@ -30,13 +30,14 @@ class OrganizationController extends Controller
             ]
         );
 
-        $adminUser = User::create([
+        $adminUser = new User([
             'name' => 'Administrador',
             'email' => $validated['email'],
             'password' => $validated['password'],
-            'is_administrator' => true,
-            'organization_id' => $organization->id,
         ]);
+        $adminUser->organization_id = $organization->id;
+        $adminUser->save();
+        $adminUser->isAdministrator = true;
 
         $permissions = Permission::all();
 

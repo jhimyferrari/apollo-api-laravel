@@ -32,15 +32,10 @@ class StoreUserRequest extends FormRequest
             'password' => [
                 'required',
                 'min:8'],
-            'organization_id' => [
-                'required',
-                'uuid',
-                'exists:organizations,id',
-            ],
             'email' => [
                 'required',
                 'email',
-                Rule::unique('users')->where('organization_id', $this['organization_id']),
+                Rule::unique('users'),
             ],
             'permissions' => [
                 'nullable',

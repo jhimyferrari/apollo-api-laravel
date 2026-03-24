@@ -31,8 +31,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'is_administrator',
-        'organization_id',
     ];
 
     /**
@@ -56,6 +54,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted()
+    {
+        static::creating(function (User $user) {
+            if (auth()->check()) {
+                $user->organization_id ??= auth()->user()->organization_id;
+            }
+        });
     }
 
     public function isAdministrator(): bool

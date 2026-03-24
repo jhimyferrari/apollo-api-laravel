@@ -20,7 +20,6 @@ describe('POST api/users', function () {
             'name' => fake()->name,
             'email' => fake()->email,
             'password' => fake()->password(8),
-            'organization_id' => $user['organization_id'],
         ];
         $response = $this->postJson(
             route('v1.users.store'),
@@ -37,7 +36,6 @@ describe('POST api/users', function () {
             'name' => fake()->name,
             'email' => fake()->email,
             'password' => fake()->password(8),
-            'organization_id' => $user['organization_id'],
             'permissions' => $permissions,
         ];
         $response = $this->postJson(
@@ -69,9 +67,8 @@ describe('POST api/users', function () {
         Sanctum::actingAs($user, ['user.create']);
         $data = [
             'name' => fake()->name,
-            'email' => fake()->email,
-            'password' => fake()->password(minLength: 8),
-            'organization_id' => '9',
+            'email' => 'wrongEmail@',
+            'password' => fake()->password(8),
         ];
         $reponse = $this->postJson(
             route('v1.users.store'),
