@@ -5,8 +5,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
-use function Pest\Laravel\getJson;
-
 uses(RefreshDatabase::class);
 describe('GET api/users', function () {
     test('Logged user', function () {
@@ -45,13 +43,13 @@ describe('GET api/users', function () {
         $this->assertNotContains($response->json('data'), $firstRequestData);
     });
     test('Non logged user', function () {
-        $response = getJson(route('v1.users.index'));
+        $response = $this->getJson(route('v1.users.index'));
         $response->assertUnauthorized();
     });
     test('Logged user without permission', function () {
         $user = User::factory()->create();
         Sanctum::actingAs($user);
-        $response = getJson(route('v1.users.index'));
+        $response = $this->getJson(route('v1.users.index'));
         $response->assertForbidden();
     });
 });
