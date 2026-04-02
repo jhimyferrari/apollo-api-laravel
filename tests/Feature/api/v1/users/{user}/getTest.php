@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Resources\UserResource;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,13 +17,9 @@ describe('GET api/users/{user}', function () {
         Sanctum::actingAs($firtsUser, ['user.view']);
         $response = $this->getJson(route('v1.users.show', $secondUser));
 
-        $response->assertOk();
-        $response->assertJson([
-            'id' => $secondUser->id,
-            'email' => $secondUser->email,
-            'name' => $secondUser->name,
-        ]);
-        $response->assertJsonMissingPath('password');
+        $response->assertOk()
+            ->assertJson(UserResource::make($secondUser)->response()->getData(true))
+            ->assertJsonMissingPath('password');
 
         $otherOrganization = Organization::factory()->create();
         $otherUser = User::factory()->create(

@@ -6,14 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
-use App\Models\Permission;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        protected UserService $userService) {}
+
     public static function middleware()
     {
         return [
@@ -29,12 +31,7 @@ class UserController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $user = Auth::user();
-        $listOfUsers = UserResource::collection(User::where('organization_id', $user['organization_id'])->with('permissions')->paginate(15));
-
-        return $listOfUsers;
-        // todo
-        // listar todos os usuários da organization
+        return $this->userService->listAll();
     }
 
     /**
@@ -42,13 +39,7 @@ class UserController extends Controller implements HasMiddleware
      */
     public function store(StoreUserRequest $request)
     {
-        $validated = $request->validated();
-        $user = User::create($validated);
-
-        if (isset($validated['permissions'])) {
-            $permissions = Permission::whereIn('name', $validated['permissions'])->get();
-            $user->permissions()->sync($permissions);
-        }
+        $user = $this->userService->create($request->validated());
 
         return $this->success($user, 'User created successfully.', 201);
     }
@@ -58,7 +49,7 @@ class UserController extends Controller implements HasMiddleware
      */
     public function show(User $user)
     {
-        return response()->json($user);
+        return UserResource::make($user);
     }
 
     /**
@@ -67,9 +58,7 @@ class UserController extends Controller implements HasMiddleware
     // This field updatePermissions of users
     public function update(UpdateUserRequest $request, User $user)
     {
-        $validated = $request->validated();
-        $permissions = Permission::whereIn('name', $validated['permissions'])->get();
-        $user->permissions()->sync($permissions);
+        $this->userService->updatePermissions($user, $request->validated());
 
         return response()->noContent();
 
@@ -80,7 +69,8 @@ class UserController extends Controller implements HasMiddleware
      */
     public function destroy(User $user)
     {
-        $user->delete();
+
+        $this->userService->delete($user);
 
         return response()->noContent();
     }
