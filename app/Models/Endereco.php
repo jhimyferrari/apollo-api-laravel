@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Endereco extends Model
 {
-    protected $table = 'enderecos';
+    protected $table = 'addresses';
 
     protected $primaryKey = 'id';
 

@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Municipio;
+use App\Models\City;
 use Illuminate\Database\Seeder;
 
-class MunicipioSeeder extends Seeder
+class CitiesSeeder extends Seeder
 {
     private $delimiter = ',';
 
@@ -58,15 +58,15 @@ class MunicipioSeeder extends Seeder
         while (($row = fgetcsv($handle, 0, $this->delimiter, $this->enclosure, $this->escape)) !== false) {
             $data = array_combine($header, $row);
 
-            $municipio = [
-                'codigo_ibge' => $data['codigo_ibge'],
-                'nome' => $data['nome'],
-                'uf_codigo_ibge' => $data['codigo_uf'],
+            $city = [
+                'ibge_code' => $data['codigo_ibge'],
+                'name' => $data['nome'],
+                'uf_ibge_code' => $data['codigo_uf'],
             ];
 
-            Municipio::updateOrCreate([
-                'codigo_ibge' => $municipio['codigo_ibge'],
-            ], $municipio);
+            City::updateOrCreate([
+                'codigo_ibge' => $city['codigo_ibge'],
+            ], $city);
             $count++;
         }
         fclose($handle);

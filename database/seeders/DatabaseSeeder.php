@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call(UfSeeder::class);
-        $this->call(MunicipioSeeder::class);
+        $this->call(CitiesSeeder::class);
         $this->call(PermissionSeeder::class);
     }
 }

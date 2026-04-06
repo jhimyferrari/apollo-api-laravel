@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('enderecos', function (Blueprint $table) {
+        Schema::create('adresses', function (Blueprint $table) {
             $table->id();
-            $table->string('bairro', 45);
-            $table->string('numero', 10);
-            $table->string('complemento', 45)->nullable();
+            $table->string('neighborhood', 45);
+            $table->string('number', 10);
+            $table->string('complement', 45)->nullable();
             $table->char('cep', 8);
-            $table->char('municipio_codigo_ibge', 7);
+            $table->char('city_ibge_code', 7);
             $table->timestamps();
 
-            $table->foreign('municipio_codigo_ibge')
-                ->references('codigo_ibge')
-                ->on('municipios');
+            $table->foreign('city_ibge_code')
+                ->references('ibge_code')
+                ->on('cities');
         });
     }
 
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('enderecos');
+        Schema::dropIfExists('adresses');
     }
 };

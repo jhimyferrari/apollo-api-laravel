@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Municipio extends Model
+class City extends Model
 {
-    protected $table = 'municipios';
+    protected $table = 'cities';
 
-    protected $primaryKey = 'codigo_ibge';
+    protected $primaryKey = 'ibge_code';
 
     public $incrementing = false;
 
@@ -17,13 +17,13 @@ class Municipio extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'codigo_ibge',
-        'nome',
-        'uf_codigo_ibge',
+        'ibge_code',
+        'name',
+        'uf_ibge_code',
     ];
 
     public function uf()
     {
-        return $this->belongsTo(Uf::class, 'uf_codigo_ibge', 'codigo_ibge');
+        return $this->belongsTo(Uf::class, 'uf_ibge_code', 'ibge_code');
     }
 }
