@@ -16,11 +16,11 @@ class CitiesSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(): void
+    public function run($limit = 0): void
     {
         $path = database_path('data/municipios.csv');
         [$header,$handle] = $this->readCSV($path);
-        $this->mapAndInsertData($header, $handle);
+        $this->mapAndInsertData($header, $handle, $limit);
 
     }
 
@@ -50,12 +50,15 @@ class CitiesSeeder extends Seeder
 
     }
 
-    public function mapAndInsertData($header, $handle)
+    public function mapAndInsertData($header, $handle, int $limit)
     {
         $header = array_map(fn ($h) => strtolower(trim($h)), $header);
         $count = 0;
 
         while (($row = fgetcsv($handle, 0, $this->delimiter, $this->enclosure, $this->escape)) !== false) {
+            if ($limit > 0 && $count >= $limit) {
+                break;
+            }
             $data = array_combine($header, $row);
 
             $city = [
@@ -65,7 +68,7 @@ class CitiesSeeder extends Seeder
             ];
 
             City::updateOrCreate([
-                'codigo_ibge' => $city['codigo_ibge'],
+                'ibge_code' => $city['ibge_code'],
             ], $city);
             $count++;
         }

@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('adresses', function (Blueprint $table) {
-            $table->id();
+        Schema::create('addresses', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('street', 45);
             $table->string('neighborhood', 45);
             $table->string('number', 10);
             $table->string('complement', 45)->nullable();
             $table->char('cep', 8);
             $table->char('city_ibge_code', 7);
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('city_ibge_code')

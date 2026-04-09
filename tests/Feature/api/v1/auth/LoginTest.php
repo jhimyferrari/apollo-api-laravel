@@ -12,10 +12,10 @@ describe('Create Organization and Login flow', function () {
         $this->seed(PermissionSeeder::class);
         // Creating a new organization
         $data = [
-            'name' => 'OrganizationFlow',
-            'document' => '30053961000125',
-            'email' => 'emailFlow@email.com',
-            'password' => '12345678',
+            'name' => fake()->domainName,
+            'document' => fake()->cpf(false),
+            'email' => fake()->email,
+            'password' => fake()->password(8),
         ];
         $response = $this->postJson(route('v1.organizations.store'),
             $data,
@@ -25,13 +25,12 @@ describe('Create Organization and Login flow', function () {
         $responseBody = $response->json();
 
         expect($responseBody['message'])->toBe('Organization created successfully.');
-        $createdOrganization = Organization::where('document', $data['document'])->exists();
-        expect($createdOrganization)->toBeTrue();
+        $this->assertDatabaseHas('organizations', ['document' => $data['document']]);
 
         // Doing Login using the Admin User
         $data = [
-            'email' => 'emailFlow@email.com',
-            'password' => '12345678',
+            'email' => $data['email'],
+            'password' => $data['password'],
             'organization_document' => $data['document'],
         ];
         $response = $this->postJson(route('v1.login'),
