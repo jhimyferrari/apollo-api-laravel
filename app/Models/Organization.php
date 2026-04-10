@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\DocumentHelper;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,7 +32,7 @@ class Organization extends Model
     {
         return Attribute::make(
             set: function ($value) {
-                $formatedValue = preg_replace('/[^\d]/', '', $value);
+                $formatedValue = DocumentHelper::formatCpfAndCnpj($value);
 
                 if (\strlen($formatedValue) === 11 || \strlen($formatedValue) === 14) {
                     return $formatedValue;
