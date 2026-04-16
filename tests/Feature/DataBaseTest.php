@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\Auth\ForbiddenException;
 use App\Models\Address;
 use App\Models\Client;
 use App\Models\Organization;
@@ -53,4 +54,30 @@ describe('Integrit of the database', function () {
             );
         });
     });
+    describe('Models should have security', function () {
+        describe('users', function () {
+            it('throws exception for try to change user organization ', function () {
+                $user = User::factory()->create();
+
+                $otherOrganization = Organization::factory()->create();
+
+                $user->organization_id = $otherOrganization->id;
+
+                $user->save();
+
+            })->throws(ForbiddenException::class);
+        });
+        describe('clients', function () {
+            it('throw exception for try to change client organization', function () {
+                $client = Client::factory()->create();
+
+                $otherOrganization = Organization::factory()->create();
+
+                $client->organization_id = $otherOrganization->id;
+
+                $client->save();
+            })->throws(ForbiddenException::class);
+        });
+    });
+
 });

@@ -1,27 +1,37 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\api\v1;
 
-use App\Http\Requests\StoreClientRequest;
-use App\Http\Requests\UpdateClientRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\StoreClientRequest;
+use App\Http\Requests\Client\UpdateClientRequest;
+use App\Http\Resources\ClientResource;
 use App\Models\Client;
+use App\Services\ClientService;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ClientController extends Controller
+class ClientController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        protected ClientService $clientService
+    ) {}
+
+    public static function middleware()
+    {
+        return [
+            new Middleware('abilities:client.create', only: ['store']),
+            new Middleware('abilities:client.show', only: ['index', 'show']),
+        ];
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return ClientResource::collection(Client::with('address')->paginate(15));
     }
 
     /**
@@ -29,7 +39,9 @@ class ClientController extends Controller
      */
     public function store(StoreClientRequest $request)
     {
-        //
+        $data = $this->clientService->create($request->validated());
+
+        return $this->success($data, 'Client created succesfully.', 201);
     }
 
     /**
@@ -37,15 +49,7 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Client $client)
-    {
-        //
+        return ClientResource::make($client);
     }
 
     /**

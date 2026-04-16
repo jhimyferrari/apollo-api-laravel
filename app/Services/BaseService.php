@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Interfaces\ResourceServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class BaseService implements ResourceServiceInterface
 {
@@ -15,7 +16,12 @@ class BaseService implements ResourceServiceInterface
         return $this->model->all();
     }
 
-    public function findById(int $id): ?Model
+    public function toResource(Model $model): ?JsonResource
+    {
+        return JsonResource::make($model);
+    }
+
+    public function findById(int $id): Model|JsonResource|null
     {
         return $this->model->find($id);
     }

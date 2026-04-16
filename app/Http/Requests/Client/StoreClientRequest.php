@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Client;
 
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -36,15 +36,15 @@ class StoreClientRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'state_registration' => [
+                'nullable',
+                'string',
+            ],
             'email' => [
                 'nullable',
                 'email',
             ],
             'phone' => [
-                'nullable',
-                'string',
-            ],
-            'number' => [
                 'nullable',
                 'string',
             ],

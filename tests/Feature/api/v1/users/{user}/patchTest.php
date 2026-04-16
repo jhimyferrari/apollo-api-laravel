@@ -66,7 +66,6 @@ describe('PATCH api/users/{user}', function () {
         );
         Sanctum::actingAs($user);
         $response = $this->patchJson(route('v1.users.update', $user), [
-
         ]);
         $response->assertForbidden();
     });

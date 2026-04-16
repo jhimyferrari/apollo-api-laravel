@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\v1\Auth\LoginController as LoginControllerV1;
+use App\Http\Controllers\api\v1\ClientController as ClientControllerV1;
 use App\Http\Controllers\api\v1\OrganizationController as OrganizationControllerV1;
 use App\Http\Controllers\api\v1\UserController as UserControllerV1;
 use Illuminate\Http\Request;
@@ -29,7 +30,13 @@ Route::prefix('v1')
                 Route::get('/{user}', [UserControllerV1::class, 'show'])->name('show');
                 Route::delete('/{user}', [UserControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{user}', [UserControllerV1::class, 'update'])->name('update');
-
+            });
+            Route::group(['as' => 'clients.', 'prefix' => '/clients'], function () {
+                Route::post('/', [ClientControllerV1::class, 'store'])->name('store');
+                Route::get('/', [ClientControllerV1::class, 'index'])->name('index');
+                Route::get('/{client}', [ClientControllerV1::class, 'show'])->name('show');
+                Route::delete('/{client}', [ClientControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{client}', [ClientControllerV1::class, 'update'])->name('update');
             });
 
         });

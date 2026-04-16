@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use InvalidArgumentException;
 
 class Organization extends Model
@@ -28,6 +30,15 @@ class Organization extends Model
         'document',
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::created(function (Organization $organization) {
+            $organization->sequencialNumber()->create();
+        });
+    }
+
     public function document(): Attribute
     {
         return Attribute::make(
@@ -42,13 +53,18 @@ class Organization extends Model
         );
     }
 
-    public function users()
+    public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }
 
-    public function clients()
+    public function clients(): HasMany
     {
         return $this->hasMany(Client::class);
+    }
+
+    public function sequencialNumber(): HasOne
+    {
+        return $this->hasOne(SequencialNumber::class);
     }
 }

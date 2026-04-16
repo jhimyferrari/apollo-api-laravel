@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use App\Http\Resources\UserResource;
 use App\Models\Permission;
 use App\Models\User;
-use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class UserService extends BaseService
 {
@@ -27,13 +25,6 @@ class UserService extends BaseService
         }
 
         return $user;
-    }
-
-    public function listAll(): ResourceCollection
-    {
-        $listOfUsers = UserResource::collection(User::with('permissions')->paginate(15));
-
-        return $listOfUsers;
     }
 
     public function updatePermissions(User $user, array $data): void

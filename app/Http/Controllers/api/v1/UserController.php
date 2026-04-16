@@ -31,7 +31,8 @@ class UserController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        return $this->userService->listAll();
+        return UserResource::collection(User::with('permissions')->paginate(15));
+
     }
 
     /**
