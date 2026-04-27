@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('sequencial_numbers', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('organization_id')->references('id')->on('organizations')->onDelete('cascade');
-            $table->bigInteger('last_client_number')->default(0);
-            $table->unique(['organization_id']);
+            $table->string('table');
+            $table->bigInteger('last_number')->default(0);
+            $table->unique(['organization_id', 'table']);
+            $table->timestamps();
         });
     }
 

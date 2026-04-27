@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Exceptions\Auth\ForbiddenException;
 use App\Helpers\DocumentHelper;
 use App\Models\Scopes\OrganizationScope;
+use App\Traits\HasSequencialNumber;
 use Database\Factories\ClientFactory;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -20,7 +21,7 @@ use InvalidArgumentException;
 class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasSequencialNumber, HasUuids,SoftDeletes;
 
     protected $table = 'clients';
 
@@ -38,23 +39,9 @@ class Client extends Model
         'address_id',
     ];
 
-    protected static function boot()
+    protected static function booted()
     {
-        parent::boot();
 
-        static::creating(function (Client $client) {
-            if (auth()->check()) {
-                $client->organization_id ??= auth()->user()->organization_id;
-            }
-            /** @var SequencialNumber $sequencialNumber */
-            $sequencialNumber = $client->organization->sequencialNumber;
-            $client->number = $sequencialNumber->nextClientNumber();
-            $sequencialNumber->last_client_number = ($client->number);
-            $sequencialNumber->save();
-
-            $client->status = 'active';
-
-        });
         static::updating(function (Client $client) {
             if ($client->isDirty('organization_id')) {
                 throw new ForbiddenException('Organization of a client can´t be changed');

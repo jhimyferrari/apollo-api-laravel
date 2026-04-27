@@ -20,6 +20,11 @@ describe('Integrit of the database', function () {
                 'organizations',
                 ['document' => $organization['document']]
             );
+
+            $this->assertDatabaseHas(
+                'sequencial_numbers',
+                ['organization_id' => $organization->id]
+            );
         });
         test('User Model', function () {
             $this->assertDatabaseEmpty('users');

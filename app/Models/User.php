@@ -62,22 +62,17 @@ class User extends Authenticatable
 
     protected static function booted()
     {
-        static::creating(function (User $user) {
-            if (auth()->check()) {
-                $user->organization_id ??= auth()->user()->organization_id;
-            }
-        });
         static::updating(function (User $user) {
             if ($user->isDirty('organization_id')) {
-                throw new ForbiddenException('Organization of an user can´t be changed');
+                throw new ForbiddenException('Organization of an user cannot be changed');
             }
             if ($user->isDirty('is_administrator')) {
-                throw new ForbiddenException('Administrator atribute can´t be changed');
+                throw new ForbiddenException('Administrator atribute cannot be changed');
             }
         });
         static::deleting(function (User $user) {
             if ($user->isAdministrator()) {
-                throw new ForbiddenException('The administrator can´t be removed');
+                throw new ForbiddenException('The administrator cannot be removed');
             }
         });
     }

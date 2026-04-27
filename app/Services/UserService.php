@@ -12,19 +12,21 @@ class UserService extends BaseService
         parent::__construct(new User);
     }
 
-    public function create(array $data): User
+    public function createWithOrganization(array $data, User $user): User
     {
-        $user = User::create([
+        $newUser = new User([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
         ]);
+        $newUser->organization_id = $user->organization_id;
+        $newUser->save();
+
         if (isset($data['permissions'])) {
-            $permissions = Permission::whereIn('name', $data['permissions'])->get();
-            $user->permissions()->sync($permissions);
+            $this->updatePermissions($newUser, $data);
         }
 
-        return $user;
+        return $newUser;
     }
 
     public function updatePermissions(User $user, array $data): void

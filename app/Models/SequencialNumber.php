@@ -12,16 +12,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Table('sequencial_numbers')]
 class SequencialNumber extends Model
 {
-    public $timestamps = false;
+    protected $fillable = [
+        'organization_id',
+        'table',
+    ];
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
-    }
-
-    public function nextClientNumber(): int
-    {
-
-        return $this['last_client_number'] + 1;
     }
 }

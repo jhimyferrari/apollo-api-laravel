@@ -22,7 +22,6 @@ class ClientFactory extends Factory
 
         return [
             'status' => 'active',
-            'number' => fake()->randomNumber(),
             'document' => ($random_int == 0) ? fake()->cnpj() : fake()->cpf(),
             'legal_name' => fake()->domainName(),
             'trade_name' => fake()->name(),

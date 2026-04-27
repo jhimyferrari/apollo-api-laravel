@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use App\Helpers\DocumentHelper;
+use App\Observers\OrganizationObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use InvalidArgumentException;
 
+#[ObservedBy(OrganizationObserver::class)]
 class Organization extends Model
 {
     use HasFactory,HasUuids;
@@ -29,15 +31,6 @@ class Organization extends Model
         'name',
         'document',
     ];
-
-    public static function boot()
-    {
-        parent::boot();
-
-        static::created(function (Organization $organization) {
-            $organization->sequencialNumber()->create();
-        });
-    }
 
     public function document(): Attribute
     {
@@ -63,8 +56,8 @@ class Organization extends Model
         return $this->hasMany(Client::class);
     }
 
-    public function sequencialNumber(): HasOne
+    public function sequencialNumber(): HasMany
     {
-        return $this->hasOne(SequencialNumber::class);
+        return $this->hasMany(SequencialNumber::class);
     }
 }
