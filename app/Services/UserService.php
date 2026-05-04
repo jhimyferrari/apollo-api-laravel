@@ -31,7 +31,7 @@ class UserService extends BaseService
 
     public function updatePermissions(User $user, array $data): void
     {
-        $permissions = Permission::whereName($data['permissions'])->get();
+        $permissions = Permission::whereIn('name', $data['permissions'])->pluck('id');
         $user->permissions()->sync($permissions);
 
     }
