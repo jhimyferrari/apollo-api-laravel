@@ -12,24 +12,17 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $permissions = [
-            // user
-            ['name' => 'user.create'],
-            ['name' => 'user.view'],
-            ['name' => 'user.delete'],
-            ['name' => 'user.update'],
-            // client
-            ['name' => 'client.create'],
-            ['name' => 'client.view'],
-            ['name' => 'client.delete'],
-            ['name' => 'client.update'],
-        ];
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(
-                $permission,
-                ['status' => 'active']
-            );
+        $resources = ['user', 'client'];
+        $actions = ['create', 'view', 'update', 'delete'];
 
+        $permissions = [];
+        foreach ($resources as $resource) {
+            foreach ($actions as $action) {
+                $permissions[] = ['name' => "{$resource}.{$action}", 'status' => 'active'];
+            }
         }
+
+        Permission::upsert($permissions, ['name'], ['status']);
+
     }
 }
