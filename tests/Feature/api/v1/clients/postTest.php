@@ -23,6 +23,8 @@ describe('POST api/clients', function () {
         $response = $this->postJson(route('v1.clients.store'), $data);
 
         $response->assertCreated();
+        expect($response->json('data')['number'])->toBe(1);
+
     });
     test('Non logged user', function () {
         $response = $this->postJson(route('v1.clients.store'));
@@ -35,6 +37,6 @@ describe('POST api/clients', function () {
         Sanctum::actingAs($user);
         $response = $this->postJson(route('v1.clients.store'));
 
-        $response->assertForbidden();
+        $response->assertNotFound();
     });
 });

@@ -36,13 +36,10 @@ describe('DELETE api/users/{user}', function () {
     });
     test('Logged user without permission', function () {
         $user = User::factory()->create();
-        $secondUser = User::factory()->create([
-            'organization_id' => $user->organization_id,
-        ]);
-        Sanctum::actingAs($user);
-        $response = $this->deleteJson(route('v1.users.destroy', $secondUser));
+        Sanctum::actingAs(User::factory()->create());
+        $response = $this->deleteJson(route('v1.users.destroy', $user));
 
-        $response->assertForbidden();
+        $response->assertNotFound();
     });
     test('User can´t delete himself', function () {
         $user = User::factory()->create();

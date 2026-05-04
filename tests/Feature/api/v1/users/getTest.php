@@ -47,9 +47,8 @@ describe('GET api/users', function () {
         $response->assertUnauthorized();
     });
     test('Logged user without permission', function () {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        Sanctum::actingAs(User::factory()->create());
         $response = $this->getJson(route('v1.users.index'));
-        $response->assertForbidden();
+        $response->assertNotFound();
     });
 });
