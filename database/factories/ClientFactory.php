@@ -22,7 +22,7 @@ class ClientFactory extends Factory
 
         return [
             'status' => 'active',
-            'document' => ($random_int == 0) ? fake()->cnpj() : fake()->cpf(),
+            'document' => ($random_int == 0) ? fake()->cnpj(false) : fake()->cpf(false),
             'legal_name' => fake()->domainName(),
             'trade_name' => fake()->name(),
             'state_registration' => ($random_int == 0) ? fake()->regexify('[0-9]{9,12}') : fake()->rg(),

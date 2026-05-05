@@ -19,7 +19,7 @@ describe('GET api/clients', function () {
         Client::factory()->count(20)->create(
             ['organization_id' => $user->organization_id]
         );
-        Sanctum::actingAs($user, ['client.show']);
+        Sanctum::actingAs($user, ['client.view']);
 
         $response = $this->getJson(route('v1.clients.index'));
 
@@ -40,6 +40,6 @@ describe('GET api/clients', function () {
 
         Sanctum::actingAs($user);
         $response = $this->getJson(route('v1.clients.index'));
-        $response->assertForbidden();
+        $response->assertNotFound();
     });
 });

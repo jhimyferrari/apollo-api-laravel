@@ -21,7 +21,9 @@ class ClientController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('abilities:client.create', only: ['store']),
-            new Middleware('abilities:client.show', only: ['index', 'show']),
+            new Middleware('abilities:client.delete', only: ['destroy']),
+            new Middleware('abilities:client.view', only: ['index', 'show']),
+            new Middleware('abilities:client.update', only: ['update']),
         ];
     }
 
@@ -57,7 +59,9 @@ class ClientController extends Controller implements HasMiddleware
      */
     public function update(UpdateClientRequest $request, Client $client)
     {
-        //
+        $this->clientService->update($client, $request->validated());
+
+        return response()->noContent();
     }
 
     /**
@@ -65,6 +69,8 @@ class ClientController extends Controller implements HasMiddleware
      */
     public function destroy(Client $client)
     {
-        //
+        $this->clientService->delete($client);
+
+        return response()->noContent();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Client;
 
+use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -12,7 +13,7 @@ class UpdateClientRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +24,31 @@ class UpdateClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'document' => [
+                'required',
+                new CpfAndCnpj,
+            ],
+            'legal_name' => [
+                'required',
+                'string',
+            ],
+            'trade_name' => [
+                'required',
+                'string',
+            ],
+            'state_registration' => [
+                'nullable',
+                'string',
+            ],
+            'email' => [
+                'nullable',
+                'email',
+            ],
+            'phone' => [
+                'nullable',
+                'string',
+            ],
+
         ];
     }
 }
