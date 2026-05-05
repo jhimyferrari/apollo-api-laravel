@@ -57,6 +57,7 @@ describe('Integrit of the database', function () {
                 'clients',
                 ['document' => $client['document']]
             );
+
         });
     });
     describe('Models should have security', function () {
