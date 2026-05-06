@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Exceptions\Auth\ForbiddenException;
 use App\Helpers\DocumentHelper;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasSequencialNumber;
+use App\Traits\ProtectsOrganization;
 use Database\Factories\ClientFactory;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -21,7 +21,7 @@ use InvalidArgumentException;
 class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
-    use HasFactory, HasSequencialNumber, HasUuids,SoftDeletes;
+    use HasFactory, HasSequencialNumber, HasUuids,ProtectsOrganization,SoftDeletes;
 
     protected $table = 'clients';
 
@@ -38,16 +38,6 @@ class Client extends Model
         'email',
         'address_id',
     ];
-
-    protected static function booted()
-    {
-
-        static::updating(function (Client $client) {
-            if ($client->isDirty('organization_id')) {
-                throw new ForbiddenException('Organization of a client can´t be changed');
-            }
-        });
-    }
 
     public function document(): Attribute
     {
