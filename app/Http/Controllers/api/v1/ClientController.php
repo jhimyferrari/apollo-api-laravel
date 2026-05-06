@@ -41,9 +41,9 @@ class ClientController extends Controller implements HasMiddleware
      */
     public function store(StoreClientRequest $request)
     {
-        $data = $this->clientService->createWithOrganization($request->validated(), Auth()->user());
+        $newClient = $this->clientService->createWithOrganization($request->validated(), Auth()->user());
 
-        return $this->success($data, 'Client created succesfully.', 201);
+        return $this->success($newClient, 'Client created succesfully.', 201);
     }
 
     /**

@@ -25,10 +25,10 @@ class OrganizationController extends Controller
     public function store(StoreOrganizationRequest $request)
     {
 
-        [$organization, $adminUser] = $this->organizationService->create($request->validated());
+        [$newOrganization, $adminUser] = $this->organizationService->create($request->validated());
 
         return $this->success([
-            'organization' => $organization,
+            'organization' => $newOrganization,
             'admin_email' => $adminUser->email], 'Organization created successfully.', 201);
     }
 
