@@ -38,11 +38,11 @@ describe('PATCH api/clients/{client}', function () {
     });
     test('Logged user with non valid data', function () {
         $user = User::factory()->create();
-        $client = Client::factory()->create();
+        $client = Client::factory()->create(['organization_id' => $user->organization_id]);
         Sanctum::actingAs($user, ['client.update']);
         $response = $this->patchJson(route('v1.clients.update', $client), []);
 
-        $response->assertNotFound();
+        $response->assertUnprocessable();
     });
     test('Logged user without permission', function () {
         $client = Client::factory()->create();

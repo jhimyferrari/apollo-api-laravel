@@ -10,7 +10,6 @@ describe('POST api/clients', function () {
         $user = User::factory()->create();
 
         Sanctum::actingAs($user, ['client.create']);
-
         $data = [
             'document' => fake()->cnpj(),
             'legal_name' => fake()->name,
