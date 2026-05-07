@@ -12,7 +12,7 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $resources = ['user', 'client'];
+        $resources = ['user', 'client', 'seller'];
         $actions = ['create', 'view', 'update', 'delete'];
 
         $permissions = [];

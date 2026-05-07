@@ -4,6 +4,7 @@ use App\Exceptions\Auth\ForbiddenException;
 use App\Models\Address;
 use App\Models\Client;
 use App\Models\Organization;
+use App\Models\Seller;
 use App\Models\User;
 use Database\Seeders\CitiesSeeder;
 use Database\Seeders\UfSeeder;
@@ -49,13 +50,22 @@ describe('Integrit of the database', function () {
                 ['id' => $address['id']]
             );
         });
-        test('Clients Model', function () {
+        test('Client Model', function () {
             $this->assertDatabaseEmpty('clients');
             $client = Client::factory()->create();
             $this->assertDatabaseCount('clients', 1);
             $this->assertDatabaseHas(
                 'clients',
                 ['document' => $client['document']]
+            );
+        });
+        test('Seller Model', function () {
+            $this->assertDatabaseEmpty('sellers');
+            $seller = Seller::factory()->create();
+            $this->assertDatabaseCount('sellers', 1);
+            $this->assertDatabaseHas(
+                'sellers',
+                ['document' => $seller['document']]
             );
 
         });
