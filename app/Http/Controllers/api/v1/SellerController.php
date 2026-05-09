@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\v1;
 
+use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Seller\StoreSellerRequest;
 use App\Http\Requests\Seller\UpdateSellerRequest;
@@ -20,10 +21,10 @@ class SellerController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware('abilities:seller.create', only: ['store']),
-            new Middleware('abilities:seller.view', only: ['index', 'show']),
-            new Middleware('abilities:seller.update', only: ['update']),
-            new Middleware('abilities:seller.delete', only: ['destroy']),
+            new Middleware('abilities:'.PermissionType::SELLER_CREATE->value, only: ['store']),
+            new Middleware('abilities:'.PermissionType::SELLER_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::SELLER_UPDATE->value, only: ['update']),
+            new Middleware('abilities:'.PermissionType::SELLER_DELETE->value, only: ['destroy']),
         ];
     }
 

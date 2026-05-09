@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Permission;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -14,7 +15,7 @@ describe('POST api/users', function () {
         $user = User::factory()->create();
         $this->assertDatabaseCount('users', 1);
 
-        Sanctum::actingAs($user, ['user.create']);
+        Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
 
         // creating a user without permissions
         $passwordPlain = fake()->password(8);
@@ -70,7 +71,7 @@ describe('POST api/users', function () {
         $this->seed(PermissionSeeder::class);
         $user = User::factory()->create();
 
-        Sanctum::actingAs($user, ['user.create']);
+        Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
         $data = [
             'name' => fake()->name,
             'email' => 'wrongEmail@',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Seller;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,7 +13,7 @@ describe('DELETE api/sellers/{seller}', function () {
         $user = User::factory()->create();
         $seller = Seller::factory()->create(['organization_id' => $user->organization_id]);
 
-        Sanctum::actingAs($user, ['seller.delete']);
+        Sanctum::actingAs($user, [PermissionType::SELLER_DELETE->value]);
         $response = $this->deleteJson(route('v1.sellers.destroy', $seller));
 
         $response->assertNoContent();

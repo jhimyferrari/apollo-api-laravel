@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Client;
 use App\Models\Organization;
 use App\Models\User;
@@ -19,7 +20,7 @@ describe('GET api/clients', function () {
         Client::factory()->count(20)->create(
             ['organization_id' => $user->organization_id]
         );
-        Sanctum::actingAs($user, ['client.view']);
+        Sanctum::actingAs($user, [PermissionType::CLIENT_READ->value]);
 
         $response = $this->getJson(route('v1.clients.index'));
 

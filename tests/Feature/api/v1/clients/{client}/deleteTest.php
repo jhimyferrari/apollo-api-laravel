@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -9,7 +10,7 @@ uses(RefreshDatabase::class);
 describe('DELETE api/clients/{client}', function () {
     test('Logged user with permission', function () {
         $user = User::factory()->create();
-        Sanctum::actingAs($user, ['client.delete']);
+        Sanctum::actingAs($user, [PermissionType::CLIENT_DELETE->value]);
         $client = Client::factory()->create(
             ['organization_id' => $user->organization_id]);
         $response = $this->deleteJson(route('v1.clients.destroy', $client));

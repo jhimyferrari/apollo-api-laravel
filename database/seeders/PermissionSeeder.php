@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enum\PermissionType;
 use App\Models\Permission;
 use Illuminate\Database\Seeder;
 
@@ -12,17 +13,12 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $resources = ['user', 'client', 'seller'];
-        $actions = ['create', 'view', 'update', 'delete'];
-
-        $permissions = [];
-        foreach ($resources as $resource) {
-            foreach ($actions as $action) {
-                $permissions[] = ['name' => "{$resource}.{$action}", 'status' => 'active'];
-            }
+        foreach (PermissionType::cases() as $permission) {
+            Permission::updateOrCreate(
+                ['name' => $permission->value],
+                ['status' => 'active']
+            );
         }
-
-        Permission::upsert($permissions, ['name'], ['status']);
 
     }
 }

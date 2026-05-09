@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Organization;
 use App\Models\Permission;
 use App\Models\User;
@@ -21,7 +22,7 @@ describe('PATCH api/users/{user}', function () {
             'organization_id' => $organization->id,
         ]);
 
-        Sanctum::actingAs($user, ['user.update']);
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
         $permissions = Permission::where('name', 'like', 'user.%')->pluck('name');
 
         $response = $this->patchJson(route('v1.users.update', $secondUser), [
@@ -51,7 +52,7 @@ describe('PATCH api/users/{user}', function () {
         $this->seed(PermissionSeeder::class);
         $user = User::factory()->create();
 
-        Sanctum::actingAs($user, ['user.update']);
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
         $response = $this->patchJson(route('v1.users.update', $user), []);
         $response->assertUnprocessable();
 

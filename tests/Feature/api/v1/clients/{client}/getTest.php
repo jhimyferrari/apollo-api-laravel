@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use App\Models\User;
@@ -14,7 +15,7 @@ describe('GET api/clients/{client}', function () {
             'organization_id' => $user->organization_id,
         ]);
 
-        Sanctum::actingAs($user, ['client.view']);
+        Sanctum::actingAs($user, [PermissionType::CLIENT_READ->value]);
 
         $response = $this->getJson(route('v1.clients.show', $client));
 

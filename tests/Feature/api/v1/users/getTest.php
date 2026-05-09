@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,7 +28,7 @@ describe('GET api/users', function () {
             'organization_id' => $otherOrganization->id,
         ]);
 
-        Sanctum::actingAs($user, ['user.view']);
+        Sanctum::actingAs($user, [PermissionType::USER_READ->value]);
         $response = $this->getJson(route('v1.users.index'));
         $response->assertOk();
         $response->assertJsonCount(15, 'data');

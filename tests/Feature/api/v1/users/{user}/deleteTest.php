@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,7 +16,7 @@ describe('DELETE api/users/{user}', function () {
         ]);
         $this->assertDatabaseCount('users', 2);
 
-        Sanctum::actingAs($user, ['user.delete']);
+        Sanctum::actingAs($user, [PermissionType::USER_DELETE->value]);
         $response = $this->delete(route('v1.users.destroy', $secondUser));
         $response->assertNoContent();
 
@@ -43,7 +44,7 @@ describe('DELETE api/users/{user}', function () {
     });
     test('User can´t delete himself', function () {
         $user = User::factory()->create();
-        Sanctum::actingAs($user, ['user.delete']);
+        Sanctum::actingAs($user, [PermissionType::USER_DELETE->value]);
 
         $response = $this->deleteJson(route('v1.users.destroy', $user));
 
@@ -56,7 +57,7 @@ describe('DELETE api/users/{user}', function () {
             'is_administrator' => 1]);
         $user = User::factory()->create([
             'organization_id' => $organization->id]);
-        Sanctum::actingAs($user, ['user.delete']);
+        Sanctum::actingAs($user, [PermissionType::USER_DELETE->value]);
 
         $response = $this->deleteJson(route('v1.users.destroy', $admin));
 

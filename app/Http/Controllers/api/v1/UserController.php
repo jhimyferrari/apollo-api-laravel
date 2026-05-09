@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\v1;
 
+use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
@@ -19,10 +20,10 @@ class UserController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware('abilities:user.view', only: ['index', 'show']),
-            new Middleware('abilities:user.create', only: ['store']),
-            new Middleware('abilities:user.update', only: ['update']),
-            new Middleware(['abilities:user.delete', 'can:delete,user'], only: ['destroy']),
+            new Middleware('abilities:'.PermissionType::USER_CREATE->value, only: ['store']),
+            new Middleware('abilities:'.PermissionType::USER_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::USER_UPDATE->value, only: ['update']),
+            new Middleware(['abilities:'.PermissionType::USER_DELETE->value, 'can:delete,user'], only: ['destroy']),
         ];
     }
 

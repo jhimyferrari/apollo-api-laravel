@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Seller;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,7 +12,7 @@ describe('PATCH api/sellers/{seller}', function () {
     test('Logged user with valid data', function () {
         $user = User::factory()->create();
         $seller = Seller::factory()->create(['organization_id' => $user->organization_id]);
-        Sanctum::actingAs($user, ['seller.update']);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
 
         $newSellerRequest = [
             'document' => fake()->cnpj(false),
@@ -39,7 +40,7 @@ describe('PATCH api/sellers/{seller}', function () {
     test('Logged user with non valid data', function () {
         $user = User::factory()->create();
         $seller = Seller::factory()->create(['organization_id' => $user->organization_id]);
-        Sanctum::actingAs($user, ['seller.update']);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
         $response = $this->patchJson(route('v1.sellers.update', $seller), []);
 
         $response->assertUnprocessable();

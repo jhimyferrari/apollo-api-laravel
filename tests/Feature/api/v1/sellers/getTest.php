@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Organization;
 use App\Models\Seller;
 use App\Models\User;
@@ -16,7 +17,7 @@ describe('GET api/sellers', function () {
 
         Seller::factory()->count(5)->create(['organization_id' => $otherOrganization->id]);
 
-        Sanctum::actingAs($user, ['seller.view']);
+        Sanctum::actingAs($user, [PermissionType::SELLER_READ->value]);
         $response = $this->getJson(route('v1.sellers.index'));
 
         $response->assertOk();

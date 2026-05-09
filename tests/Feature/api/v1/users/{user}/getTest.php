@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Http\Resources\UserResource;
 use App\Models\Organization;
 use App\Models\User;
@@ -14,7 +15,7 @@ describe('GET api/users/{user}', function () {
             'organization_id' => $organization->id,
         ]);
 
-        Sanctum::actingAs($firtsUser, ['user.view']);
+        Sanctum::actingAs($firtsUser, [PermissionType::USER_READ->value]);
         $response = $this->getJson(route('v1.users.show', $secondUser));
 
         $response->assertOk()

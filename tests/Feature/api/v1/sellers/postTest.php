@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -9,7 +10,7 @@ uses(RefreshDatabase::class);
 describe('POST api/sellers', function () {
 
     test('Logged user with valid data', function () {
-        Sanctum::actingAs(User::factory()->create(), ['seller.create']);
+        Sanctum::actingAs(User::factory()->create(), [PermissionType::SELLER_CREATE->value]);
 
         $data = [
             'document' => fake()->cnpj(),
@@ -24,7 +25,7 @@ describe('POST api/sellers', function () {
     });
 
     test('Logged user with invalid data', function () {
-        Sanctum::actingAs(User::factory()->create(), ['seller.create']);
+        Sanctum::actingAs(User::factory()->create(), [PermissionType::SELLER_CREATE->value]);
 
         $response = $this->postJson(route('v1.sellers.store'), []);
         $response->assertUnprocessable();

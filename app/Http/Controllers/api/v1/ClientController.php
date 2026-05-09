@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\v1;
 
+use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
@@ -20,10 +21,10 @@ class ClientController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware('abilities:client.create', only: ['store']),
-            new Middleware('abilities:client.delete', only: ['destroy']),
-            new Middleware('abilities:client.view', only: ['index', 'show']),
-            new Middleware('abilities:client.update', only: ['update']),
+            new Middleware('abilities:'.PermissionType::CLIENT_CREATE->value, only: ['store']),
+            new Middleware('abilities:'.PermissionType::CLIENT_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::CLIENT_UPDATE->value, only: ['update']),
+            new Middleware('abilities:'.PermissionType::CLIENT_DELETE->value, only: ['destroy']),
         ];
     }
 
