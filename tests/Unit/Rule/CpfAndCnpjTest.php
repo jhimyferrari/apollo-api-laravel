@@ -4,7 +4,7 @@ use App\Rules\CpfAndCnpj;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-uses(TestCase::class); // faltando isso
+uses(TestCase::class);
 describe('CpfAndCnpj', function () {
     it('should accept only valids CPF ', function () {
         $validator = Validator::make(
