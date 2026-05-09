@@ -11,6 +11,17 @@ class CreateOrganizationSequencialNumbers
         ['table' => 'sellers'],
     ];
 
+    public static function tables(): array
+    {
+        return self::TABLES;
+    }
+
+    public static function count(): int
+    {
+
+        return \count(self::TABLES);
+    }
+
     public function execute(Organization $organization, ?array $options = null): void
     {
         $tables = self::TABLES;

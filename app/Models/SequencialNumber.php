@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('sequencial_numbers')]
 class SequencialNumber extends Model
 {
+    /** @use HasFactory<SequencialNumberFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'organization_id',
         'table',
