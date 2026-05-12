@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\api\v1\Auth\LoginController as LoginControllerV1;
+use App\Http\Controllers\api\v1\ClientController as ClientControllerV1;
 use App\Http\Controllers\api\v1\OrganizationController as OrganizationControllerV1;
+use App\Http\Controllers\api\v1\SellerController as SellerControllerV1;
+use App\Http\Controllers\api\v1\SupplierController as SupplierControllerV1;
 use App\Http\Controllers\api\v1\UserController as UserControllerV1;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,8 +32,29 @@ Route::prefix('v1')
                 Route::get('/{user}', [UserControllerV1::class, 'show'])->name('show');
                 Route::delete('/{user}', [UserControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{user}', [UserControllerV1::class, 'update'])->name('update');
-
+            });
+            Route::group(['as' => 'clients.', 'prefix' => '/clients'], function () {
+                Route::post('/', [ClientControllerV1::class, 'store'])->name('store');
+                Route::get('/', [ClientControllerV1::class, 'index'])->name('index');
+                Route::get('/{client}', [ClientControllerV1::class, 'show'])->name('show');
+                Route::delete('/{client}', [ClientControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{client}', [ClientControllerV1::class, 'update'])->name('update');
             });
 
+            Route::group(['as' => 'sellers.', 'prefix' => '/sellers'], function () {
+                Route::post('/', [SellerControllerV1::class, 'store'])->name('store');
+                Route::get('/', [SellerControllerV1::class, 'index'])->name('index');
+                Route::get('/{seller}', [SellerControllerV1::class, 'show'])->name('show');
+                Route::delete('/{seller}', [SellerControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{seller}', [SellerControllerV1::class, 'update'])->name('update');
+            });
+
+            Route::group(['as' => 'suppliers.', 'prefix' => '/suplliers'], function () {
+                Route::post('/', [SupplierControllerV1::class, 'store'])->name('store');
+                Route::get('/', [SupplierControllerV1::class, 'index'])->name('index');
+                Route::get('/{supplier}', [SupplierControllerV1::class, 'show'])->name('show');
+                Route::delete('/{supplier}', [SupplierControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{supplier}', [SupplierControllerV1::class, 'update'])->name('update');
+            });
         });
     });

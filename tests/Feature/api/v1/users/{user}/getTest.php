@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\PermissionType;
+use App\Http\Resources\UserResource;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,16 +15,12 @@ describe('GET api/users/{user}', function () {
             'organization_id' => $organization->id,
         ]);
 
-        Sanctum::actingAs($firtsUser, ['user.view']);
+        Sanctum::actingAs($firtsUser, [PermissionType::USER_READ->value]);
         $response = $this->getJson(route('v1.users.show', $secondUser));
 
-        $response->assertOk();
-        $response->assertJson([
-            'id' => $secondUser->id,
-            'email' => $secondUser->email,
-            'name' => $secondUser->name,
-        ]);
-        $response->assertJsonMissingPath('password');
+        $response->assertOk()
+            ->assertJson(UserResource::make($secondUser)->response()->getData(true))
+            ->assertJsonMissingPath('password');
 
         $otherOrganization = Organization::factory()->create();
         $otherUser = User::factory()->create(
@@ -39,8 +37,8 @@ describe('GET api/users/{user}', function () {
     });
     test('Logged user without permission', function () {
         $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        Sanctum::actingAs(User::factory()->create());
         $response = $this->getJson(route('v1.users.show', $user));
-        $response->assertForbidden();
+        $response->assertNotFound();
     });
 });

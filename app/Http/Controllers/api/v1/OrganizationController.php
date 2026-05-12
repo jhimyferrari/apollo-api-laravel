@@ -5,12 +5,15 @@ namespace App\Http\Controllers\api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Models\Organization;
-use App\Models\Permission;
-use App\Models\User;
+use App\Services\OrganizationService;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
 {
+    public function __construct(
+        protected OrganizationService $organizationService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -21,35 +24,11 @@ class OrganizationController extends Controller
      */
     public function store(StoreOrganizationRequest $request)
     {
-        $validated = $request->validated();
 
-        $organization = Organization::create(
-            [
-                'name' => $validated['name'],
-                'document' => $validated['document'],
-            ]
-        );
-
-        $adminUser = User::create([
-            'name' => 'Administrador',
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-            'is_administrator' => true,
-            'organization_id' => $organization->id,
-        ]);
-
-        $permissions = Permission::all();
-
-        $adminUser->permissions()->sync($permissions);
-
-        // todo
-        // 1 - Create AdminUser with the email provided
-        // 2 - Send Confirmating email for Admin
-        // OBS: The Email provided here must to be the Admin Email
-        // On login, the user need to informate the document of his organization
+        [$newOrganization, $adminUser] = $this->organizationService->create($request->validated());
 
         return $this->success([
-            'organization' => $organization,
+            'organization' => $newOrganization,
             'admin_email' => $adminUser->email], 'Organization created successfully.', 201);
     }
 

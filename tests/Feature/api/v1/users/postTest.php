@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Permission;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -14,13 +15,14 @@ describe('POST api/users', function () {
         $user = User::factory()->create();
         $this->assertDatabaseCount('users', 1);
 
-        Sanctum::actingAs($user, ['user.create']);
+        Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
+
         // creating a user without permissions
+        $passwordPlain = fake()->password(8);
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
-            'password' => fake()->password(8),
-            'organization_id' => $user['organization_id'],
+            'password' => $passwordPlain,
         ];
         $response = $this->postJson(
             route('v1.users.store'),
@@ -30,6 +32,10 @@ describe('POST api/users', function () {
         $response
             ->assertStatus(201)
             ->assertJson(['message' => 'User created successfully.']);
+        $userWithoutPermission = User::where('email', $data['email'])->first();
+
+        // assert password is hashed
+        $this->assertTrue(Hash::check($passwordPlain, $userWithoutPermission->getRawOriginal('password')));
 
         // creating a user with permission
         $permissions = Permission::where('name', 'like', 'user.%')->pluck('name');
@@ -37,7 +43,6 @@ describe('POST api/users', function () {
             'name' => fake()->name,
             'email' => fake()->email,
             'password' => fake()->password(8),
-            'organization_id' => $user['organization_id'],
             'permissions' => $permissions,
         ];
         $response = $this->postJson(
@@ -48,10 +53,10 @@ describe('POST api/users', function () {
             ->assertStatus(201)
             ->assertJson(['message' => 'User created successfully.']);
 
-        $user = User::where('email', $data['email'])->first();
         // assert user has all permissions passed by post
+        $userWithPermissions = User::where('email', $data['email'])->first();
         $this->assertTrue(
-            $user->permissions()->pluck('name')->diff($permissions)->isEmpty());
+            $userWithPermissions->permissions()->pluck('name')->diff($permissions)->isEmpty());
 
     });
     test('Non-logged user', function () {
@@ -66,12 +71,11 @@ describe('POST api/users', function () {
         $this->seed(PermissionSeeder::class);
         $user = User::factory()->create();
 
-        Sanctum::actingAs($user, ['user.create']);
+        Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
         $data = [
             'name' => fake()->name,
-            'email' => fake()->email,
-            'password' => fake()->password(minLength: 8),
-            'organization_id' => '9',
+            'email' => 'wrongEmail@',
+            'password' => fake()->password(8),
         ];
         $reponse = $this->postJson(
             route('v1.users.store'),
@@ -80,9 +84,8 @@ describe('POST api/users', function () {
         $reponse->assertStatus(422);
     });
     test('Logged user without permission', function () {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        Sanctum::actingAs(User::factory()->create());
         $response = $this->postJson(route('v1.users.store'));
-        $response->assertStatus(403);
+        $response->assertNotFound();
     });
 });

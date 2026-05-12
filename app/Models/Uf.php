@@ -8,7 +8,7 @@ class Uf extends Model
 {
     protected $table = 'ufs';
 
-    protected $primaryKey = 'codigo_ibge';
+    protected $primaryKey = 'ibge_code';
 
     public $incrementing = false;
 
@@ -17,13 +17,13 @@ class Uf extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'codigo_ibge',
-        'nome',
-        'sigla',
+        'ibge_code',
+        'name',
+        'abbreviation',
     ];
 
-    public function municipios()
+    public function cities()
     {
-        return $this->hasMany(Municipio::class, 'uf_codigo_ibge', 'codigo_ibge');
+        return $this->hasMany(City::class, 'uf_ibge_code', 'ibge_code');
     }
 }

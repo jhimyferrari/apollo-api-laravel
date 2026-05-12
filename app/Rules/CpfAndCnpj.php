@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Helpers\DocumentHelper;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
@@ -15,7 +16,7 @@ class CpfAndCnpj implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $value = preg_replace('/[^0-9]/', '', $value);
+        $value = DocumentHelper::formatCpfAndCnpj($value);
 
         match (\strlen($value)) {
             11 => $this->validateCpf($value) ?: $fail('Invalid document.'),

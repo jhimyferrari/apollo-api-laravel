@@ -2,25 +2,28 @@
 
 namespace App\Http\Controllers\api\v1;
 
+use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
-use App\Models\Permission;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        protected UserService $userService) {}
+
     public static function middleware()
     {
         return [
-            new Middleware('abilities:user.view', only: ['index', 'show']),
-            new Middleware('abilities:user.create', only: ['store']),
-            new Middleware('abilities:user.update', only: ['update']),
-            new Middleware(['abilities:user.delete', 'can:delete,user'], only: ['destroy']),
+            new Middleware('abilities:'.PermissionType::USER_CREATE->value, only: ['store']),
+            new Middleware('abilities:'.PermissionType::USER_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::USER_UPDATE->value, only: ['update']),
+            new Middleware(['abilities:'.PermissionType::USER_DELETE->value, 'can:delete,user'], only: ['destroy']),
         ];
     }
 
@@ -29,12 +32,8 @@ class UserController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $user = Auth::user();
-        $listOfUsers = UserResource::collection(User::where('organization_id', $user['organization_id'])->with('permissions')->paginate(15));
+        return UserResource::collection(User::with('permissions')->paginate(15));
 
-        return $listOfUsers;
-        // todo
-        // listar todos os usuários da organization
     }
 
     /**
@@ -42,15 +41,9 @@ class UserController extends Controller implements HasMiddleware
      */
     public function store(StoreUserRequest $request)
     {
-        $validated = $request->validated();
-        $user = User::create($validated);
+        $newUser = $this->userService->createWithOrganization($request->validated(), Auth()->user());
 
-        if (isset($validated['permissions'])) {
-            $permissions = Permission::whereIn('name', $validated['permissions'])->get();
-            $user->permissions()->sync($permissions);
-        }
-
-        return $this->success($user, 'User created successfully.', 201);
+        return $this->success($newUser, 'User created successfully.', 201);
     }
 
     /**
@@ -58,7 +51,7 @@ class UserController extends Controller implements HasMiddleware
      */
     public function show(User $user)
     {
-        return response()->json($user);
+        return UserResource::make($user);
     }
 
     /**
@@ -67,9 +60,7 @@ class UserController extends Controller implements HasMiddleware
     // This field updatePermissions of users
     public function update(UpdateUserRequest $request, User $user)
     {
-        $validated = $request->validated();
-        $permissions = Permission::whereIn('name', $validated['permissions'])->get();
-        $user->permissions()->sync($permissions);
+        $this->userService->updatePermissions($user, $request->validated());
 
         return response()->noContent();
 
@@ -80,7 +71,8 @@ class UserController extends Controller implements HasMiddleware
      */
     public function destroy(User $user)
     {
-        $user->delete();
+
+        $this->userService->delete($user);
 
         return response()->noContent();
     }

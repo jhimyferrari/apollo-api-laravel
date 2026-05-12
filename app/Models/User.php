@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\Auth\ForbiddenException;
 use App\Models\Scopes\OrganizationScope;
 use App\Policies\UserPolicy;
 use Database\Factories\UserFactory;
@@ -9,7 +10,10 @@ use Database\Factories\UserFactory;
 
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -20,7 +24,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, HasUuids, Notifiable,SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -31,8 +35,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'is_administrator',
-        'organization_id',
     ];
 
     /**
@@ -58,17 +60,34 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function booted()
+    {
+        static::updating(function (User $user) {
+            if ($user->isDirty('organization_id')) {
+                throw new ForbiddenException('Organization of an user cannot be changed');
+            }
+            if ($user->isDirty('is_administrator')) {
+                throw new ForbiddenException('Administrator atribute cannot be changed');
+            }
+        });
+        static::deleting(function (User $user) {
+            if ($user->isAdministrator()) {
+                throw new ForbiddenException('The administrator cannot be removed');
+            }
+        });
+    }
+
     public function isAdministrator(): bool
     {
         return $this->is_administrator;
     }
 
-    public function permissions()
+    public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'user_permissions');
     }
 
-    public function organization()
+    public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Organization;
 use App\Models\Permission;
 use App\Models\User;
@@ -21,13 +22,21 @@ describe('PATCH api/users/{user}', function () {
             'organization_id' => $organization->id,
         ]);
 
-        Sanctum::actingAs($user, ['user.update']);
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
         $permissions = Permission::where('name', 'like', 'user.%')->pluck('name');
 
         $response = $this->patchJson(route('v1.users.update', $secondUser), [
             'permissions' => $permissions,
         ]);
+
         $response->assertNoContent();
+        $permissionIds = Permission::whereIn('name', $permissions)->pluck('id');
+        foreach ($permissionIds as $permissionId) {
+            $this->assertDatabaseHas('user_permissions', [
+                'user_id' => $secondUser->id,
+                'permission_id' => $permissionId,
+            ]);
+        }
 
         // User for other organization
         $otherUser = User::factory()->create();
@@ -43,7 +52,7 @@ describe('PATCH api/users/{user}', function () {
         $this->seed(PermissionSeeder::class);
         $user = User::factory()->create();
 
-        Sanctum::actingAs($user, ['user.update']);
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
         $response = $this->patchJson(route('v1.users.update', $user), []);
         $response->assertUnprocessable();
 
@@ -64,11 +73,10 @@ describe('PATCH api/users/{user}', function () {
     test('Logged user without permission', function () {
         $user = User::factory()->create(
         );
-        Sanctum::actingAs($user);
+        Sanctum::actingAs(User::factory()->create());
         $response = $this->patchJson(route('v1.users.update', $user), [
-
         ]);
-        $response->assertForbidden();
+        $response->assertNotFound();
     });
 
 });

@@ -1,11 +1,10 @@
 <?php
 
+use App\Enum\PermissionType;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
-
-use function Pest\Laravel\getJson;
 
 uses(RefreshDatabase::class);
 describe('GET api/users', function () {
@@ -29,7 +28,7 @@ describe('GET api/users', function () {
             'organization_id' => $otherOrganization->id,
         ]);
 
-        Sanctum::actingAs($user, ['user.view']);
+        Sanctum::actingAs($user, [PermissionType::USER_READ->value]);
         $response = $this->getJson(route('v1.users.index'));
         $response->assertOk();
         $response->assertJsonCount(15, 'data');
@@ -45,13 +44,12 @@ describe('GET api/users', function () {
         $this->assertNotContains($response->json('data'), $firstRequestData);
     });
     test('Non logged user', function () {
-        $response = getJson(route('v1.users.index'));
+        $response = $this->getJson(route('v1.users.index'));
         $response->assertUnauthorized();
     });
     test('Logged user without permission', function () {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
-        $response = getJson(route('v1.users.index'));
-        $response->assertForbidden();
+        Sanctum::actingAs(User::factory()->create());
+        $response = $this->getJson(route('v1.users.index'));
+        $response->assertNotFound();
     });
 });

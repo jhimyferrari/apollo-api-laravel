@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ufs', function (Blueprint $table) {
-            $table->char('codigo_ibge', 2)->primary();
-            $table->string('nome', 30);
-            $table->char('sigla', 2)->unique();
+        Schema::create('cities', function (Blueprint $table) {
+            $table->char('ibge_code', 7)->primary();
+            $table->string('name', 60);
+            $table->char('uf_ibge_code', 2);
+
+            $table->foreign('uf_ibge_code')
+                ->references('ibge_code')
+                ->on('ufs');
         });
     }
 
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ufs');
+        Schema::dropIfExists('cities');
     }
 };
