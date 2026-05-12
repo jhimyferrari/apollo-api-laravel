@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Exceptions\Auth\ForbiddenException;
 use App\Models\Scopes\OrganizationScope;
 use App\Policies\UserPolicy;
+use App\Traits\ProtectsOrganization;
 use Database\Factories\UserFactory;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
@@ -24,7 +25,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasUuids, Notifiable,SoftDeletes;
+    use HasApiTokens, HasFactory, HasUuids, Notifiable,ProtectsOrganization,SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -63,9 +64,6 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::updating(function (User $user) {
-            if ($user->isDirty('organization_id')) {
-                throw new ForbiddenException('Organization of an user cannot be changed');
-            }
             if ($user->isDirty('is_administrator')) {
                 throw new ForbiddenException('Administrator atribute cannot be changed');
             }
