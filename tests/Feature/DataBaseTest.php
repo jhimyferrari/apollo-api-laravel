@@ -5,6 +5,7 @@ use App\Models\Address;
 use App\Models\Client;
 use App\Models\Organization;
 use App\Models\Seller;
+use App\Models\Supplier;
 use App\Models\User;
 use Database\Seeders\CitiesSeeder;
 use Database\Seeders\UfSeeder;
@@ -35,9 +36,7 @@ describe('Integrit of the database', function () {
                 'users',
                 ['email' => $user['email']]
             );
-
             $user->getRawOriginal('password');
-
         });
         test('Address Model', function () {
             $this->seed(UfSeeder::class);
@@ -65,9 +64,16 @@ describe('Integrit of the database', function () {
             $this->assertDatabaseCount('sellers', 1);
             $this->assertDatabaseHas(
                 'sellers',
-                ['document' => $seller['document']]
+                ['document' => $seller['document']]);
+        });
+        test('Supplier Model', function () {
+            $this->assertDatabaseEmpty('suppliers');
+            $supplier = Supplier::factory()->create();
+            $this->assertDatabaseCount('suppliers', 1);
+            $this->assertDatabaseHas(
+                'suppliers',
+                ['document' => $supplier['document']]
             );
-
         });
     });
     describe('Models should have security', function () {
@@ -94,6 +100,27 @@ describe('Integrit of the database', function () {
                 $client->save();
             })->throws(ForbiddenException::class);
         });
-    });
+        describe('sellers', function () {
+            it('throw exception for try to change seller organization', function () {
+                $seller = Seller::factory()->create();
 
+                $otherOrganization = Organization::factory()->create();
+
+                $seller->organization_id = $otherOrganization->id;
+
+                $seller->save();
+            })->throws(ForbiddenException::class);
+        });
+        describe('suppliers', function () {
+            it('throw exception for try to change supplier organization', function () {
+                $supplier = Supplier::factory()->create();
+
+                $otherOrganization = Organization::factory()->create();
+
+                $supplier->organization_id = $otherOrganization->id;
+
+                $supplier->save();
+            })->throws(ForbiddenException::class);
+        });
+    });
 });

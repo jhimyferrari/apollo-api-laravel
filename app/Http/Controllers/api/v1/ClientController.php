@@ -34,7 +34,7 @@ class ClientController extends Controller implements HasMiddleware
     public function index()
     {
 
-        return ClientResource::collection(Client::with('address')->paginate(15));
+        return ClientResource::collection(Client::with('addresses')->paginate(15));
     }
 
     /**

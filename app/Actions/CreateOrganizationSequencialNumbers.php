@@ -9,6 +9,7 @@ class CreateOrganizationSequencialNumbers
     private const array TABLES = [
         ['table' => 'clients'],
         ['table' => 'sellers'],
+        ['table' => 'suppliers'],
     ];
 
     public static function tables(): array

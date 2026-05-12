@@ -56,6 +56,11 @@ class Organization extends Model
         return $this->hasMany(Client::class);
     }
 
+    public function suppliers(): HasMany
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
     public function sequencialNumber(): HasMany
     {
         return $this->hasMany(SequencialNumber::class);

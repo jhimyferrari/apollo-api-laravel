@@ -20,6 +20,8 @@ class AddressFactory extends Factory
      */
     public function definition(): array
     {
+        $addressable = Client::factory()->create();
+
         return [
             'neighborhood' => fake()->word,
             'street' => fake()->streetName,
@@ -28,7 +30,9 @@ class AddressFactory extends Factory
             'cep' => fake()->numerify('########'),
             'city_ibge_code' => City::inRandomOrder()->first()->ibgeCode(),
             'organization_id' => Organization::factory(),
-            'client_id' => Client::factory(),
+            'is_default' => false,
+            'addressable_id' => $addressable->id,
+            'addressable_type' => $addressable->getMorphClass(),
         ];
     }
 }
