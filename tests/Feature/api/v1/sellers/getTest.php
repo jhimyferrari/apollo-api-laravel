@@ -15,7 +15,7 @@ describe('GET api/sellers', function () {
         $otherOrganization = Organization::factory()->create();
         Seller::factory()->count(20)->create(['organization_id' => $user->organization_id]);
 
-        Seller::factory()->count(5)->create(['organization_id' => $otherOrganization->id]);
+        Seller::factory()->count(7)->create(['organization_id' => $otherOrganization->id]);
 
         Sanctum::actingAs($user, [PermissionType::SELLER_READ->value]);
         $response = $this->getJson(route('v1.sellers.index'));

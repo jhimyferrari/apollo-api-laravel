@@ -31,7 +31,7 @@ describe('PATCH api/sellers/{seller}', function () {
     test('Other organization seller', function () {
         $user = User::factory()->create();
         $seller = Seller::factory()->create();
-        Sanctum::actingAs($user, ['seller.update']);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
 
         $response = $this->patchJson(route('v1.sellers.update', $seller), []);
 
