@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Helpers\DocumentHelper;
 use App\Models\Scopes\OrganizationScope;
+use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
 use App\Traits\ProtectsOrganization;
 use Database\Factories\ClientFactory;
@@ -13,7 +14,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use InvalidArgumentException;
 
@@ -21,7 +21,7 @@ use InvalidArgumentException;
 class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
-    use HasFactory, HasSequencialNumber, HasUuids,ProtectsOrganization,SoftDeletes;
+    use HasAddresses, HasFactory, HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;
 
     protected $table = 'clients';
 
@@ -57,10 +57,5 @@ class Client extends Model
     {
         return $this->belongsTo(Organization::class);
 
-    }
-
-    public function address(): HasMany
-    {
-        return $this->hasMany(Address::class);
     }
 }

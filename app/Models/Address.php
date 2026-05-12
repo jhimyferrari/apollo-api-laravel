@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ScopedBy([OrganizationScope::class])]
@@ -48,8 +49,8 @@ class Address extends Model
         return $this->belongsTo(City::class, 'city_ibge_code', 'ibge_code');
     }
 
-    public function client()
+    public function addressable(): MorphTo
     {
-        return $this->belongsTo(Client::class, 'client_id', 'id');
+        return $this->morphTo();
     }
 }
