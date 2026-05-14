@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\api\v1\Auth\LoginController as LoginControllerV1;
-use App\Http\Controllers\api\v1\BrandController as BrandControllerV1;
-use App\Http\Controllers\api\v1\ClientController as ClientControllerV1;
-use App\Http\Controllers\api\v1\OrganizationController as OrganizationControllerV1;
-use App\Http\Controllers\api\v1\SellerController as SellerControllerV1;
-use App\Http\Controllers\api\v1\SupplierController as SupplierControllerV1;
-use App\Http\Controllers\api\v1\UserController as UserControllerV1;
+use App\Http\Controllers\Api\V1\Auth\LoginController as LoginControllerV1;
+use App\Http\Controllers\Api\V1\BrandController as BrandControllerV1;
+use App\Http\Controllers\Api\V1\ClientController as ClientControllerV1;
+use App\Http\Controllers\Api\V1\OrganizationController as OrganizationControllerV1;
+use App\Http\Controllers\Api\V1\SellerController as SellerControllerV1;
+use App\Http\Controllers\Api\V1\SupplierController as SupplierControllerV1;
+use App\Http\Controllers\Api\V1\UserController as UserControllerV1;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
