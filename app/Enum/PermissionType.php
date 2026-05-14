@@ -24,6 +24,11 @@ enum PermissionType: string
     case SUPPLIER_UPDATE = 'supplier.update';
     case SUPPLIER_DELETE = 'supplier.delete';
 
+    case BRAND_CREATE = 'brand.create';
+    case BRAND_READ = 'brand.view';
+    case BRAND_UPDATE = 'brand.update';
+    case BRAND_DELETE = 'brand.delete';
+
     public static function byModel(string $model): array
     {
         return array_filter(

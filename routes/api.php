@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\v1\Auth\LoginController as LoginControllerV1;
+use App\Http\Controllers\api\v1\BrandController as BrandControllerV1;
 use App\Http\Controllers\api\v1\ClientController as ClientControllerV1;
 use App\Http\Controllers\api\v1\OrganizationController as OrganizationControllerV1;
 use App\Http\Controllers\api\v1\SellerController as SellerControllerV1;
@@ -55,6 +56,14 @@ Route::prefix('v1')
                 Route::get('/{supplier}', [SupplierControllerV1::class, 'show'])->name('show');
                 Route::delete('/{supplier}', [SupplierControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{supplier}', [SupplierControllerV1::class, 'update'])->name('update');
+            });
+
+            Route::group(['as' => 'brands.', 'prefix' => '/brands'], function () {
+                Route::post('/', [BrandControllerV1::class, 'store'])->name('store');
+                Route::get('/', [BrandControllerV1::class, 'index'])->name('index');
+                Route::get('/{brand}', [BrandControllerV1::class, 'show'])->name('show');
+                Route::delete('/{brand}', [BrandControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{brand}', [BrandControllerV1::class, 'update'])->name('update');
             });
         });
     });

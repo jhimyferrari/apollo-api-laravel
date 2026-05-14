@@ -46,9 +46,12 @@ class Organization extends Model
         );
     }
 
-    public function users(): HasMany
+    /*
+    * Relations of Model
+    */
+    public function brands(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Brand::class);
     }
 
     public function clients(): HasMany
@@ -64,5 +67,10 @@ class Organization extends Model
     public function sequencialNumber(): HasMany
     {
         return $this->hasMany(SequencialNumber::class);
+    }
+
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
     }
 }

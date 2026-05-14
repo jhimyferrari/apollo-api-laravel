@@ -22,6 +22,7 @@ describe('POST api/sellers', function () {
         ];
         $response = $this->postJson(route('v1.sellers.store'), $data);
         $response->assertCreated();
+
     });
 
     test('Logged user with invalid data', function () {

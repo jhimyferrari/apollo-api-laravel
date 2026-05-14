@@ -2,6 +2,7 @@
 
 use App\Exceptions\Auth\ForbiddenException;
 use App\Models\Address;
+use App\Models\Brand;
 use App\Models\Client;
 use App\Models\Organization;
 use App\Models\Seller;
@@ -75,6 +76,15 @@ describe('Integrit of the database', function () {
                 ['document' => $supplier['document']]
             );
         });
+        test('Brands Model', function () {
+            $this->assertDatabaseEmpty('brands');
+            $brand = Brand::factory()->create();
+            $this->assertDatabaseCount('brands', 1);
+            $this->assertDatabaseHas(
+                'brands',
+                ['id' => $brand['id']]
+            );
+        });
     });
     describe('Models should have security', function () {
         describe('users', function () {
@@ -120,6 +130,14 @@ describe('Integrit of the database', function () {
                 $supplier->organization_id = $otherOrganization->id;
 
                 $supplier->save();
+            })->throws(ForbiddenException::class);
+        });
+        describe('brands', function () {
+            it('throw exception for try to change brand organization', function () {
+                $brand = Brand::factory()->create();
+                $otherOrganization = Organization::factory()->create();
+                $brand->organization_id = $otherOrganization->id;
+                $brand->save();
             })->throws(ForbiddenException::class);
         });
     });
