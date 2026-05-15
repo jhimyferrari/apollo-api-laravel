@@ -11,6 +11,7 @@ class CreateOrganizationSequencialNumbers
         ['table' => 'sellers'],
         ['table' => 'suppliers'],
         ['table' => 'brands'],
+        ['table' => 'categories'],
     ];
 
     public static function tables(): array

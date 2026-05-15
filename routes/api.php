@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\LoginController as LoginControllerV1;
 use App\Http\Controllers\Api\V1\BrandController as BrandControllerV1;
+use App\Http\Controllers\Api\V1\CategoryController as CategoryControllerV1;
 use App\Http\Controllers\Api\V1\ClientController as ClientControllerV1;
 use App\Http\Controllers\Api\V1\OrganizationController as OrganizationControllerV1;
 use App\Http\Controllers\Api\V1\SellerController as SellerControllerV1;
@@ -64,6 +65,14 @@ Route::prefix('v1')
                 Route::get('/{brand}', [BrandControllerV1::class, 'show'])->name('show');
                 Route::delete('/{brand}', [BrandControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{brand}', [BrandControllerV1::class, 'update'])->name('update');
+            });
+
+            Route::group(['as' => 'categories.', 'prefix' => '/categories'], function () {
+                Route::post('/', [CategoryControllerV1::class, 'store'])->name('store');
+                Route::get('/', [CategoryControllerV1::class, 'index'])->name('index');
+                Route::get('/{category}', [CategoryControllerV1::class, 'show'])->name('show');
+                Route::delete('/{category}', [CategoryControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{category}', [CategoryControllerV1::class, 'update'])->name('update');
             });
         });
     });
