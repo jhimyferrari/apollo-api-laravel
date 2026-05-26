@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $id
@@ -23,13 +24,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $state_registration
  * @property string|null $phone
  * @property string|null $email
- * @property \Illuminate\Support\Carbon $started_at
- * @property \Illuminate\Support\Carbon|null $ended_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon $started_at
+ * @property Carbon|null $ended_at
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property string $organization_id
- * @property-read \App\Models\Organization $organization
+ * @property-read Organization $organization
+ *
  * @method static \Database\Factories\SellerFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller newQuery()
@@ -52,6 +54,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[ScopedBy([OrganizationScope::class])]

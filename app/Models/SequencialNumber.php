@@ -6,15 +6,17 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $organization_id
  * @property string $table
  * @property int $last_number
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Organization $organization
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Organization $organization
+ *
  * @method static \Database\Factories\SequencialNumberFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SequencialNumber newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SequencialNumber newQuery()
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SequencialNumber whereOrganizationId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SequencialNumber whereTable($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SequencialNumber whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Table('sequencial_numbers')]
