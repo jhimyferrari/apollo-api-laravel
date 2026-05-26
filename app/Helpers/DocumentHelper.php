@@ -7,7 +7,7 @@ class DocumentHelper
     /**
      * Return string just with numerical characters.
      */
-    public static function formatCpfAndCnpj(string $rawValue): string
+    public static function remove_pontuation(string $rawValue): string
     {
         return preg_replace('/[^0-9]/', '', $rawValue);
 

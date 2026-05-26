@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\ValidateDuplicateField;
 use App\Models\Permission;
 use App\Models\User;
 
@@ -14,6 +15,8 @@ class UserService extends BaseService
 
     public function create(array $data, User $user): User
     {
+
+        app(ValidateDuplicateField::class)->execute(new User, 'email', $data['email'], $user->organization_id);
         $newUser = new User([
             'name' => $data['name'],
             'email' => $data['email'],

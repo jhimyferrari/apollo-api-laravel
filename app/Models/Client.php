@@ -88,7 +88,7 @@ class Client extends Model
     {
         return Attribute::make(
             set: function ($value) {
-                $formatedValue = DocumentHelper::formatCpfAndCnpj($value);
+                $formatedValue = DocumentHelper::remove_pontuation($value);
 
                 if (\strlen($formatedValue) === 11 || \strlen($formatedValue) === 14) {
                     return $formatedValue;

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\ValidateDuplicateField;
 use App\Exceptions\ResourceNotFoundException;
 use App\Models\Brand;
 use App\Models\Category;
@@ -17,19 +18,12 @@ class ProductService extends BaseService
 
     public function create(array $data, User $user): Product
     {
-        $newProduct = new Product;
-        $newProduct->name = $data['name'];
-        $newProduct->description = $data['description'] ?? null;
-        $newProduct->unit = $data['unit'];
-        $newProduct->ncm = $data['ncm'] ?? null;
-        $newProduct->ean = $data['ean'] ?? null;
-        $newProduct->cost_price = $data['cost_price'];
-        $newProduct->sale_price = $data['sale_price'];
 
-        if (isset($data['brand_id'])) {
-            $brand = Brand::findOrFail($data['brand_id']);
-            $newProduct->brand_id = $brand->id;
-        }
+        $formatedName = trim($data['name']);
+        app(ValidateDuplicateField::class)->execute(new Product, 'name', $formatedName, $user->organization_id);
+
+        $data['name'] = $formatedName;
+
         $categoriesId = [];
         if (! empty($data['categories'])) {
             $categoriesId = collect($data['categories'])->pluck('id')->toArray();
@@ -40,6 +34,11 @@ class ProductService extends BaseService
                 throw new ResourceNotFoundException('Categories not found: '.implode(', ', $invalid_id));
             }
         }
+        if (isset($data['brand_id'])) {
+            Brand::findOrFail($data['brand_id']);
+        }
+
+        $newProduct = new Product($data);
         $newProduct->organization_id = $user->organization_id;
         $newProduct->save();
 
