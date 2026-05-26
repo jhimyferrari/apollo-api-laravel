@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Client;
 use App\Models\Organization;
+use App\Models\Product;
 use App\Models\Seller;
 use App\Models\Supplier;
 use App\Models\User;
@@ -95,6 +96,15 @@ describe('Integrit of the database', function () {
                 ['id' => $category['id']]
             );
         });
+        test('Product Model', function () {
+            $this->assertDatabaseEmpty('products');
+            $product = Product::factory()->create();
+            $this->assertDatabaseCount('products', 1);
+            $this->assertDatabaseHas(
+                'products',
+                ['id' => $product['id']]
+            );
+        });
     });
     describe('Models should have security', function () {
         describe('users', function () {
@@ -151,11 +161,19 @@ describe('Integrit of the database', function () {
             })->throws(ForbiddenException::class);
         });
         describe('categories', function () {
-            it('throw exception for try to change brand organization', function () {
+            it('throw exception for try to change category organization', function () {
                 $category = Category::factory()->create();
                 $otherOrganization = Organization::factory()->create();
                 $category->organization_id = $otherOrganization->id;
                 $category->save();
+            })->throws(ForbiddenException::class);
+        });
+        describe('products', function () {
+            it('throw exception for try to change product organization', function () {
+                $product = Product::factory()->create();
+                $otherOrganization = Organization::factory()->create();
+                $product->organization_id = $otherOrganization->id;
+                $product->save();
             })->throws(ForbiddenException::class);
         });
     });

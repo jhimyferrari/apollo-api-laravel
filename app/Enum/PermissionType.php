@@ -34,6 +34,11 @@ enum PermissionType: string
     case CATEGORY_UPDATE = 'category.update';
     case CATEGORY_DELETE = 'category.delete';
 
+    case PRODUCT_CREATE = 'product.create';
+    case PRODUCT_READ = 'product.view';
+    case PRODUCT_UPDATE = 'product.update';
+    case PRODUCT_DELETE = 'product.delete';
+
     public static function byModel(string $model): array
     {
         return array_filter(
