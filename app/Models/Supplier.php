@@ -14,6 +14,47 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property string $id
+ * @property int $number
+ * @property string $status
+ * @property string $document
+ * @property string $legal_name
+ * @property string $trade_name
+ * @property string|null $state_registration
+ * @property string|null $phone
+ * @property string|null $email
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $organization_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Address> $addresses
+ * @property-read int|null $addresses_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Address> $defaultAddress
+ * @property-read int|null $default_address_count
+ * @property-read \App\Models\Organization $organization
+ * @method static \Database\Factories\SupplierFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereDocument($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereLegalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereOrganizationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereStateRegistration($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereTradeName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[ScopedBy([OrganizationScope::class])]
 class Supplier extends Model
 {

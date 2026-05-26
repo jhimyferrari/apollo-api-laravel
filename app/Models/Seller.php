@@ -13,6 +13,47 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property string $id
+ * @property int $number
+ * @property string $status
+ * @property string $document
+ * @property string $legal_name
+ * @property string $trade_name
+ * @property string|null $state_registration
+ * @property string|null $phone
+ * @property string|null $email
+ * @property \Illuminate\Support\Carbon $started_at
+ * @property \Illuminate\Support\Carbon|null $ended_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $organization_id
+ * @property-read \App\Models\Organization $organization
+ * @method static \Database\Factories\SellerFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereDocument($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereEndedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereLegalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereOrganizationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereStateRegistration($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereTradeName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Seller withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[ScopedBy([OrganizationScope::class])]
 class Seller extends Model
 {

@@ -5,6 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $ibge_code
+ * @property string $name
+ * @property string $uf_ibge_code
+ * @property-read \App\Models\Uf $uf
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City whereIbgeCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|City whereUfIbgeCode($value)
+ * @mixin \Eloquent
+ */
 class City extends Model
 {
     use HasFactory;
