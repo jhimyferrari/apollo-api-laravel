@@ -43,7 +43,7 @@ class BrandController extends Controller implements HasMiddleware
      */
     public function store(StoreBrandRequest $request)
     {
-        $newBrand = $this->brandService->createWithOrganization($request->validated(), Auth()->user());
+        $newBrand = $this->brandService->create($request->validated(), Auth()->user());
 
         return $this->success($newBrand, 'Brand created successfully', 201);
     }

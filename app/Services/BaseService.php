@@ -27,19 +27,18 @@ class BaseService implements ResourceServiceInterface
         return $this->model->find($id);
     }
 
-    public function createWithOrganization(array $data, User $user): Model
+    public function createWithoutOrganization(array $data): Model|array
+    {
+        return $this->model->create($data);
+    }
+
+    public function create(array $data, User $user): Model|array
     {
         $newModel = new $this->model($data);
         $newModel->organization_id = $user->organization_id;
-
         $newModel->save();
 
         return $newModel;
-    }
-
-    public function create(array $data): Model|array
-    {
-        return $this->model->create($data);
     }
 
     public function update(Model $model, array $data): Model

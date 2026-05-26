@@ -13,9 +13,9 @@ interface ResourceServiceInterface
 
     public function findById(int $id): Model|JsonResource|null;
 
-    public function create(array $data): Model|array;
+    public function create(array $data, User $user): Model|array;
 
-    public function createWithOrganization(array $data, User $user): Model;
+    public function createWithoutOrganization(array $data): Model|array;
 
     public function update(Model $model, array $data): Model;
 

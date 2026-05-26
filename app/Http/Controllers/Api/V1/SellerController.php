@@ -41,7 +41,7 @@ class SellerController extends Controller implements HasMiddleware
      */
     public function store(StoreSellerRequest $request)
     {
-        $newSeller = $this->sellerService->createWithOrganization($request->validated(), Auth()->user());
+        $newSeller = $this->sellerService->create($request->validated(), Auth()->user());
 
         return $this->success($newSeller, 'Seller created sucessfully.', 201);
     }

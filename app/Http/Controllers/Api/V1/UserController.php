@@ -41,7 +41,7 @@ class UserController extends Controller implements HasMiddleware
      */
     public function store(StoreUserRequest $request)
     {
-        $newUser = $this->userService->createWithOrganization($request->validated(), Auth()->user());
+        $newUser = $this->userService->create($request->validated(), Auth()->user());
 
         return $this->success($newUser, 'User created successfully.', 201);
     }

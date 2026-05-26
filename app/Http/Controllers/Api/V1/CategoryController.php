@@ -41,7 +41,7 @@ class CategoryController extends Controller implements HasMiddleware
      */
     public function store(StoreBrandRequest $request)
     {
-        $newCategory = $this->categoryService->createWithOrganization($request->validated(), Auth()->user());
+        $newCategory = $this->categoryService->create($request->validated(), Auth()->user());
 
         return $this->success($newCategory, 'Category created successfully.', 201);
     }

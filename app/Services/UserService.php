@@ -12,7 +12,7 @@ class UserService extends BaseService
         parent::__construct(new User);
     }
 
-    public function createWithOrganization(array $data, User $user): User
+    public function create(array $data, User $user): User
     {
         $newUser = new User([
             'name' => $data['name'],

@@ -41,7 +41,7 @@ class SupplierController extends Controller implements HasMiddleware
      */
     public function store(StoreSupplierRequest $request)
     {
-        $newSupplier = $this->supplierService->createWithOrganization($request->validated(), Auth()->user());
+        $newSupplier = $this->supplierService->create($request->validated(), Auth()->user());
 
         return $this->success($newSupplier, 'Supplier created succesfully.', 201);
     }
