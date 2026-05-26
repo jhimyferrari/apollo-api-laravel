@@ -2,8 +2,11 @@
 
 use App\Exceptions\Auth\ForbiddenException;
 use App\Models\Address;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Client;
 use App\Models\Organization;
+use App\Models\Product;
 use App\Models\Seller;
 use App\Models\Supplier;
 use App\Models\User;
@@ -75,6 +78,33 @@ describe('Integrit of the database', function () {
                 ['document' => $supplier['document']]
             );
         });
+        test('Brands Model', function () {
+            $this->assertDatabaseEmpty('brands');
+            $brand = Brand::factory()->create();
+            $this->assertDatabaseCount('brands', 1);
+            $this->assertDatabaseHas(
+                'brands',
+                ['id' => $brand['id']]
+            );
+        });
+        test('Category Model', function () {
+            $this->assertDatabaseEmpty('categories');
+            $category = Category::factory()->create();
+            $this->assertDatabaseCount('categories', 1);
+            $this->assertDatabaseHas(
+                'categories',
+                ['id' => $category['id']]
+            );
+        });
+        test('Product Model', function () {
+            $this->assertDatabaseEmpty('products');
+            $product = Product::factory()->create();
+            $this->assertDatabaseCount('products', 1);
+            $this->assertDatabaseHas(
+                'products',
+                ['id' => $product['id']]
+            );
+        });
     });
     describe('Models should have security', function () {
         describe('users', function () {
@@ -120,6 +150,30 @@ describe('Integrit of the database', function () {
                 $supplier->organization_id = $otherOrganization->id;
 
                 $supplier->save();
+            })->throws(ForbiddenException::class);
+        });
+        describe('brands', function () {
+            it('throw exception for try to change brand organization', function () {
+                $brand = Brand::factory()->create();
+                $otherOrganization = Organization::factory()->create();
+                $brand->organization_id = $otherOrganization->id;
+                $brand->save();
+            })->throws(ForbiddenException::class);
+        });
+        describe('categories', function () {
+            it('throw exception for try to change category organization', function () {
+                $category = Category::factory()->create();
+                $otherOrganization = Organization::factory()->create();
+                $category->organization_id = $otherOrganization->id;
+                $category->save();
+            })->throws(ForbiddenException::class);
+        });
+        describe('products', function () {
+            it('throw exception for try to change product organization', function () {
+                $product = Product::factory()->create();
+                $otherOrganization = Organization::factory()->create();
+                $product->organization_id = $otherOrganization->id;
+                $product->save();
             })->throws(ForbiddenException::class);
         });
     });

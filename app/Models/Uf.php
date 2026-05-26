@@ -2,8 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $ibge_code
+ * @property string $name
+ * @property string $abbreviation
+ * @property-read Collection<int, City> $cities
+ * @property-read int|null $cities_count
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Uf newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Uf newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Uf query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Uf whereAbbreviation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Uf whereIbgeCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Uf whereName($value)
+ *
+ * @mixin \Eloquent
+ */
 class Uf extends Model
 {
     protected $table = 'ufs';

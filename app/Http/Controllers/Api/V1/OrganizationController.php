@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\api\v1;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
@@ -25,7 +25,7 @@ class OrganizationController extends Controller
     public function store(StoreOrganizationRequest $request)
     {
 
-        [$newOrganization, $adminUser] = $this->organizationService->create($request->validated());
+        [$newOrganization, $adminUser] = $this->organizationService->createWithoutOrganization($request->validated());
 
         return $this->success([
             'organization' => $newOrganization,

@@ -13,7 +13,7 @@ class OrganizationService extends BaseService
         parent::__construct(new Organization);
     }
 
-    public function create(array $data): array
+    public function createWithoutOrganization(array $data): array
     {
         $organization = Organization::create([
             'name' => $data['name'],
