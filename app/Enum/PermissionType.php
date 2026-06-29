@@ -39,11 +39,21 @@ enum PermissionType: string
     case PRODUCT_UPDATE = 'product.update';
     case PRODUCT_DELETE = 'product.delete';
 
+    public static function allValues(): array
+    {
+        foreach (self::cases() as $case) {
+            $array[] = $case->value;
+        }
+
+        return $array;
+
+    }
+
     public static function byModel(string $model): array
     {
         return array_filter(
-            self::cases(),
-            fn (self $case) => str_starts_with($case->value, $model.'.')
+            self::allValues(),
+            fn ($case) => str_starts_with($case, $model.'.')
         );
     }
 }
