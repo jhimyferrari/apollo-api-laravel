@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('addresses', function (Blueprint $table) {
-            $table->dropColumn('client_id');
+            $table->dropConstrainedForeignId('client_id');
             $table->uuidMorphs('addressable');
             $table->boolean('is_default')->default(false);
         });
