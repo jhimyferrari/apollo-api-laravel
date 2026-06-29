@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->bigInteger('number');
             $table->string('name', 45);
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
