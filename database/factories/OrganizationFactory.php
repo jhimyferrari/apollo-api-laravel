@@ -18,7 +18,7 @@ class OrganizationFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'name' => fake()->name().' ltda',
             'document' => (random_int(0, 1) == 0) ? fake()->cnpj() : fake()->cpf(),
 
         ];

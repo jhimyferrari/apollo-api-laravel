@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Helpers\Test\PasswordHelper;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -30,7 +31,7 @@ class UserFactory extends Factory
             'organization_id' => Organization::factory(),
             'email_verified_at' => now(),
             'is_administrator' => 0,
-            'password' => fake()->password(8),
+            'password' => PasswordHelper::generateValid(),
             'remember_token' => Str::random(10),
         ];
     }
@@ -43,5 +44,10 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(['is_administrator' => 1]);
     }
 }
