@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\Status\SellerStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,7 @@ return new class extends Migration
         Schema::create('sellers', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->bigInteger('number');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('status')->default(SellerStatus::Active->value);
             $table->string('document');
             $table->string('legal_name');
             $table->string('trade_name');
