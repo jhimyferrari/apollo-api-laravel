@@ -8,7 +8,13 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BaseService implements ResourceServiceInterface
+/**
+ * Base service for the HTTP layer.
+ *
+ * Assumes an authenticated user is present — all methods
+ * rely on active global scopes (e.g. OrganizationScope).
+ */
+abstract class BaseService implements ResourceServiceInterface
 {
     public function __construct(protected Model $model) {}
 

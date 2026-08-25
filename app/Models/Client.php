@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enum\Status\ClientStatus;
 use App\Helpers\DocumentHelper;
+use App\Interfaces\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
@@ -63,7 +65,7 @@ use InvalidArgumentException;
  * @mixin \Eloquent
  */
 #[ScopedBy([OrganizationScope::class])]
-class Client extends Model
+class Client extends Model implements HasStatus
 {
     /** @use HasFactory<ClientFactory> */
     use HasAddresses, HasFactory, HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;
@@ -84,11 +86,16 @@ class Client extends Model
         'address_id',
     ];
 
+    public function statusEnumClass(): string
+    {
+        return ClientStatus::class;
+    }
+
     public function document(): Attribute
     {
         return Attribute::make(
             set: function ($value) {
-                $formatedValue = DocumentHelper::formatCpfAndCnpj($value);
+                $formatedValue = DocumentHelper::remove_pontuation($value);
 
                 if (\strlen($formatedValue) === 11 || \strlen($formatedValue) === 14) {
                     return $formatedValue;

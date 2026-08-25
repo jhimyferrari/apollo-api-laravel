@@ -4,6 +4,7 @@ use App\Enum\PermissionType;
 use App\Enum\ProductUnit;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\NcmCode;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -20,8 +21,8 @@ describe('POST api/producst', function () {
         $data = [
             'name' => fake()->word(),
             'unit' => ProductUnit::random(),
-            'ncm' => fake()->regexify('\d{8}$'),
-            'ean' => fake()->regexify('^\d{13}$'),
+            'ncm' => NcmCode::factory()->create()->code,
+            'ean' => fake()->ean13(),
             'cost_price' => $cost_price,
             'sale_price' => fake()->numberBetween($cost_price, 100000000),
             'brand_id' => $brand->id,

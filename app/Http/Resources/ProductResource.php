@@ -21,7 +21,7 @@ class ProductResource extends JsonResource
             'status' => $this->status,
             'description' => $this->description,
             'unit' => $this->unit,
-            'ncm' => $this->ncm,
+            'ncm' => new NcmCodeResource($this->ncm_code),
             'ean' => $this->ean,
             'cost_price' => $this->cost_price,
             'sale_price' => $this->sale_price,

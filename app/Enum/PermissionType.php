@@ -2,8 +2,11 @@
 
 namespace App\Enum;
 
+use App\Traits\Enum\HasEnumValues;
+
 enum PermissionType: string
 {
+    use HasEnumValues;
     case USER_CREATE = 'user.create';
     case USER_READ = 'user.view';
     case USER_UPDATE = 'user.update';
@@ -42,8 +45,8 @@ enum PermissionType: string
     public static function byModel(string $model): array
     {
         return array_filter(
-            self::cases(),
-            fn (self $case) => str_starts_with($case->value, $model.'.')
+            self::allValues(),
+            fn ($case) => str_starts_with($case, $model.'.')
         );
     }
 }

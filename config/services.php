@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'siscomex' => [
+        'ncm_endpoint' => env('NCM_RECEITA_ENDPOINT', 'https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json?perfil=PUBLICO'),
+        'ncm_timeout' => env('NCM_RECEITA_TIMEOUT', 10),
+        'ncm_cache_ttl' => env('NCM_RECEITA_CACHE_TTL', 3600),
+    ],
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

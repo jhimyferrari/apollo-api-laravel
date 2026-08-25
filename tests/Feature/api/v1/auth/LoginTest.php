@@ -15,7 +15,7 @@ describe('Create Organization and Login flow', function () {
             'name' => fake()->domainName,
             'document' => fake()->cpf(false),
             'email' => fake()->email,
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
         ];
         $response = $this->postJson(route('v1.organizations.store'),
             $data,

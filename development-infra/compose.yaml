@@ -1,11 +1,25 @@
 services:
-  db:
-    image: postgres:17           
-    container_name: db_api_apollo     
-    environment:
-      POSTGRES_USER: development
-      POSTGRES_PASSWORD: password  
-      POSTGRES_DB: apollo_api_development   
-    ports:
-      - "5432:5432"
-    
+    db:
+        image: postgres:17
+        container_name: db_api_apollo
+        environment:
+            POSTGRES_USER: development
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: apollo_api_development
+        ports:
+            - "5432:5432"
+    redis:
+        image: redis:7-alpine
+        container_name: redis_api_apollo
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 3s
+            retries: 5
+
+volumes:
+    redis_data:

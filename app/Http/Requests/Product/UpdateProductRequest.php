@@ -26,9 +26,9 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:45'],
-            'unit' => ['required', 'string', Rule::in(ProductUnit::values())],
+            'unit' => ['required', 'string', Rule::in(ProductUnit::allValues())],
             'ncm' => ['nullable', 'string', 'size:8'],
-            'ean' => ['nullable', 'string', 'size:13', 'unique:products,ean'],
+            'ean' => ['nullable', 'string', 'size:13'],
             'cost_price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
             'sale_price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
             'stock_quantity' => ['nullable', 'numeric', 'min:0', 'decimal:0,3'],

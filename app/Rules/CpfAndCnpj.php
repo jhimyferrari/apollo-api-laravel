@@ -16,7 +16,7 @@ class CpfAndCnpj implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $value = DocumentHelper::formatCpfAndCnpj($value);
+        $value = DocumentHelper::remove_pontuation($value);
 
         match (\strlen($value)) {
             11 => $this->validateCpf($value) ?: $fail('Invalid document.'),
