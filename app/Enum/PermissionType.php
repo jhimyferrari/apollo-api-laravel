@@ -2,8 +2,11 @@
 
 namespace App\Enum;
 
+use App\Traits\Enum\HasEnumValues;
+
 enum PermissionType: string
 {
+    use HasEnumValues;
     case USER_CREATE = 'user.create';
     case USER_READ = 'user.view';
     case USER_UPDATE = 'user.update';
@@ -38,16 +41,6 @@ enum PermissionType: string
     case PRODUCT_READ = 'product.view';
     case PRODUCT_UPDATE = 'product.update';
     case PRODUCT_DELETE = 'product.delete';
-
-    public static function allValues(): array
-    {
-        foreach (self::cases() as $case) {
-            $array[] = $case->value;
-        }
-
-        return $array;
-
-    }
 
     public static function byModel(string $model): array
     {

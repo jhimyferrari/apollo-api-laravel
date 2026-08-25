@@ -27,7 +27,7 @@ class StoreProductRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:45'],
             'description' => ['nullable', 'string'],
-            'unit' => ['required', 'string', Rule::in(ProductUnit::values())],
+            'unit' => ['required', 'string', Rule::in(ProductUnit::allValues())],
             'ncm' => ['nullable', 'string', 'size:8'],
             'ean' => ['nullable', 'string', 'size:13'],
             'cost_price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],

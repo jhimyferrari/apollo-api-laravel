@@ -17,7 +17,7 @@ describe('POST api/organizations', function () {
             'name' => fake()->company,
             'document' => fake()->cnpj(false),
             'email' => fake()->email,
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
         ];
 
         $response = $this->postJson(route('v1.organizations.store'),
@@ -34,7 +34,7 @@ describe('POST api/organizations', function () {
             'name' => fake()->company,
             'document' => fake()->cpf(),
             'email' => fake()->email,
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
         ];
 
         $response = $this->postJson(route('v1.organizations.store'), $data);
@@ -49,7 +49,7 @@ describe('POST api/organizations', function () {
             'name' => fake()->company,
             'document' => '11.111.111/1111-11',
             'email' => fake()->email,
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
         ];
 
         $response = $this->postJson(route('v1.organizations.store'), $data);
@@ -60,7 +60,7 @@ describe('POST api/organizations', function () {
             'name' => fake()->company,
             'document' => fake()->cpf(),
             'email' => '1',
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
         ];
 
         $response = $this->postJson(route('v1.organizations.store'), $data);
@@ -71,7 +71,7 @@ describe('POST api/organizations', function () {
             'name' => fake()->company,
             'document' => fake()->cpf(),
             'email' => '1',
-            'password' => fake()->password(7, 7),
+            'password' => $this->validPassword(),
         ];
 
         $response = $this->postJson(route('v1.organizations.store'), $data);
@@ -85,7 +85,7 @@ describe('POST api/organizations', function () {
             'name' => fake()->company,
             'document' => $organization->id,
             'email' => fake()->email,
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
         ];
         $response = $this->postJson(route('v1.organizations.store'), $data);
         $response->assertUnprocessable();

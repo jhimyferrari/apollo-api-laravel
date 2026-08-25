@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enum\Status\SellerStatus;
+use App\Interfaces\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasSequencialNumber;
 use App\Traits\ProtectsOrganization;
@@ -58,7 +60,7 @@ use Illuminate\Support\Carbon;
  * @mixin \Eloquent
  */
 #[ScopedBy([OrganizationScope::class])]
-class Seller extends Model
+class Seller extends Model implements HasStatus
 {
     /** @use HasFactory<SellerFactory> */
     use HasFactory,HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;
@@ -79,6 +81,11 @@ class Seller extends Model
         'started_at',
         'ended_at',
     ];
+
+    public function statusEnumClass(): string
+    {
+        return SellerStatus::class;
+    }
 
     public function organization(): BelongsTo
     {

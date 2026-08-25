@@ -5,6 +5,7 @@ use App\Models\Address;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Client;
+use App\Models\NcmCode;
 use App\Models\Organization;
 use App\Models\Product;
 use App\Models\Seller;
@@ -103,6 +104,15 @@ describe('Integrit of the database', function () {
             $this->assertDatabaseHas(
                 'products',
                 ['id' => $product['id']]
+            );
+        });
+        test('NcmCode Model', function () {
+            $this->assertDatabaseEmpty('ncm_codes');
+            $ncm = NcmCode::factory()->create();
+            $this->assertDatabaseCount('ncm_codes', 1);
+            $this->assertDatabaseHas(
+                'ncm_codes',
+                ['code' => $ncm['code']]
             );
         });
     });

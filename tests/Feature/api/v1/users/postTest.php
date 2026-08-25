@@ -18,7 +18,7 @@ describe('POST api/users', function () {
         Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
 
         // creating a user without permissions
-        $passwordPlain = fake()->password(8);
+        $passwordPlain = $this->validPassword();
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
@@ -42,7 +42,7 @@ describe('POST api/users', function () {
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
             'permissions' => $permissions,
         ];
         $response = $this->postJson(
@@ -75,7 +75,7 @@ describe('POST api/users', function () {
         $data = [
             'name' => fake()->name,
             'email' => 'wrongEmail@',
-            'password' => fake()->password(8),
+            'password' => $this->validPassword(),
         ];
         $reponse = $this->postJson(
             route('v1.users.store'),

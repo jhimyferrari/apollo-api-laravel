@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\ValidateDuplicateField;
+use App\Actions\Validation\ValidateDuplicateField;
 use App\Exceptions\DuplicateFieldException;
 use App\Models\Client;
 use App\Models\Organization;
@@ -16,7 +16,7 @@ describe('ValidateDuplicateField', function () {
     });
     it('throw an error when pass a organization_id when does not exist in model', function () {
         expect(fn () => app(ValidateDuplicateField::class)
-            ->execute(new Uf, 'name', 'value', '1'))
+            ->execute(new Uf, 'name', 'value', null, '1'))
             ->toThrow(RuntimeException::class, 'Attribute `organization_id` does not exist in Uf');
     });
 
@@ -36,8 +36,9 @@ describe('ValidateDuplicateField', function () {
         $organization = Organization::factory()->create();
         $document = Client::factory()->create()->document;
         expect(fn () => app(ValidateDuplicateField::class)
-            ->execute(new Client, 'document', $document, $organization->id))
+            ->execute(new Client, 'document', $document, null, $organization->id))
             ->not
+
             ->toThrow(DuplicateFieldException::class);
     });
     it('throw an error when using duplicated values from same organizations  ', function () {

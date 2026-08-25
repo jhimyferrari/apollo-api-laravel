@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Casts\AsMoney;
+use App\Enum\Status\ProductStatus;
+use App\Interfaces\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasSequencialNumber;
 use App\Traits\ProtectsOrganization;
@@ -65,7 +68,7 @@ use Illuminate\Support\Carbon;
  * @mixin \Eloquent
  */
 #[ScopedBy(OrganizationScope::class)]
-class Product extends Model
+class Product extends Model implements HasStatus
 {
     /** @use HasFactory<ProductFactory> */
     use HasFactory,HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;
@@ -82,21 +85,23 @@ class Product extends Model
 
     protected $fillable = [
         'name',
-        'status',
         'unit',
-        'ncm',
         'ean',
         'cost_price',
         'sale_price',
         'stock_quantity',
-        'brand_id',
     ];
 
     protected $casts = [
-        'cost_price' => 'decimal:2',
-        'sale_price' => 'decimal:2',
+        'cost_price' => AsMoney::class,
+        'sale_price' => AsMoney::class,
         'stock_quantity' => 'decimal:3',
     ];
+
+    public function StatusEnumClass(): string
+    {
+        return ProductStatus::class;
+    }
 
     public function brand(): BelongsTo
     {
@@ -106,6 +111,11 @@ class Product extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'product_categories');
+    }
+
+    public function ncm_code(): BelongsTo
+    {
+        return $this->belongsTo(NcmCode::class);
     }
 
     public function organization(): BelongsTo

@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('unit')->default(ProductUnit::Unit->value);
             $table->char('ncm', 8)->nullable();
             $table->char('ean', 13)->nullable()->unique();
-            $table->decimal('cost_price', 10, 2);
-            $table->decimal('sale_price', 10, 2);
+            $table->decimal('cost_price', 15, 4)->default(0);
+            $table->decimal('sale_price', 15, 4)->default(0);
             $table->decimal('stock_quantity', 10, 3)->default(0);
             $table->softDeletes();
             $table->timestamps();

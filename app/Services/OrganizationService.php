@@ -2,35 +2,38 @@
 
 namespace App\Services;
 
+use App\Actions\Validation\ValidateDuplicateField;
+use App\Helpers\DocumentHelper;
 use App\Models\Organization;
-use App\Models\Permission;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
-class OrganizationService extends BaseService
+class OrganizationService
 {
-    public function __construct()
+    public function __construct(
+        private UserService $userService
+    ) {}
+
+    public function create(array $data): array
     {
-        parent::__construct(new Organization);
-    }
+        $formatedDocument = DocumentHelper::remove_pontuation($data['document']);
+        $formatedName = trim($data['name']);
+        app(ValidateDuplicateField::class)->execute(new Organization, 'document', $formatedDocument);
 
-    public function createWithoutOrganization(array $data): array
-    {
-        $organization = Organization::create([
-            'name' => $data['name'],
-            'document' => $data['document'],
-        ]);
+        return DB::transaction(function () use ($data, $formatedDocument, $formatedName) {
+            $organization = Organization::create([
+                'name' => $formatedName,
+                'document' => $formatedDocument,
+            ]);
 
-        $adminUser = new User([
-            'name' => 'Administrador',
-            'email' => $data['email'],
-            'password' => $data['password'],
-        ]);
-        $adminUser->organization_id = $organization->id;
-        $adminUser->is_administrator = true;
-        $adminUser->save();
+            $adminUser = $this->userService->createAdmin(
+                [
+                    'email' => $data['email'],
+                    'password' => $data['password'],
+                    'organization_id' => $organization->id,
+                ]
+            );
 
-        $adminUser->permissions()->sync(Permission::all());
-
-        return [$organization, $adminUser];
+            return [$organization, $adminUser];
+        });
     }
 }

@@ -10,6 +10,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class BaseException extends Exception
 {
     public function __construct(
+        /**
+         * @param  string  $message  message explaining the error
+         * @param  int  $statusCode  http status code of the error
+         * @param  string  $errorCode  type of errors name
+         */
         string $message = '',
         protected int $statusCode = 500,
         protected string $errorCode = 'INTERNAL ERROR',

@@ -21,6 +21,7 @@ describe('PATCH api/suppliers/{supplier}', function () {
             'phone' => fake()->phoneNumber(),
             'email' => fake()->email(),
         ];
+
         $response = $this->patchJson(route('v1.suppliers.update', $supplier), $newSupplierRequest);
 
         $response->assertNoContent();

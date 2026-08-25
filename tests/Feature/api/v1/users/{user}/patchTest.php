@@ -24,12 +24,12 @@ describe('PATCH api/users/{user}', function () {
 
         Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
         $permissions = Permission::where('name', 'like', 'user.%')->pluck('name');
-
         $response = $this->patchJson(route('v1.users.update', $secondUser), [
             'permissions' => $permissions,
         ]);
 
         $response->assertNoContent();
+
         $permissionIds = Permission::whereIn('name', $permissions)->pluck('id');
         foreach ($permissionIds as $permissionId) {
             $this->assertDatabaseHas('user_permissions', [

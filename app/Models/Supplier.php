@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enum\Status\SupplierStatus;
+use App\Interfaces\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
@@ -60,7 +62,7 @@ use Illuminate\Support\Carbon;
  * @mixin \Eloquent
  */
 #[ScopedBy([OrganizationScope::class])]
-class Supplier extends Model
+class Supplier extends Model implements HasStatus
 {
     /** @use HasFactory<SupplierFactory> */
     use HasAddresses,HasFactory,HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;
@@ -79,6 +81,11 @@ class Supplier extends Model
         'phone',
         'email',
     ];
+
+    public function statusEnumClass(): string
+    {
+        return SupplierStatus::class;
+    }
 
     public function organization(): BelongsTo
     {
