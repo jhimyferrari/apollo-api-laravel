@@ -42,6 +42,11 @@ Route::prefix('v1')
                 Route::get('/{client}', [ClientControllerV1::class, 'show'])->name('show');
                 Route::delete('/{client}', [ClientControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{client}', [ClientControllerV1::class, 'update'])->name('update');
+                Route::post('/{client}/address', [ClientControllerV1::class, 'update'])->name('update');
+                Route::get('/{client}/address', [ClientControllerV1::class, 'update'])->name('update');
+
+                Route::post('/{client}/addresses/', [ClientControllerV1::class, 'storeAddress'])->name('addresses.store');
+                Route::patch('/{client}/addresses/{address}/setDefault', [ClientControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
             });
 
             Route::group(['as' => 'sellers.', 'prefix' => '/sellers'], function () {
@@ -50,6 +55,9 @@ Route::prefix('v1')
                 Route::get('/{seller}', [SellerControllerV1::class, 'show'])->name('show');
                 Route::delete('/{seller}', [SellerControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{seller}', [SellerControllerV1::class, 'update'])->name('update');
+
+                Route::post('/{seller}/addresses/', [SellerControllerV1::class, 'storeAddress'])->name('addresses.store');
+                Route::patch('/{seller}/addresses/{address}/setDefault', [SellerControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
             });
 
             Route::group(['as' => 'suppliers.', 'prefix' => '/suplliers'], function () {
@@ -58,6 +66,10 @@ Route::prefix('v1')
                 Route::get('/{supplier}', [SupplierControllerV1::class, 'show'])->name('show');
                 Route::delete('/{supplier}', [SupplierControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{supplier}', [SupplierControllerV1::class, 'update'])->name('update');
+
+                Route::post('/{supplier}/addresses/', [SupplierControllerV1::class, 'storeAddress'])->name('addresses.store');
+                Route::patch('/{supplier}/addresses/{address}/setDefault', [SupplierControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
+
             });
 
             Route::group(['as' => 'brands.', 'prefix' => '/brands'], function () {

@@ -6,9 +6,13 @@ use App\Exceptions\InvalidFieldException;
 use App\Exceptions\InvalidStatusException;
 use App\Helpers\DocumentHelper;
 use App\Helpers\Test\StateRegistrationHelper;
+use App\Models\Address;
+use App\Models\City;
 use App\Models\Seller;
 use App\Models\User;
 use App\Services\SellerService;
+use Database\Seeders\CitiesSeeder;
+use Database\Seeders\UfSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
@@ -247,12 +251,125 @@ describe('SellerService', function () {
                 ->phone->toBe($data['phone'])
                 ->email->toBe($data['email']);
         });
+
+        it('should update the phone and email of a seller to null', function () {
+            $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+            $data = [
+                'phone' => null,
+                'email' => null,
+            ];
+
+            $updated = $this->service->update($seller, $data);
+
+            expect($updated)
+                ->toBeInstanceOf(Seller::class)
+                ->phone->toBeNull()
+                ->email->toBeNull();
+        });
     });
     describe('delete', function () {
         it('should delete some seller', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $this->service->delete($seller);
             $this->assertSoftDeleted($seller);
+        });
+    });
+
+    describe('address', function () {
+        beforeEach(function () {
+            $this->seed(UfSeeder::class);
+            new CitiesSeeder()->run(2);
+        });
+        describe('createAddress', function () {
+            it('should create and add an address to a seller', function () {
+                $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+                $city_ibge_code = City::first()->ibge_code;
+                $data = [
+                    'street' => 'Rua A',
+                    'number' => '213',
+                    'neighborhood' => 'centro',
+                    'cep' => '87500000',
+                    'is_default' => false,
+                    'city_ibge_code' => $city_ibge_code,
+                ];
+                $address = $this->service->createAddress($seller, $data);
+
+                expect($address)
+                    ->toBeInstanceOf(Address::class)
+                    ->street->toBe($data['street'])
+                    ->number->toBe($data['number'])
+                    ->neighborhood->toBe($data['neighborhood'])
+                    ->cep->toBe($data['cep'])
+                    ->is_default->toBeFalse()
+                    ->city->ibge_code->toBe($city_ibge_code)
+                    ->addressable->id->toBe($seller->id);
+            });
+
+            it('should create add 2 address and change default', function () {
+                $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+                $city_ibge_code = City::first()->ibge_code;
+                $oldAddress = $seller->addresses()->create(Address::factory()->turnDefault()->make(['organization_id' => $this->user->organization_id])->toArray());
+                $data = [
+                    'street' => 'Rua A',
+                    'number' => '213',
+                    'neighborhood' => 'centro',
+                    'cep' => '87500000',
+                    'is_default' => true,
+                    'city_ibge_code' => $city_ibge_code,
+                ];
+                $address = $this->service->createAddress($seller, $data);
+
+                $this->assertDatabaseCount('addresses', 2);
+                expect($address)
+                    ->toBeInstanceOf(Address::class)
+                    ->street->toBe($data['street'])
+                    ->number->toBe($data['number'])
+                    ->neighborhood->toBe($data['neighborhood'])
+                    ->cep->toBe($data['cep'])
+                    ->is_default->toBeTrue()
+                    ->city->ibge_code->toBe($city_ibge_code)
+                    ->addressable_type->toBe(Seller::class)
+                    ->addressable_id->toBe($seller->id);
+
+                $oldAddress->refresh();
+
+                expect($oldAddress)->is_default->toBeFalse();
+
+                expect(
+                    Address::query()
+                        ->where('addressable_id', $seller->id)
+                        ->where('is_default', true)
+                        ->count()
+                )->toBe(1);
+
+                expect($seller->defaultAddress)->id->toBe($address->id);
+
+            });
+        });
+        describe('setDefaultAddress', function () {
+
+            it('should turn an Address to default', function () {
+                $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+                $address = $seller->addresses()->create(Address::factory()->for($this->user->organization)->make()->toArray());
+                $this->service->setDefaultAddress($seller, $address);
+                $address->refresh();
+                expect($address)->is_default->toBeTrue();
+            });
+
+            it('should turn false a default address after turn default other  ', function () {
+                $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+                $addressOld = $seller->addresses()->create(Address::factory()->turnDefault()->make(['organization_id' => $this->user->organization_id])->toArray());
+                $address = $seller->addresses()->create(Address::factory()->for($this->user->organization)->make()->toArray());
+
+                $this->service->setDefaultAddress($seller, $address);
+                $address->refresh();
+                expect($address)->is_default->toBeTrue();
+
+                $addressOld->refresh();
+
+                expect($addressOld)->is_default->toBeFalse();
+
+            });
         });
     });
 

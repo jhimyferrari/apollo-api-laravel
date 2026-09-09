@@ -47,11 +47,21 @@ describe('Integrit of the database', function () {
             $seed = new CitiesSeeder;
             $seed->run(50);
             $this->assertDatabaseEmpty('addresses');
-            $address = Address::factory()->create();
-            $this->assertDatabaseHas(
-                'addresses',
-                ['id' => $address['id']]
-            );
+            $address1 = Address::factory()->forClient()->create();
+            $address2 = Address::factory()->forSupplier()->create();
+            $address3 = Address::factory()->forSeller()->create();
+            $this->assertDatabaseHas('addresses', [
+                'id' => $address1['id'],
+            ]);
+
+            $this->assertDatabaseHas('addresses', [
+                'id' => $address2['id'],
+            ]);
+
+            $this->assertDatabaseHas('addresses', [
+                'id' => $address3['id'],
+            ]);
+
         });
         test('Client Model', function () {
             $this->assertDatabaseEmpty('clients');

@@ -2,24 +2,31 @@
 
 namespace App\Services;
 
+use App\Actions\Treatment\TreatAddress;
 use App\Actions\Treatment\TreatDocument;
 use App\Actions\Treatment\TreatEmail;
 use App\Actions\Treatment\TreatName;
 use App\Actions\Treatment\TreatPhone;
 use App\Actions\Treatment\TreatStateRegistration;
 use App\Actions\Validation\ValidateStatusEnum;
+use App\Interfaces\Services\AddressableService;
 use App\Models\Seller;
 use App\Models\User;
+use App\Traits\Service\HandlesAddress;
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
-class SellerService extends BaseService
+class SellerService extends BaseService implements AddressableService
 {
+    use HandlesAddress;
+
     public function __construct(
         private TreatDocument $treatDocument,
         private TreatName $treatName,
         private TreatStateRegistration $treatStateRegistration,
         private TreatPhone $treatPhone,
-        private TreatEmail $treatEmail
+        private TreatEmail $treatEmail,
+        private TreatAddress $treatAddress
     ) {
         parent::__construct(new Seller);
     }
@@ -72,9 +79,12 @@ class SellerService extends BaseService
         }
         $newSeller = new Seller($data);
         $newSeller->organization_id = $user->organization_id;
-        $newSeller->save();
 
-        return $newSeller;
+        DB::transaction(function () use ($newSeller) {
+            $newSeller->save();
+        });
+
+        return $newSeller->fresh();
     }
 
     /**
@@ -120,11 +130,11 @@ class SellerService extends BaseService
                 ignoredId: $seller->id);
         }
 
-        if (isset($data['phone'])) {
+        if (\array_key_exists('phone', $data)) {
             $seller->phone = $this->treatPhone->execute($data['phone']);
         }
 
-        if (isset($data['email'])) {
+        if (\array_key_exists('email', $data)) {
             $seller->email = $this->treatEmail->execute(
                 $this->model,
                 'email',
@@ -133,13 +143,21 @@ class SellerService extends BaseService
                 mustBeUnique: false);
         }
 
-        $seller->save();
+        DB::transaction(function () use ($seller) {
+            $seller->save();
+        });
 
-        return $seller;
+        return $seller->fresh();
     }
 
+    /**
+     * @param  Seller  $seller
+     */
     public function delete(Model $seller): void
     {
-        $seller->delete();
+        DB::transaction(function () use ($seller) {
+            $seller->addresses()->delete();
+            $seller->delete();
+        });
     }
 }

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
+use App\Models\Address;
 use App\Models\Client;
 use App\Services\ClientService;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -25,6 +27,7 @@ class ClientController extends Controller implements HasMiddleware
             new Middleware('abilities:'.PermissionType::CLIENT_READ->value, only: ['index', 'show']),
             new Middleware('abilities:'.PermissionType::CLIENT_UPDATE->value, only: ['update']),
             new Middleware('abilities:'.PermissionType::CLIENT_DELETE->value, only: ['destroy']),
+            new Middleware(['ability:'.PermissionType::CLIENT_CREATE->value.','.PermissionType::CLIENT_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
         ];
     }
 
@@ -71,6 +74,20 @@ class ClientController extends Controller implements HasMiddleware
     public function destroy(Client $client)
     {
         $this->clientService->delete($client);
+
+        return response()->noContent();
+    }
+
+    public function storeAddress(StoreAddressRequest $request, Client $client)
+    {
+        $newAddress = $this->clientService->createAddress($client, $request->validated());
+
+        return $this->success($newAddress, 'Address created successfully.', 201);
+    }
+
+    public function setDefaultAddress(Client $client, Address $address)
+    {
+        $this->clientService->setDefaultAddress($client, $address);
 
         return response()->noContent();
     }

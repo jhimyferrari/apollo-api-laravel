@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Supplier\StoreSupplierRequest;
 use App\Http\Requests\Supplier\UpdateSupplierRequest;
 use App\Http\Resources\SupplierResource;
+use App\Models\Address;
 use App\Models\Supplier;
 use App\Services\SupplierService;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -24,6 +26,7 @@ class SupplierController extends Controller implements HasMiddleware
             new Middleware('abilities:'.PermissionType::SUPPLIER_READ->value, only: ['index', 'show']),
             new Middleware('abilities:'.PermissionType::SUPPLIER_UPDATE->value, only: ['update']),
             new Middleware(['abilities:'.PermissionType::SUPPLIER_DELETE->value], only: ['destroy']),
+            new Middleware(['ability:'.PermissionType::SUPPLIER_CREATE->value.','.PermissionType::SUPPLIER_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
         ];
     }
 
@@ -71,6 +74,20 @@ class SupplierController extends Controller implements HasMiddleware
     public function destroy(Supplier $supplier)
     {
         $this->supplierService->delete($supplier);
+
+        return response()->noContent();
+    }
+
+    public function storeAddress(StoreAddressRequest $request, Supplier $supplier)
+    {
+        $newAddress = $this->supplierService->createAddress($supplier, $request->validated());
+
+        return $this->success($newAddress, 'Address created successfully.', 201);
+    }
+
+    public function setDefaultAddress(Supplier $supplier, Address $address)
+    {
+        $this->supplierService->setDefaultAddress($supplier, $address);
 
         return response()->noContent();
     }

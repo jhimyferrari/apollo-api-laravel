@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enum\Status\SellerStatus;
 use App\Interfaces\HasStatus;
+use App\Interfaces\Models\Addressable;
 use App\Models\Scopes\OrganizationScope;
+use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
 use App\Traits\ProtectsOrganization;
 use Database\Factories\SellerFactory;
@@ -60,10 +62,10 @@ use Illuminate\Support\Carbon;
  * @mixin \Eloquent
  */
 #[ScopedBy([OrganizationScope::class])]
-class Seller extends Model implements HasStatus
+class Seller extends Model implements Addressable, HasStatus
 {
     /** @use HasFactory<SellerFactory> */
-    use HasFactory,HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;
+    use HasAddresses,HasFactory,HasSequencialNumber,HasUuids,ProtectsOrganization, SoftDeletes;
 
     protected $table = 'sellers';
 

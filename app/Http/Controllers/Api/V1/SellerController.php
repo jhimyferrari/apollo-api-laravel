@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Seller\StoreSellerRequest;
 use App\Http\Requests\Seller\UpdateSellerRequest;
 use App\Http\Resources\SellerResource;
+use App\Models\Address;
 use App\Models\Seller;
 use App\Services\SellerService;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -25,6 +27,7 @@ class SellerController extends Controller implements HasMiddleware
             new Middleware('abilities:'.PermissionType::SELLER_READ->value, only: ['index', 'show']),
             new Middleware('abilities:'.PermissionType::SELLER_UPDATE->value, only: ['update']),
             new Middleware('abilities:'.PermissionType::SELLER_DELETE->value, only: ['destroy']),
+            new Middleware(['ability:'.PermissionType::SELLER_CREATE->value.','.PermissionType::SELLER_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
         ];
     }
 
@@ -71,6 +74,20 @@ class SellerController extends Controller implements HasMiddleware
     public function destroy(Seller $seller)
     {
         $this->sellerService->delete($seller);
+
+        return response()->noContent();
+    }
+
+    public function storeAddress(StoreAddressRequest $request, Seller $seller)
+    {
+        $newAddress = $this->sellerService->createAddress($seller, $request->validated());
+
+        return $this->success($newAddress, 'Address created successfully.', 201);
+    }
+
+    public function setDefaultAddress(Seller $seller, Address $address)
+    {
+        $this->sellerService->setDefaultAddress($seller, $address);
 
         return response()->noContent();
     }

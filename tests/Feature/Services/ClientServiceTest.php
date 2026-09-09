@@ -6,9 +6,13 @@ use App\Exceptions\InvalidFieldException;
 use App\Exceptions\InvalidStatusException;
 use App\Helpers\DocumentHelper;
 use App\Helpers\Test\StateRegistrationHelper;
+use App\Models\Address;
+use App\Models\City;
 use App\Models\Client;
 use App\Models\User;
 use App\Services\ClientService;
+use Database\Seeders\CitiesSeeder;
+use Database\Seeders\UfSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
@@ -254,6 +258,104 @@ describe('ClientService', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $this->service->delete($client);
             $this->assertSoftDeleted($client);
+        });
+    });
+
+    describe('address', function () {
+        beforeEach(function () {
+            $this->seed(UfSeeder::class);
+            new CitiesSeeder()->run(2);
+        });
+        describe('createAddress', function () {
+            it('should create and add an address to a client', function () {
+                $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
+                $city_ibge_code = City::first()->ibge_code;
+                $data = [
+                    'street' => 'Rua A',
+                    'number' => '213',
+                    'neighborhood' => 'centro',
+                    'cep' => '87500000',
+                    'is_default' => false,
+                    'city_ibge_code' => $city_ibge_code,
+                ];
+                $address = $this->service->createAddress($client, $data);
+
+                expect($address)
+                    ->toBeInstanceOf(Address::class)
+                    ->street->toBe($data['street'])
+                    ->number->toBe($data['number'])
+                    ->neighborhood->toBe($data['neighborhood'])
+                    ->cep->toBe($data['cep'])
+                    ->is_default->toBeFalse()
+                    ->city->ibge_code->toBe($city_ibge_code)
+                    ->addressable->id->toBe($client->id);
+            });
+
+            it('should create add 2 address and change default', function () {
+                $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
+                $city_ibge_code = City::first()->ibge_code;
+                $oldAddress = $client->addresses()->create(Address::factory()->turnDefault()->make(['organization_id' => $this->user->organization_id])->toArray());
+                $data = [
+                    'street' => 'Rua A',
+                    'number' => '213',
+                    'neighborhood' => 'centro',
+                    'cep' => '87500000',
+                    'is_default' => true,
+                    'city_ibge_code' => $city_ibge_code,
+                ];
+                $address = $this->service->createAddress($client, $data);
+
+                $this->assertDatabaseCount('addresses', 2);
+                expect($address)
+                    ->toBeInstanceOf(Address::class)
+                    ->street->toBe($data['street'])
+                    ->number->toBe($data['number'])
+                    ->neighborhood->toBe($data['neighborhood'])
+                    ->cep->toBe($data['cep'])
+                    ->is_default->toBeTrue()
+                    ->city->ibge_code->toBe($city_ibge_code)
+                    ->addressable_type->toBe(Client::class)
+                    ->addressable_id->toBe($client->id);
+
+                $oldAddress->refresh();
+
+                expect($oldAddress)->is_default->toBeFalse();
+
+                expect(
+                    Address::query()
+                        ->where('addressable_id', $client->id)
+                        ->where('is_default', true)
+                        ->count()
+                )->toBe(1);
+
+                expect($client->defaultAddress)->id->toBe($address->id);
+
+            });
+        });
+        describe('setDefaultAddress', function () {
+
+            it('should turn an Address to default', function () {
+                $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
+                $address = $client->addresses()->create(Address::factory()->for($this->user->organization)->make()->toArray());
+                $this->service->setDefaultAddress($client, $address);
+                $address->refresh();
+                expect($address)->is_default->toBeTrue();
+            });
+
+            it('should turn false a default address after turn default other  ', function () {
+                $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
+                $addressOld = $client->addresses()->create(Address::factory()->turnDefault()->make(['organization_id' => $this->user->organization_id])->toArray());
+                $address = $client->addresses()->create(Address::factory()->for($this->user->organization)->make()->toArray());
+
+                $this->service->setDefaultAddress($client, $address);
+                $address->refresh();
+                expect($address)->is_default->toBeTrue();
+
+                $addressOld->refresh();
+
+                expect($addressOld)->is_default->toBeFalse();
+
+            });
         });
     });
 });

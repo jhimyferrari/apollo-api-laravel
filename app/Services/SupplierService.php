@@ -2,24 +2,30 @@
 
 namespace App\Services;
 
+use App\Actions\Treatment\TreatAddress;
 use App\Actions\Treatment\TreatDocument;
 use App\Actions\Treatment\TreatEmail;
 use App\Actions\Treatment\TreatName;
 use App\Actions\Treatment\TreatPhone;
 use App\Actions\Treatment\TreatStateRegistration;
 use App\Actions\Validation\ValidateStatusEnum;
+use App\Interfaces\Services\AddressableService;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Traits\Service\HandlesAddress;
 use Illuminate\Database\Eloquent\Model;
 
-class SupplierService extends BaseService
+class SupplierService extends BaseService implements AddressableService
 {
+    use HandlesAddress;
+
     public function __construct(
         private TreatDocument $treatDocument,
         private TreatStateRegistration $treatStateRegistration,
         private TreatName $treatName,
         private TreatPhone $treatPhone,
         private TreatEmail $treatEmail,
+        private TreatAddress $treatAddress
     ) {
         parent::__construct(new Supplier);
     }
