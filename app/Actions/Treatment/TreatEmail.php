@@ -13,15 +13,15 @@ class TreatEmail
         private ValidateDuplicateField $validateDuplicateField
     ) {}
 
-    public function execute(Model $model, string $field, string $value, bool $mustBeNotNull, bool $mustBeUnique, ?string $ignoredId = null, ?string $organizationId = null): ?string
+    public function execute(Model $model, string $field, ?string $value, bool $mustBeNotNull, bool $mustBeUnique, ?string $ignoredId = null, ?string $organizationId = null): ?string
     {
-        $value = trim($value);
         if ($mustBeNotNull) {
             $this->validateFieldIsNotNull->execute($value, $field);
         }
-        if ($value == '') {
+        if ($value == '' || $value === null) {
             return null;
         }
+        $value = trim($value);
         if ($mustBeUnique) {
             $this->validateDuplicateField->execute($model, $field, $value, $ignoredId, $organizationId);
         }
