@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\V1\ProductController as ProductControllerV1;
 use App\Http\Controllers\Api\V1\SellerController as SellerControllerV1;
 use App\Http\Controllers\Api\V1\SupplierController as SupplierControllerV1;
 use App\Http\Controllers\Api\V1\UserController as UserControllerV1;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/user', function (Request $request) {
@@ -46,6 +45,7 @@ Route::prefix('v1')
                 Route::get('/{client}/address', [ClientControllerV1::class, 'update'])->name('update');
 
                 Route::post('/{client}/addresses/', [ClientControllerV1::class, 'storeAddress'])->name('addresses.store');
+                Route::get('/{client}/addresses/', [ClientControllerV1::class, 'showAddresses'])->name('addresses.show');
                 Route::patch('/{client}/addresses/{address}/setDefault', [ClientControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
             });
 
@@ -57,6 +57,7 @@ Route::prefix('v1')
                 Route::patch('/{seller}', [SellerControllerV1::class, 'update'])->name('update');
 
                 Route::post('/{seller}/addresses/', [SellerControllerV1::class, 'storeAddress'])->name('addresses.store');
+                Route::get('/{seller}/addresses/', [SellerControllerV1::class, 'showAddresses'])->name('addresses.show');
                 Route::patch('/{seller}/addresses/{address}/setDefault', [SellerControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
             });
 
@@ -68,6 +69,7 @@ Route::prefix('v1')
                 Route::patch('/{supplier}', [SupplierControllerV1::class, 'update'])->name('update');
 
                 Route::post('/{supplier}/addresses/', [SupplierControllerV1::class, 'storeAddress'])->name('addresses.store');
+                Route::get('/{supplier}/addresses/', [SupplierControllerV1::class, 'showAddresses'])->name('addresses.show');
                 Route::patch('/{supplier}/addresses/{address}/setDefault', [SupplierControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
 
             });
@@ -95,5 +97,6 @@ Route::prefix('v1')
                 Route::delete('/{product}', [ProductControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{product}', [ProductControllerV1::class, 'update'])->name('update');
             });
+
         });
     });

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Supplier\StoreSupplierRequest;
 use App\Http\Requests\Supplier\UpdateSupplierRequest;
+use App\Http\Resources\AddressResource;
 use App\Http\Resources\SupplierResource;
 use App\Models\Address;
 use App\Models\Supplier;
@@ -23,7 +24,7 @@ class SupplierController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('abilities:'.PermissionType::SUPPLIER_CREATE->value, only: ['store']),
-            new Middleware('abilities:'.PermissionType::SUPPLIER_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::SUPPLIER_READ->value, only: ['index', 'show', 'showAddresses']),
             new Middleware('abilities:'.PermissionType::SUPPLIER_UPDATE->value, only: ['update']),
             new Middleware(['abilities:'.PermissionType::SUPPLIER_DELETE->value], only: ['destroy']),
             new Middleware(['ability:'.PermissionType::SUPPLIER_CREATE->value.','.PermissionType::SUPPLIER_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
@@ -90,5 +91,10 @@ class SupplierController extends Controller implements HasMiddleware
         $this->supplierService->setDefaultAddress($supplier, $address);
 
         return response()->noContent();
+    }
+
+    public function showAddresses(Supplier $supplier)
+    {
+        return AddressResource::collection($supplier->addresses()->paginate(5));
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
+use App\Http\Resources\AddressResource;
 use App\Http\Resources\ClientResource;
 use App\Models\Address;
 use App\Models\Client;
@@ -24,7 +25,7 @@ class ClientController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('abilities:'.PermissionType::CLIENT_CREATE->value, only: ['store']),
-            new Middleware('abilities:'.PermissionType::CLIENT_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::CLIENT_READ->value, only: ['index', 'show', 'showAddresses']),
             new Middleware('abilities:'.PermissionType::CLIENT_UPDATE->value, only: ['update']),
             new Middleware('abilities:'.PermissionType::CLIENT_DELETE->value, only: ['destroy']),
             new Middleware(['ability:'.PermissionType::CLIENT_CREATE->value.','.PermissionType::CLIENT_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
@@ -90,5 +91,10 @@ class ClientController extends Controller implements HasMiddleware
         $this->clientService->setDefaultAddress($client, $address);
 
         return response()->noContent();
+    }
+
+    public function showAddresses(Client $client)
+    {
+        return AddressResource::collection($client->addresses()->paginate(5));
     }
 }

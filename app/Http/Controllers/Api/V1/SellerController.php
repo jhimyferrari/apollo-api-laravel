@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Seller\StoreSellerRequest;
 use App\Http\Requests\Seller\UpdateSellerRequest;
+use App\Http\Resources\AddressResource;
 use App\Http\Resources\SellerResource;
 use App\Models\Address;
 use App\Models\Seller;
@@ -24,7 +25,7 @@ class SellerController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('abilities:'.PermissionType::SELLER_CREATE->value, only: ['store']),
-            new Middleware('abilities:'.PermissionType::SELLER_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::SELLER_READ->value, only: ['index', 'show', 'showAddresses']),
             new Middleware('abilities:'.PermissionType::SELLER_UPDATE->value, only: ['update']),
             new Middleware('abilities:'.PermissionType::SELLER_DELETE->value, only: ['destroy']),
             new Middleware(['ability:'.PermissionType::SELLER_CREATE->value.','.PermissionType::SELLER_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
@@ -90,5 +91,10 @@ class SellerController extends Controller implements HasMiddleware
         $this->sellerService->setDefaultAddress($seller, $address);
 
         return response()->noContent();
+    }
+
+    public function showAddresses(Seller $seller)
+    {
+        return AddressResource::collection($seller->addresses()->paginate(5));
     }
 }
