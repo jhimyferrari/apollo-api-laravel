@@ -11,6 +11,7 @@ use App\Http\Resources\AddressResource;
 use App\Http\Resources\ClientResource;
 use App\Models\Address;
 use App\Models\Client;
+use App\Services\AddressService;
 use App\Services\ClientService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -18,7 +19,8 @@ use Illuminate\Routing\Controllers\Middleware;
 class ClientController extends Controller implements HasMiddleware
 {
     public function __construct(
-        protected ClientService $clientService
+        protected ClientService $clientService,
+        protected AddressService $addressService
     ) {}
 
     public static function middleware()
@@ -81,14 +83,14 @@ class ClientController extends Controller implements HasMiddleware
 
     public function storeAddress(StoreAddressRequest $request, Client $client)
     {
-        $newAddress = $this->clientService->createAddress($client, $request->validated());
+        $newAddress = $this->addressService->create($client, $request->validated());
 
         return $this->success($newAddress, 'Address created successfully.', 201);
     }
 
     public function setDefaultAddress(Client $client, Address $address)
     {
-        $this->clientService->setDefaultAddress($client, $address);
+        $this->addressService->setDefault($client, $address);
 
         return response()->noContent();
     }

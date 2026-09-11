@@ -2,29 +2,28 @@
 
 namespace App\Services;
 
-use App\Actions\Treatment\TreatName;
 use App\Models\Brand;
 use App\Models\User;
+use App\Services\TreatmentService\Strategies\TreatRegularString;
+use App\Services\TreatmentService\TreatmentService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class BrandService extends BaseService
 {
     public function __construct(
-        private TreatName $treatName
+        private readonly TreatmentService $treatment,
+        private readonly TreatRegularString $treatString,
     ) {
         parent::__construct(new Brand);
     }
 
     public function create(array $data, User $user): Brand
     {
-        $data['name'] = $this->treatName->execute(
-            $this->model,
-            'name',
-            $data['name'],
-            mustBeNotNull: true,
-            mustBeUnique: true,
-        );
+        $data['name'] = $this->treatment->for($this->treatString, $data['name'], 'name', $this->model)->mustBeNotNull()->mustBeUnique()->handle();
+        if (isset($data['description'])) {
+            $data['description'] = $this->treatment->for($this->treatString, $data['description'], 'description', $this->model)->handle();
+        }
         $newBrand = new Brand($data);
         $newBrand->organization_id = $user->organization_id;
         $newBrand->save();
@@ -39,19 +38,12 @@ class BrandService extends BaseService
     {
 
         if (isset($data['name'])) {
-            $brand->name = $this->treatName->execute(
-                $this->model,
-                'name',
-                $data['name'],
-                mustBeNotNull: true,
-                mustBeUnique: true,
-                ignoredId: $brand->id
-            );
+            $brand->name = $this->treatment->for($this->treatString, $data['name'], 'name', $this->model)
+                ->mustBeNotNull()->mustBeUnique()->ignoredId($brand->id)->handle();
         }
 
-        if (isset($data['description'])) {
-            $formated = trim($data['description']);
-            $brand->description = ($formated != '') ? $formated : null;
+        if (\array_key_exists('description', $data)) {
+            $brand->description = $this->treatment->for($this->treatString, $data['description'], 'description', $this->model)->handle();
         }
 
         $brand->save();

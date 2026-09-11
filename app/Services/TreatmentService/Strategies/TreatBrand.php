@@ -1,28 +1,17 @@
 <?php
 
-namespace App\Actions\Treatment;
+namespace App\Services\TreatmentService\Strategies;
 
-use App\Actions\Validation\ValidateFieldIsNotNull;
 use App\Models\Brand;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use RuntimeException;
 
-class TreatBrand
+class TreatBrand implements TreatmentStrategy
 {
-    public function __construct(
-        private ValidateFieldIsNotNull $validateFieldIsNotNull
-    ) {}
-
-    public function execute(?string $value, bool $mustBeNotNull = false): ?Brand
+    public function handle(mixed $value): Brand
     {
-        if ($mustBeNotNull) {
-            $this->validateFieldIsNotNull->execute($value, 'brand_id');
-        }
-        if ($value == null) {
-            return null;
-        }
         try {
             $brand = Brand::findOrFail($value);
 

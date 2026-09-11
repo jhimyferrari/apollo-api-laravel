@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Interfaces\Models\Addressable;
 use App\Models\Scopes\OrganizationScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -85,6 +86,9 @@ class Address extends Model
         return $this->belongsTo(City::class, 'city_ibge_code', 'ibge_code');
     }
 
+    /**
+     * @return MorphTo<Model&Addressable, $this>
+     */
     public function addressable(): MorphTo
     {
         return $this->morphTo();

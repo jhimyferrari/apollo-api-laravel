@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AddressController as AddressControllerV1;
 use App\Http\Controllers\Api\V1\Auth\LoginController as LoginControllerV1;
 use App\Http\Controllers\Api\V1\BrandController as BrandControllerV1;
 use App\Http\Controllers\Api\V1\CategoryController as CategoryControllerV1;
@@ -28,6 +29,14 @@ Route::prefix('v1')
 
         // Authenticated routes
         Route::middleware('auth:sanctum')->group(function () {
+
+            Route::group(['as' => 'addresses.', 'prefix' => '/addresses'], function () {
+                Route::patch('/{address}', [AddressControllerV1::class, 'update'])->name('update');
+                Route::delete('/{address}', [AddressControllerV1::class, 'destroy'])->name('destroy');
+                Route::get('/{address}', [AddressControllerV1::class, 'show'])->name('show');
+
+            });
+
             Route::group(['as' => 'users.', 'prefix' => '/users'], function () {
                 Route::post('/', [UserControllerV1::class, 'store'])->name('store');
                 Route::get('/', [UserControllerV1::class, 'index'])->name('index');
@@ -35,14 +44,13 @@ Route::prefix('v1')
                 Route::delete('/{user}', [UserControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{user}', [UserControllerV1::class, 'update'])->name('update');
             });
+
             Route::group(['as' => 'clients.', 'prefix' => '/clients'], function () {
                 Route::post('/', [ClientControllerV1::class, 'store'])->name('store');
                 Route::get('/', [ClientControllerV1::class, 'index'])->name('index');
                 Route::get('/{client}', [ClientControllerV1::class, 'show'])->name('show');
                 Route::delete('/{client}', [ClientControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{client}', [ClientControllerV1::class, 'update'])->name('update');
-                Route::post('/{client}/address', [ClientControllerV1::class, 'update'])->name('update');
-                Route::get('/{client}/address', [ClientControllerV1::class, 'update'])->name('update');
 
                 Route::post('/{client}/addresses/', [ClientControllerV1::class, 'storeAddress'])->name('addresses.store');
                 Route::get('/{client}/addresses/', [ClientControllerV1::class, 'showAddresses'])->name('addresses.show');

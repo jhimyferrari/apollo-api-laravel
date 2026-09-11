@@ -11,6 +11,7 @@ use App\Http\Resources\AddressResource;
 use App\Http\Resources\SupplierResource;
 use App\Models\Address;
 use App\Models\Supplier;
+use App\Services\AddressService;
 use App\Services\SupplierService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -18,7 +19,9 @@ use Illuminate\Routing\Controllers\Middleware;
 class SupplierController extends Controller implements HasMiddleware
 {
     public function __construct(
-        protected SupplierService $supplierService) {}
+        protected SupplierService $supplierService,
+        protected AddressService $addressService
+    ) {}
 
     public static function middleware()
     {
@@ -81,14 +84,14 @@ class SupplierController extends Controller implements HasMiddleware
 
     public function storeAddress(StoreAddressRequest $request, Supplier $supplier)
     {
-        $newAddress = $this->supplierService->createAddress($supplier, $request->validated());
+        $newAddress = $this->addressService->create($supplier, $request->validated());
 
         return $this->success($newAddress, 'Address created successfully.', 201);
     }
 
     public function setDefaultAddress(Supplier $supplier, Address $address)
     {
-        $this->supplierService->setDefaultAddress($supplier, $address);
+        $this->addressService->setDefault($supplier, $address);
 
         return response()->noContent();
     }

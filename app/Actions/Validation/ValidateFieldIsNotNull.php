@@ -11,8 +11,14 @@ class ValidateFieldIsNotNull
      */
     public function execute(mixed $value, string $fieldName): void
     {
-        if ($value === null || $value === '' || (\is_array($value) && empty($value))) {
-            throw new InvalidFieldException("The field `$fieldName` must have a value");
+        if (\is_array($value)) {
+            if (empty($value)) {
+                throw new InvalidFieldException("The field `$fieldName` must have a value");
+            }
+        } else {
+            if ($value === null || $value === '') {
+                throw new InvalidFieldException("The field `$fieldName` must have a value");
+            }
         }
     }
 }
