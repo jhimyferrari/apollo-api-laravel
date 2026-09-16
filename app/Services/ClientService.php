@@ -2,25 +2,29 @@
 
 namespace App\Services;
 
-use App\Actions\Treatment\TreatDocument;
-use App\Actions\Treatment\TreatEmail;
-use App\Actions\Treatment\TreatName;
-use App\Actions\Treatment\TreatPhone;
-use App\Actions\Treatment\TreatStateRegistration;
 use App\Actions\Validation\ValidateStatusEnum;
 use App\Models\Client;
 use App\Models\User;
+use App\Services\TreatmentService\Strategies\TreatDocument;
+use App\Services\TreatmentService\Strategies\TreatEmail;
+use App\Services\TreatmentService\Strategies\TreatPhone;
+use App\Services\TreatmentService\Strategies\TreatRegularString;
+use App\Services\TreatmentService\Strategies\TreatStateRegistration;
+use App\Services\TreatmentService\TreatmentService;
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 class ClientService extends BaseService
 {
     public function __construct(
-        private TreatDocument $treatDocument,
-        private TreatName $treatName,
-        private TreatStateRegistration $treatStateRegistration,
-        private TreatPhone $treatPhone,
-        private TreatEmail $treatEmail)
-    {
+        private readonly TreatmentService $treament,
+        private readonly TreatRegularString $treatString,
+        private readonly TreatStateRegistration $treatStateRegistration,
+        private readonly TreatPhone $treatPhone,
+        private readonly TreatEmail $treatEmail,
+        private readonly TreatDocument $treatDocument,
+        private readonly ValidateStatusEnum $validateStatusEnum,
+    ) {
         parent::__construct(new Client);
     }
 
@@ -28,51 +32,32 @@ class ClientService extends BaseService
     {
 
         if (isset($data['status'])) {
-            app(ValidateStatusEnum::class)->execute($this->model, $data['status']);
+            $this->validateStatusEnum->execute($this->model, $data['status']);
         }
 
-        $data['legal_name'] = $this->treatName->execute(
-            $this->model,
-            'legal_name',
-            $data['legal_name'],
-            mustBeNotNull: true,
-            mustBeUnique: false);
+        $data['legal_name'] = $this->treament->for($this->treatString, $data['legal_name'], 'legal_name', $this->model)->mustBeNotNull()->handle();
 
-        $data['trade_name'] = $this->treatName->execute(
-            $this->model,
-            'trade_name',
-            $data['trade_name'],
-            mustBeNotNull: true,
-            mustBeUnique: false);
+        $data['trade_name'] = $this->treament->for($this->treatString, $data['trade_name'], 'trade_name', $this->model)->mustBeNotNull()->handle();
 
-        $data['document'] = $this->treatDocument->execute($this->model, 'document', $data['document']);
+        $data['document'] = $this->treament->for($this->treatDocument, $data['document'], 'document', $this->model)->mustBeNotNull()->mustBeUnique()->handle();
 
         if (isset($data['state_registration'])) {
-            $data['state_registration'] = $this->treatStateRegistration->execute(
-                $this->model,
-                'state_registration',
-                $data['state_registration'],
-                mustBeNotNull: false,
-                mustBeUnique: true
-            );
+            $data['state_registration'] = $this->treament->for($this->treatStateRegistration, $data['state_registration'], 'state_registration', $this->model)->mustBeUnique()->handle();
         }
 
         if (isset($data['email'])) {
-            $data['email'] = $this->treatEmail->execute(
-                $this->model,
-                'email',
-                $data['email'],
-                mustBeNotNull: false,
-                mustBeUnique: false
-            );
+            $data['email'] = $this->treament->for($this->treatEmail, $data['email'], 'email', $this->model)->handle();
         }
 
         if (isset($data['phone'])) {
-            $data['phone'] = $this->treatPhone->execute($data['phone']);
+            $data['phone'] = $this->treament->for($this->treatPhone, $data['phone'], 'phone', $this->model)->handle();
         }
+
         $newClient = new Client($data);
         $newClient->organization_id = $user->organization_id;
-        $newClient->save();
+        DB::transaction(function () use ($newClient) {
+            $newClient->save();
+        });
 
         return $newClient;
     }
@@ -82,62 +67,52 @@ class ClientService extends BaseService
      */
     public function update(Model $client, array $data): Client
     {
-
-        if (isset($data['status'])) {
-            app(ValidateStatusEnum::class)->execute($client, $data['status']);
+        if (\array_key_exists('status', $data)) {
+            $this->validateStatusEnum->execute($this->model, $data['status']);
             $client->status = $data['status'];
         }
 
-        if (isset($data['document'])) {
-            $client->document = $this->treatDocument->execute($this->model, 'document', $data['document'], $client->id);
+        if (\array_key_exists('legal_name', $data)) {
+
+            $client->legal_name = $this->treament->for($this->treatString, $data['legal_name'], 'legal_name', $this->model)->mustBeNotNull()->handle();
         }
 
-        if (isset($data['legal_name'])) {
-            $client->legal_name = $this->treatName->execute(
-                $this->model,
-                'legal_name',
-                $data['legal_name'],
-                mustBeNotNull: true,
-                mustBeUnique: false);
+        if (\array_key_exists('trade_name', $data)) {
+
+            $client->trade_name = $this->treament->for($this->treatString, $data['trade_name'], 'trade_name', $this->model)->mustBeNotNull()->handle();
         }
 
-        if (isset($data['trade_name'])) {
-            $client->trade_name = $this->treatName->execute(
-                $this->model,
-                'trade_name',
-                $data['trade_name'],
-                mustBeNotNull: true,
-                mustBeUnique: false
-            );
+        if (\array_key_exists('document', $data)) {
+            $client->document = $this->treament->for($this->treatDocument, $data['document'], 'document', $this->model)->mustBeNotNull()->mustBeUnique()->ignoredId($client->id)->handle();
         }
 
-        if (isset($data['state_registration'])) {
+        if (\array_key_exists('state_registration', $data)) {
 
-            $client->state_registration = $this->treatStateRegistration->execute(
-                $this->model,
-                'state_registration',
-                $data['state_registration'],
-                mustBeNotNull: false,
-                mustBeUnique: true,
-                ignoredId: $client->id);
+            $client->state_registration = $this->treament->for($this->treatStateRegistration, $data['state_registration'], 'state_registration', $this->model)->mustBeUnique()->ignoredId($client->id)->handle();
         }
 
-        if (isset($data['phone'])) {
-            $client->phone = $this->treatPhone->execute($data['phone']);
+        if (\array_key_exists('phone', $data)) {
+            $client->phone = $this->treament->for($this->treatPhone, $data['phone'], 'phone', $this->model)->handle();
         }
 
-        if (isset($data['email'])) {
-            $client->email = $this->treatEmail->execute(
-                $this->model,
-                'email',
-                $data['email'],
-                mustBeNotNull: false,
-                mustBeUnique: false);
+        if (\array_key_exists('email', $data)) {
+
+            $client->email = $this->treament->for($this->treatEmail, $data['email'], 'email', $this->model)->handle();
         }
 
-        $client->save();
+        DB::transaction(function () use ($client) {
+            $client->save();
+        });
 
         return $client;
 
+    }
+
+    public function delete(Model $client): void
+    {
+        DB::transaction(function () use ($client) {
+            $client->addresses()->delete();
+            $client->delete();
+        });
     }
 }

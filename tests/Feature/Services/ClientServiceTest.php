@@ -256,4 +256,5 @@ describe('ClientService', function () {
             $this->assertSoftDeleted($client);
         });
     });
+
 });

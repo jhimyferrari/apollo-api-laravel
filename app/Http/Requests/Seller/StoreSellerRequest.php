@@ -43,6 +43,7 @@ class StoreSellerRequest extends FormRequest
             ],
             'email' => [
                 'nullable',
+
                 'email',
             ],
             'phone' => [

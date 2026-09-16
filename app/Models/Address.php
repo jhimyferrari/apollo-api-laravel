@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Interfaces\Models\Addressable;
 use App\Models\Scopes\OrganizationScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -74,26 +76,26 @@ class Address extends Model
         'number',
         'complement',
         'cep',
+        'is_default',
         'city_ibge_code',
+        'organization_id',
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function (Address $address) {
-            if (auth()->check()) {
-                $address->organization_id ??= auth()->user()->organization_id;
-            }
-        });
-    }
 
     public function city()
     {
         return $this->belongsTo(City::class, 'city_ibge_code', 'ibge_code');
     }
 
+    /**
+     * @return MorphTo<Model&Addressable, $this>
+     */
     public function addressable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 }

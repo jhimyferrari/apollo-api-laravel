@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Supplier\StoreSupplierRequest;
 use App\Http\Requests\Supplier\UpdateSupplierRequest;
+use App\Http\Resources\AddressResource;
 use App\Http\Resources\SupplierResource;
+use App\Models\Address;
 use App\Models\Supplier;
+use App\Services\AddressService;
 use App\Services\SupplierService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -15,15 +19,18 @@ use Illuminate\Routing\Controllers\Middleware;
 class SupplierController extends Controller implements HasMiddleware
 {
     public function __construct(
-        protected SupplierService $supplierService) {}
+        protected SupplierService $supplierService,
+        protected AddressService $addressService
+    ) {}
 
     public static function middleware()
     {
         return [
             new Middleware('abilities:'.PermissionType::SUPPLIER_CREATE->value, only: ['store']),
-            new Middleware('abilities:'.PermissionType::SUPPLIER_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::SUPPLIER_READ->value, only: ['index', 'show', 'showAddresses']),
             new Middleware('abilities:'.PermissionType::SUPPLIER_UPDATE->value, only: ['update']),
             new Middleware(['abilities:'.PermissionType::SUPPLIER_DELETE->value], only: ['destroy']),
+            new Middleware(['ability:'.PermissionType::SUPPLIER_CREATE->value.','.PermissionType::SUPPLIER_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
         ];
     }
 
@@ -73,5 +80,24 @@ class SupplierController extends Controller implements HasMiddleware
         $this->supplierService->delete($supplier);
 
         return response()->noContent();
+    }
+
+    public function storeAddress(StoreAddressRequest $request, Supplier $supplier)
+    {
+        $newAddress = $this->addressService->create($supplier, $request->validated());
+
+        return $this->success($newAddress, 'Address created successfully.', 201);
+    }
+
+    public function setDefaultAddress(Supplier $supplier, Address $address)
+    {
+        $this->addressService->setDefault($supplier, $address);
+
+        return response()->noContent();
+    }
+
+    public function showAddresses(Supplier $supplier)
+    {
+        return AddressResource::collection($supplier->addresses()->paginate(5));
     }
 }

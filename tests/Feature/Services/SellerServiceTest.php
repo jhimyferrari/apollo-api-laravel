@@ -247,6 +247,21 @@ describe('SellerService', function () {
                 ->phone->toBe($data['phone'])
                 ->email->toBe($data['email']);
         });
+
+        it('should update the phone and email of a seller to null', function () {
+            $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+            $data = [
+                'phone' => null,
+                'email' => null,
+            ];
+
+            $updated = $this->service->update($seller, $data);
+
+            expect($updated)
+                ->toBeInstanceOf(Seller::class)
+                ->phone->toBeNull()
+                ->email->toBeNull();
+        });
     });
     describe('delete', function () {
         it('should delete some seller', function () {

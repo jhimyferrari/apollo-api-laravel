@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enum\Status\ClientStatus;
 use App\Helpers\DocumentHelper;
 use App\Interfaces\HasStatus;
+use App\Interfaces\Models\Addressable;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
@@ -65,7 +66,7 @@ use InvalidArgumentException;
  * @mixin \Eloquent
  */
 #[ScopedBy([OrganizationScope::class])]
-class Client extends Model implements HasStatus
+class Client extends Model implements Addressable, HasStatus
 {
     /** @use HasFactory<ClientFactory> */
     use HasAddresses, HasFactory, HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;

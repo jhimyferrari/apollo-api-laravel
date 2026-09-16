@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enum\Status\SupplierStatus;
 use App\Interfaces\HasStatus;
+use App\Interfaces\Models\Addressable;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
@@ -62,7 +63,7 @@ use Illuminate\Support\Carbon;
  * @mixin \Eloquent
  */
 #[ScopedBy([OrganizationScope::class])]
-class Supplier extends Model implements HasStatus
+class Supplier extends Model implements Addressable, HasStatus
 {
     /** @use HasFactory<SupplierFactory> */
     use HasAddresses,HasFactory,HasSequencialNumber,HasUuids,ProtectsOrganization,SoftDeletes;

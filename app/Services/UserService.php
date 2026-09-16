@@ -2,46 +2,36 @@
 
 namespace App\Services;
 
-use App\Actions\Treatment\TreatEmail;
-use App\Actions\Treatment\TreatName;
 use App\Actions\Validation\ValidatePasswordComplexity;
 use App\Enum\PermissionType;
 use App\Exceptions\CannotDeleteAdminException;
 use App\Exceptions\InvalidFieldException;
 use App\Models\Permission;
 use App\Models\User;
+use App\Services\TreatmentService\Strategies\TreatEmail;
+use App\Services\TreatmentService\Strategies\TreatRegularString;
+use App\Services\TreatmentService\TreatmentService;
 use Illuminate\Database\Eloquent\Model;
 
 class UserService extends BaseService
 {
     public function __construct(
-        private TreatName $treatName,
-        private TreatEmail $treatEmail,
-        private ValidatePasswordComplexity $validatePasswordComplexity
+        private readonly TreatmentService $treatment,
+        private readonly TreatRegularString $stringTreat,
+        private readonly TreatEmail $emailTreat,
+        private readonly ValidatePasswordComplexity $validatePasswordComplexity,
     ) {
         parent::__construct(new User);
     }
 
     public function create(array $data, User $user): User
     {
-        $data['name'] = $this->treatName->execute(
-            $this->model,
-            'name',
-            $data['name'],
-            mustBeNotNull: true,
-            mustBeUnique: false
-        );
-        $data['email'] = $this->treatEmail->execute(
-            $this->model,
-            'email',
-            $data['email'],
-            mustBeNotNull: true,
-            mustBeUnique: true
-        );
+        $data['name'] = $this->treatment->for($this->stringTreat, $data['name'], 'name', $this->model)->mustBeNotNull()->handle();
+        $data['email'] = $this->treatment->for($this->emailTreat, $data['email'], 'email', $this->model)->mustBeNotNull()->mustBeUnique()->handle();
         app(ValidatePasswordComplexity::class)->execute($data['password']);
 
         $newUser = new User([
-            'name' => trim($data['name']),
+            'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
         ]);
@@ -61,26 +51,12 @@ class UserService extends BaseService
     public function update(Model $user, array $data): User
     {
         if (isset($data['name'])) {
-            $user->name = $this->treatName->execute(
-                $this->model,
-                'name',
-                $data['name'],
-                mustBeNotNull: true,
-                mustBeUnique: false
-            );
+            $user->name = $this->treatment->for($this->stringTreat, $data['name'], 'name', $this->model)->mustBeNotNull()->handle();
         }
-
         if (isset($data['email'])) {
-
-            $user->email = $this->treatEmail->execute(
-                $this->model,
-                'email',
-                $data['email'],
-                mustBeNotNull: true,
-                mustBeUnique: true
-            );
+            $user->email = $this->treatment->for($this->emailTreat, $data['email'], 'email', $this->model)
+                ->mustBeNotNull()->mustBeUnique()->ignoredId($user->id)->handle();
         }
-
         $user->save();
 
         return $user;
@@ -115,14 +91,9 @@ class UserService extends BaseService
     public function createAdmin(array $data): User
     {
 
-        $data['email'] = $this->treatEmail->execute(
-            $this->model,
-            'email',
-            $data['email'],
-            mustBeNotNull: true,
-            mustBeUnique: true,
-            organizationId: $data['organization_id']
-        );
+        $data['email'] = $this->treatment->for($this->emailTreat, $data['email'], 'email', $this->model)
+            ->mustBeNotNull()->mustBeUnique()->organizationId($data['organization_id'])->handle();
+
         app(ValidatePasswordComplexity::class)->execute($data['password']);
 
         $adminUser = new User([

@@ -2,24 +2,28 @@
 
 namespace App\Services;
 
-use App\Actions\Treatment\TreatDocument;
-use App\Actions\Treatment\TreatEmail;
-use App\Actions\Treatment\TreatName;
-use App\Actions\Treatment\TreatPhone;
-use App\Actions\Treatment\TreatStateRegistration;
 use App\Actions\Validation\ValidateStatusEnum;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Services\TreatmentService\Strategies\TreatDocument;
+use App\Services\TreatmentService\Strategies\TreatEmail;
+use App\Services\TreatmentService\Strategies\TreatPhone;
+use App\Services\TreatmentService\Strategies\TreatRegularString;
+use App\Services\TreatmentService\Strategies\TreatStateRegistration;
+use App\Services\TreatmentService\TreatmentService;
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 class SupplierService extends BaseService
 {
     public function __construct(
-        private TreatDocument $treatDocument,
-        private TreatStateRegistration $treatStateRegistration,
-        private TreatName $treatName,
-        private TreatPhone $treatPhone,
-        private TreatEmail $treatEmail,
+        private readonly TreatmentService $treament,
+        private readonly TreatRegularString $treatString,
+        private readonly TreatStateRegistration $treatStateRegistration,
+        private readonly TreatPhone $treatPhone,
+        private readonly TreatEmail $treatEmail,
+        private readonly TreatDocument $treatDocument,
+        private readonly ValidateStatusEnum $validateStatusEnum,
     ) {
         parent::__construct(new Supplier);
     }
@@ -27,54 +31,34 @@ class SupplierService extends BaseService
     public function create(array $data, User $user): Supplier
     {
 
-        $data['trade_name'] = $this->treatName->execute(
-            $this->model,
-            'trade_name',
-            $data['trade_name'],
-            mustBeNotNull: true,
-            mustBeUnique: false
-        );
+        if (isset($data['status'])) {
+            $this->validateStatusEnum->execute($this->model, $data['status']);
+        }
 
-        $data['legal_name'] = $this->treatName->execute(
-            $this->model,
-            'legal_name',
-            $data['legal_name'],
-            mustBeNotNull: true,
-            mustBeUnique: false
-        );
-        $data['document'] = $this->treatDocument->execute(
-            $this->model,
-            'document',
-            $data['document'],
-        );
+        $data['legal_name'] = $this->treament->for($this->treatString, $data['legal_name'], 'legal_name', $this->model)->mustBeNotNull()->handle();
+
+        $data['trade_name'] = $this->treament->for($this->treatString, $data['trade_name'], 'trade_name', $this->model)->mustBeNotNull()->handle();
+
+        $data['document'] = $this->treament->for($this->treatDocument, $data['document'], 'document', $this->model)->mustBeNotNull()->mustBeUnique()->handle();
 
         if (isset($data['state_registration'])) {
-            $data['state_registration'] = $this->treatStateRegistration->execute(
-                $this->model,
-                'state_registration',
-                $data['state_registration'],
-                mustBeNotNull: false,
-                mustBeUnique: true
-            );
+            $data['state_registration'] = $this->treament->for($this->treatStateRegistration, $data['state_registration'], 'state_registration', $this->model)->mustBeUnique()->handle();
         }
 
         if (isset($data['email'])) {
-            $data['email'] = $this->treatEmail->execute(
-                $this->model,
-                'email',
-                $data['email'],
-                mustBeNotNull: false,
-                mustBeUnique: false
-            );
+            $data['email'] = $this->treament->for($this->treatEmail, $data['email'], 'email', $this->model)->handle();
         }
+
         if (isset($data['phone'])) {
-            $data['phone'] = $this->treatPhone->execute(
-                $data['phone']
-            );
+            $data['phone'] = $this->treament->for($this->treatPhone, $data['phone'], 'phone', $this->model)->handle();
         }
+
         $newSupplier = new Supplier($data);
         $newSupplier->organization_id = $user->organization_id;
-        $newSupplier->save();
+
+        DB::transaction(function () use ($newSupplier) {
+            $newSupplier->save();
+        });
 
         return $newSupplier;
     }
@@ -84,69 +68,53 @@ class SupplierService extends BaseService
      */
     public function update(Model $supplier, array $data): Supplier
     {
-        if (isset($data['status'])) {
-            app(ValidateStatusEnum::class)->execute($this->model, $data['status']);
+
+        if (\array_key_exists('status', $data)) {
+            $this->validateStatusEnum->execute($this->model, $data['status']);
             $supplier->status = $data['status'];
         }
-        if (isset($data['trade_name'])) {
-            $supplier->trade_name = $this->treatName->execute(
-                $this->model,
-                'trade_name',
-                $data['trade_name'],
-                mustBeNotNull: true,
-                mustBeUnique: false,
-            );
+
+        if (\array_key_exists('legal_name', $data)) {
+
+            $supplier->legal_name = $this->treament->for($this->treatString, $data['legal_name'], 'legal_name', $this->model)->mustBeNotNull()->handle();
         }
 
-        if (isset($data['legal_name'])) {
-            $supplier->legal_name = $this->treatName->execute(
-                $this->model,
-                'legal_name',
-                $data['legal_name'],
-                mustBeNotNull: true,
-                mustBeUnique: false,
-            );
-        }
-        if (isset($data['document'])) {
-            $supplier->document = $this->treatDocument->execute(
-                $this->model,
-                'document',
-                $data['document'],
-                ignoredId: $supplier->id
-            );
-        }
-        if (isset($data['state_registration'])) {
-            $supplier->state_registration = $this->treatStateRegistration->execute(
-                $this->model,
-                'state_registration',
-                $data['state_registration'],
-                mustBeNotNull: false,
-                mustBeUnique: true,
-                ignoredId: $supplier->id
-            );
+        if (\array_key_exists('trade_name', $data)) {
+
+            $supplier->trade_name = $this->treament->for($this->treatString, $data['trade_name'], 'trade_name', $this->model)->mustBeNotNull()->handle();
         }
 
-        if (isset($data['email'])) {
-            $supplier->email = $this->treatEmail->execute(
-                $this->model,
-                'email',
-                $data['email'],
-                mustBeNotNull: false,
-                mustBeUnique: false
-            );
+        if (\array_key_exists('document', $data)) {
+            $supplier->document = $this->treament->for($this->treatDocument, $data['document'], 'document', $this->model)->mustBeNotNull()->mustBeUnique()->ignoredId($supplier->id)->handle();
         }
-        if (isset($data['phone'])) {
-            $supplier->phone = $this->treatPhone->execute(
-                $data['phone']
-            );
+
+        if (\array_key_exists('state_registration', $data)) {
+
+            $supplier->state_registration = $this->treament->for($this->treatStateRegistration, $data['state_registration'], 'state_registration', $this->model)->mustBeUnique()->ignoredId($supplier->id)->handle();
         }
-        $supplier->save();
+
+        if (\array_key_exists('phone', $data)) {
+            $supplier->phone = $this->treament->for($this->treatPhone, $data['phone'], 'phone', $this->model)->handle();
+        }
+
+        if (\array_key_exists('email', $data)) {
+
+            $supplier->email = $this->treament->for($this->treatEmail, $data['email'], 'email', $this->model)->handle();
+        }
+
+        DB::transaction(function () use ($supplier) {
+            $supplier->save();
+        });
 
         return $supplier;
     }
 
     public function delete(Model $supplier): void
     {
-        $supplier->delete();
+
+        DB::transaction(function () use ($supplier) {
+            $supplier->addresses()->delete();
+            $supplier->delete();
+        });
     }
 }

@@ -2,22 +2,27 @@
 
 namespace App\Services;
 
-use App\Actions\Validation\ValidateDuplicateField;
-use App\Helpers\DocumentHelper;
 use App\Models\Organization;
+use App\Services\TreatmentService\Strategies\TreatDocument;
+use App\Services\TreatmentService\Strategies\TreatRegularString;
+use App\Services\TreatmentService\TreatmentService;
 use Illuminate\Support\Facades\DB;
 
 class OrganizationService
 {
     public function __construct(
-        private UserService $userService
+        private readonly UserService $userService,
+        private readonly TreatmentService $treatment,
+        private readonly TreatDocument $treatDocument,
+        private readonly TreatRegularString $treatString
     ) {}
 
     public function create(array $data): array
     {
-        $formatedDocument = DocumentHelper::remove_pontuation($data['document']);
-        $formatedName = trim($data['name']);
-        app(ValidateDuplicateField::class)->execute(new Organization, 'document', $formatedDocument);
+
+        $formatedDocument = $this->treatment->for($this->treatDocument, $data['document'], 'document', new Organization)
+            ->mustBeNotNull()->mustBeUnique()->handle();
+        $formatedName = $this->treatment->for($this->treatString, $data['name'], 'name', new Organization)->mustBeNotNull()->handle();
 
         return DB::transaction(function () use ($data, $formatedDocument, $formatedName) {
             $organization = Organization::create([

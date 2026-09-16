@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
+use App\Http\Resources\AddressResource;
 use App\Http\Resources\ClientResource;
+use App\Models\Address;
 use App\Models\Client;
+use App\Services\AddressService;
 use App\Services\ClientService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -15,16 +19,18 @@ use Illuminate\Routing\Controllers\Middleware;
 class ClientController extends Controller implements HasMiddleware
 {
     public function __construct(
-        protected ClientService $clientService
+        protected ClientService $clientService,
+        protected AddressService $addressService
     ) {}
 
     public static function middleware()
     {
         return [
             new Middleware('abilities:'.PermissionType::CLIENT_CREATE->value, only: ['store']),
-            new Middleware('abilities:'.PermissionType::CLIENT_READ->value, only: ['index', 'show']),
+            new Middleware('abilities:'.PermissionType::CLIENT_READ->value, only: ['index', 'show', 'showAddresses']),
             new Middleware('abilities:'.PermissionType::CLIENT_UPDATE->value, only: ['update']),
             new Middleware('abilities:'.PermissionType::CLIENT_DELETE->value, only: ['destroy']),
+            new Middleware(['ability:'.PermissionType::CLIENT_CREATE->value.','.PermissionType::CLIENT_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
         ];
     }
 
@@ -73,5 +79,24 @@ class ClientController extends Controller implements HasMiddleware
         $this->clientService->delete($client);
 
         return response()->noContent();
+    }
+
+    public function storeAddress(StoreAddressRequest $request, Client $client)
+    {
+        $newAddress = $this->addressService->create($client, $request->validated());
+
+        return $this->success($newAddress, 'Address created successfully.', 201);
+    }
+
+    public function setDefaultAddress(Client $client, Address $address)
+    {
+        $this->addressService->setDefault($client, $address);
+
+        return response()->noContent();
+    }
+
+    public function showAddresses(Client $client)
+    {
+        return AddressResource::collection($client->addresses()->paginate(5));
     }
 }

@@ -6,6 +6,8 @@ use App\Models\Address;
 use App\Models\City;
 use App\Models\Client;
 use App\Models\Organization;
+use App\Models\Seller;
+use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +22,6 @@ class AddressFactory extends Factory
      */
     public function definition(): array
     {
-        $addressable = Client::factory()->create();
 
         return [
             'neighborhood' => fake()->word,
@@ -31,8 +32,35 @@ class AddressFactory extends Factory
             'city_ibge_code' => City::inRandomOrder()->first()->ibgeCode(),
             'organization_id' => Organization::factory(),
             'is_default' => false,
-            'addressable_id' => $addressable->id,
-            'addressable_type' => $addressable->getMorphClass(),
         ];
+    }
+
+    public function forSupplier(): static
+    {
+        return $this->for(
+            Supplier::factory(),
+            'addressable'
+        );
+    }
+
+    public function turnDefault(): static
+    {
+        return $this->state(['is_default' => true]);
+    }
+
+    public function forSeller(): static
+    {
+        return $this->for(
+            Seller::factory(),
+            'addressable'
+        );
+    }
+
+    public function forClient(): static
+    {
+        return $this->for(
+            Client::factory(),
+            'addressable'
+        );
     }
 }

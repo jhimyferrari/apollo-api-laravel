@@ -255,4 +255,5 @@ describe('SupplierService', function () {
             $this->assertSoftDeleted($supplier);
         });
     });
+
 });
