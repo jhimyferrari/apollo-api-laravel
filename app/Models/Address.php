@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Interfaces\Models\Addressable;
 use App\Models\Scopes\OrganizationScope;
+use App\Traits\ProtectsOrganization;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -58,7 +59,7 @@ use Illuminate\Support\Carbon;
 #[ScopedBy([OrganizationScope::class])]
 class Address extends Model
 {
-    use HasFactory,HasUuids,SoftDeletes;
+    use HasFactory,HasUuids,ProtectsOrganization,SoftDeletes;
 
     protected $table = 'addresses';
 
