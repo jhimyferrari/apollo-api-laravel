@@ -97,6 +97,7 @@ class Seller extends Model implements Addressable, HasStatus
     public function casts(): array
     {
         return [
+            'status' => SellerStatus::class,
             'started_at' => 'date',
             'ended_at' => 'date',
         ];

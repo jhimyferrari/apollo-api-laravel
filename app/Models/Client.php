@@ -87,6 +87,14 @@ class Client extends Model implements Addressable, HasStatus
         'address_id',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'status' => ClientStatus::class,
+        ];
+
+    }
+
     public function statusEnumClass(): string
     {
         return ClientStatus::class;

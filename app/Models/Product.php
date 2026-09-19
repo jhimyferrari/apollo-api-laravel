@@ -93,6 +93,7 @@ class Product extends Model implements HasStatus
     ];
 
     protected $casts = [
+        'status' => ProductStatus::class,
         'cost_price' => AsMoney::class,
         'sale_price' => AsMoney::class,
         'stock_quantity' => 'decimal:3',

@@ -83,6 +83,13 @@ class Supplier extends Model implements Addressable, HasStatus
         'email',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'status' => SupplierStatus::class,
+        ];
+    }
+
     public function statusEnumClass(): string
     {
         return SupplierStatus::class;
