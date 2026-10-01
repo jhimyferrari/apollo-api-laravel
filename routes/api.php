@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\CategoryController as CategoryControllerV1;
 use App\Http\Controllers\Api\V1\ClientController as ClientControllerV1;
 use App\Http\Controllers\Api\V1\OrganizationController as OrganizationControllerV1;
 use App\Http\Controllers\Api\V1\ProductController as ProductControllerV1;
+use App\Http\Controllers\Api\V1\PurchaseOrderController as PurchaseOrderControllerV1;
 use App\Http\Controllers\Api\V1\SalesOrderController as SalesOrderControllerV1;
 use App\Http\Controllers\Api\V1\SellerController as SellerControllerV1;
 use App\Http\Controllers\Api\V1\SupplierController as SupplierControllerV1;
@@ -116,6 +117,17 @@ Route::prefix('v1')
                 Route::patch('/{salesOrder}/reopen', [SalesOrderControllerV1::class, 'reopen'])->name('reopen');
                 Route::patch('/{salesOrder}/confirm', [SalesOrderControllerV1::class, 'confirm'])->name('confirm');
                 Route::patch('/{salesOrder}/cancel', [SalesOrderControllerV1::class, 'cancel'])->name('cancel');
+            });
+
+            Route::group(['as' => 'purchase-orders.', 'prefix' => '/purchase-orders'], function () {
+                Route::post('/', [PurchaseOrderControllerV1::class, 'store'])->name('store');
+                Route::get('/', [PurchaseOrderControllerV1::class, 'index'])->name('index');
+                Route::get('/{purchaseOrder}', [PurchaseOrderControllerV1::class, 'show'])->name('show');
+                Route::delete('/{purchaseOrder}', [PurchaseOrderControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{purchaseOrder}', [PurchaseOrderControllerV1::class, 'update'])->name('update');
+                Route::patch('/{purchaseOrder}/reopen', [PurchaseOrderControllerV1::class, 'reopen'])->name('reopen');
+                Route::patch('/{purchaseOrder}/confirm', [PurchaseOrderControllerV1::class, 'confirm'])->name('confirm');
+                Route::patch('/{purchaseOrder}/cancel', [PurchaseOrderControllerV1::class, 'cancel'])->name('cancel');
             });
 
         });

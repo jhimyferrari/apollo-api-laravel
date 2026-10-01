@@ -47,6 +47,11 @@ enum PermissionType: string
     case SALES_ORDER_UPDATE = 'sales-order.update';
     case SALES_ORDER_DELETE = 'sales-order.delete';
 
+    case PURCHASE_ORDER_CREATE = 'purchase-order.create';
+    case PURCHASE_ORDER_READ = 'purchase-order.view';
+    case PURCHASE_ORDER_UPDATE = 'purchase-order.update';
+    case PURCHASE_ORDER_DELETE = 'purchase-order.delete';
+
     public static function byModel(string $model): array
     {
         return array_filter(

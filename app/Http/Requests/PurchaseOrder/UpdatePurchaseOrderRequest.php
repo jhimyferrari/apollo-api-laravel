@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\SalesOrder;
+namespace App\Http\Requests\PurchaseOrder;
 
 use App\Enum\Status\PaymentStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateSalesOrderRequest extends FormRequest
+class UpdatePurchaseOrderRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,8 +25,7 @@ class UpdateSalesOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'client_id' => ['sometimes', 'uuid'],
-            'seller_id' => ['sometimes', 'uuid'],
+            'supplier_id' => ['sometimes', 'uuid'],
             'payment_status' => ['sometimes', Rule::enum(PaymentStatus::class)],
 
             'items' => ['sometimes', 'array'],

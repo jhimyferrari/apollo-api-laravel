@@ -6,8 +6,10 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Seller;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
+uses(RefreshDatabase::class);
 describe('POST api/sales-orders', function () {
     test('Logged user with valid data', function () {
         $user = User::factory()->create();

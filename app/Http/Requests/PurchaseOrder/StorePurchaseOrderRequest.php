@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\SalesOrder;
+namespace App\Http\Requests\PurchaseOrder;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreSalesOrderRequest extends FormRequest
+class StorePurchaseOrderRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,9 +23,7 @@ class StoreSalesOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'client_id' => ['required', 'uuid'],
-            'seller_id' => ['required', 'uuid'],
-
+            'supplier_id' => ['required', 'uuid'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'uuid'],
             'items.*.number' => ['required', 'integer', 'min:1'],
