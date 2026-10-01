@@ -119,6 +119,16 @@ class Organization extends Model
         return $this->hasMany(User::class);
     }
 
+    public function sales_orders(): HasMany
+    {
+        return $this->hasMany(SalesOrder::class);
+    }
+
+    public function stock_movements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);

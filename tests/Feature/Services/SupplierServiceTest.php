@@ -147,7 +147,7 @@ describe('SupplierService', function () {
             );
             expect($supplier)
                 ->toBeInstanceOf(Supplier::class)
-                ->status->toBe($data['status'])
+                ->status->toBe(SupplierStatus::Active)
                 ->document->toBe($data['document'])
                 ->legal_name->toBe($data['legal_name'])
                 ->trade_name->toBe($data['trade_name'])

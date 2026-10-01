@@ -3,7 +3,7 @@
 namespace App\Actions\Validation;
 
 use App\Exceptions\InvalidStatusException;
-use App\Interfaces\HasStatus;
+use App\Interfaces\Models\HasStatus;
 
 class ValidateStatusEnum
 {

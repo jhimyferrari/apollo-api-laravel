@@ -62,6 +62,11 @@ final readonly class Money
         );
     }
 
+    public function equals(Money $other): bool
+    {
+        return $this->money->isEqualTo($other);
+    }
+
     public function isGreaterThan(Money $other): bool
     {
         return $this->money->isGreaterThan($other->money);

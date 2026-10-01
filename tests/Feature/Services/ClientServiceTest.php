@@ -147,7 +147,7 @@ describe('ClientService', function () {
             );
             expect($client)
                 ->toBeInstanceOf(Client::class)
-                ->status->toBe($data['status'])
+                ->status->toBe(ClientStatus::Active)
                 ->document->toBe($data['document'])
                 ->legal_name->toBe($data['legal_name'])
                 ->trade_name->toBe($data['trade_name'])

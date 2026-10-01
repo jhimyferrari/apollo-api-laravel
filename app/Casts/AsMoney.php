@@ -32,7 +32,7 @@ class AsMoney implements CastsAttributes
         throw_unless(
             $value instanceof Money,
             \RuntimeException::class,
-            "The field `$key` must be of type Money,".\gettype($value).' received'
+            "The field `$key` must be of type Money, ".\gettype($value).' received'
         );
 
         /**

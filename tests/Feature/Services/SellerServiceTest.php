@@ -147,7 +147,7 @@ describe('SellerService', function () {
             );
             expect($seller)
                 ->toBeInstanceOf(Seller::class)
-                ->status->toBe($data['status'])
+                ->status->toBe(SellerStatus::Active)
                 ->document->toBe($data['document'])
                 ->legal_name->toBe($data['legal_name'])
                 ->trade_name->toBe($data['trade_name'])

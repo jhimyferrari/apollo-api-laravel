@@ -16,7 +16,7 @@ class ValidateFieldIsNotNull
                 throw new InvalidFieldException("The field `$fieldName` must have a value");
             }
         } else {
-            if ($value === null || $value === '') {
+            if ($value === null || $value === '' || preg_match('/^[\p{Z}\s]*$/u', $value)) {
                 throw new InvalidFieldException("The field `$fieldName` must have a value");
             }
         }

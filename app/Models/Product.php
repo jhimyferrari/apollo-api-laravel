@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Casts\AsMoney;
 use App\Enum\Status\ProductStatus;
-use App\Interfaces\HasStatus;
+use App\Interfaces\Models\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasSequencialNumber;
 use App\Traits\ProtectsOrganization;
@@ -93,6 +93,7 @@ class Product extends Model implements HasStatus
     ];
 
     protected $casts = [
+        'status' => ProductStatus::class,
         'cost_price' => AsMoney::class,
         'sale_price' => AsMoney::class,
         'stock_quantity' => 'decimal:3',

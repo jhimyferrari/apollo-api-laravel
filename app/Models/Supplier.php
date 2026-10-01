@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Enum\Status\SupplierStatus;
-use App\Interfaces\HasStatus;
 use App\Interfaces\Models\Addressable;
+use App\Interfaces\Models\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
@@ -82,6 +82,13 @@ class Supplier extends Model implements Addressable, HasStatus
         'phone',
         'email',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => SupplierStatus::class,
+        ];
+    }
 
     public function statusEnumClass(): string
     {
