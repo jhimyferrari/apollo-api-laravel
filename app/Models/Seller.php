@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Enum\Status\SellerStatus;
-use App\Interfaces\HasStatus;
 use App\Interfaces\Models\Addressable;
+use App\Interfaces\Models\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasAddresses;
 use App\Traits\HasSequencialNumber;
@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -84,6 +85,15 @@ class Seller extends Model implements Addressable, HasStatus
         'ended_at',
     ];
 
+    public function casts(): array
+    {
+        return [
+            'status' => SellerStatus::class,
+            'started_at' => 'date',
+            'ended_at' => 'date',
+        ];
+    }
+
     public function statusEnumClass(): string
     {
         return SellerStatus::class;
@@ -94,12 +104,8 @@ class Seller extends Model implements Addressable, HasStatus
         return $this->belongsTo(Organization::class);
     }
 
-    public function casts(): array
+    public function salesOrders(): HasMany
     {
-        return [
-            'status' => SellerStatus::class,
-            'started_at' => 'date',
-            'ended_at' => 'date',
-        ];
+        return $this->hasMany(SalesOrder::class);
     }
 }

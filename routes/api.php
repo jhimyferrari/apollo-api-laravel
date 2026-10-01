@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\CategoryController as CategoryControllerV1;
 use App\Http\Controllers\Api\V1\ClientController as ClientControllerV1;
 use App\Http\Controllers\Api\V1\OrganizationController as OrganizationControllerV1;
 use App\Http\Controllers\Api\V1\ProductController as ProductControllerV1;
+use App\Http\Controllers\Api\V1\SalesOrderController as SalesOrderControllerV1;
 use App\Http\Controllers\Api\V1\SellerController as SellerControllerV1;
 use App\Http\Controllers\Api\V1\SupplierController as SupplierControllerV1;
 use App\Http\Controllers\Api\V1\UserController as UserControllerV1;
@@ -104,6 +105,17 @@ Route::prefix('v1')
                 Route::get('/{product}', [ProductControllerV1::class, 'show'])->name('show');
                 Route::delete('/{product}', [ProductControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{product}', [ProductControllerV1::class, 'update'])->name('update');
+            });
+
+            Route::group(['as' => 'sales-orders.', 'prefix' => '/sales-orders'], function () {
+                Route::post('/', [SalesOrderControllerV1::class, 'store'])->name('store');
+                Route::get('/', [SalesOrderControllerV1::class, 'index'])->name('index');
+                Route::get('/{salesOrder}', [SalesOrderControllerV1::class, 'show'])->name('show');
+                Route::delete('/{salesOrder}', [SalesOrderControllerV1::class, 'destroy'])->name('destroy');
+                Route::patch('/{salesOrder}', [SalesOrderControllerV1::class, 'update'])->name('update');
+                Route::patch('/{salesOrder}/reopen', [SalesOrderControllerV1::class, 'reopen'])->name('reopen');
+                Route::patch('/{salesOrder}/confirm', [SalesOrderControllerV1::class, 'confirm'])->name('confirm');
+                Route::patch('/{salesOrder}/cancel', [SalesOrderControllerV1::class, 'cancel'])->name('cancel');
             });
 
         });

@@ -239,6 +239,21 @@ describe('Money', function () {
         });
     });
 
+    describe('Money::equals', function () {
+        it('return true when the values are equals', function () {
+            $a = Money::fromDecimal(80);
+            $b = Money::fromDecimal(80.0);
+
+            expect($a->equals($b))->toBeTrue();
+        });
+        it('return false when the values are not equals', function () {
+            $a = Money::fromDecimal(82);
+            $b = Money::fromDecimal(80.0);
+
+            expect($a->equals($b))->toBeFalse();
+        });
+    });
+
     describe('Money - it is compatible NUMERIC(15,4)', function () {
         it('keep the same scale (fromStorage -> operation -> toStorageString)', function () {
             $unitPrice = Money::fromStorage('19.9999');

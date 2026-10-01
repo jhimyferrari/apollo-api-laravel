@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Casts\AsMoney;
 use App\Enum\Status\ProductStatus;
-use App\Interfaces\HasStatus;
+use App\Interfaces\Models\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasSequencialNumber;
 use App\Traits\ProtectsOrganization;
