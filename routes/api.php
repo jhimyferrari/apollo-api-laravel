@@ -71,7 +71,7 @@ Route::prefix('v1')
                 Route::patch('/{seller}/addresses/{address}/setDefault', [SellerControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
             });
 
-            Route::group(['as' => 'suppliers.', 'prefix' => '/suplliers'], function () {
+            Route::group(['as' => 'suppliers.', 'prefix' => '/suppliers'], function () {
                 Route::post('/', [SupplierControllerV1::class, 'store'])->name('store');
                 Route::get('/', [SupplierControllerV1::class, 'index'])->name('index');
                 Route::get('/{supplier}', [SupplierControllerV1::class, 'show'])->name('show');
