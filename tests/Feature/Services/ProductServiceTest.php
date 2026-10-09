@@ -111,7 +111,7 @@ describe('ProductService', function () {
                 'name' => '',
                 'cost_price' => '10.5000',
                 'sale_price' => '19.9000',
-            ], $this->user))->toThrow(InvalidFieldException::class, 'The field `name` must have a value');
+            ], $this->user))->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.name')]));
         });
 
         it('throws an error when brand_id does not exist', function () {
@@ -237,7 +237,7 @@ describe('ProductService', function () {
             $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
 
             expect(fn () => $this->service->update($product, ['name' => '']))
-                ->toThrow(InvalidFieldException::class, 'The field `name` must have a value');
+                ->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.name')]));
         });
 
         it('should update cost_price preserving 4 decimal places', function () {

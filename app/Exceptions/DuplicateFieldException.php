@@ -2,14 +2,16 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
+
 class DuplicateFieldException extends BaseException
 {
-    public function __construct(string $message = '')
+    public function __construct(string $message = '', ErrorType $errorType = ErrorType::DuplicateField)
     {
         parent::__construct(
             message: $message,
             statusCode: 422,
-            errorCode: 'DUPLICATE_FIELD',
+            errorCode: ErrorType::DuplicateField,
         );
     }
 }

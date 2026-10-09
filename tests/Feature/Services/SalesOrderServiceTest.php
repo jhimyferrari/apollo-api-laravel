@@ -174,7 +174,7 @@ describe('SalesOrderService', function () {
                 'seller_id' => $seller->id,
                 'status' => OrderStatus::Draft->value,
                 'items' => [],
-            ], $this->user))->toThrow(InvalidFieldException::class, 'The field `items` must have a value');
+            ], $this->user))->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.items')]));
         });
 
         it('throws an error when an item has zero quantity', function () {

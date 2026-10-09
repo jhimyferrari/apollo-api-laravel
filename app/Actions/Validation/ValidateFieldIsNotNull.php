@@ -13,11 +13,11 @@ class ValidateFieldIsNotNull
     {
         if (\is_array($value)) {
             if (empty($value)) {
-                throw new InvalidFieldException("The field `$fieldName` must have a value");
+                throw new InvalidFieldException(__('errors.field_required', ['field' => __("validation.attributes.$fieldName")]));
             }
         } else {
             if ($value === null || $value === '' || preg_match('/^[\p{Z}\s]*$/u', $value)) {
-                throw new InvalidFieldException("The field `$fieldName` must have a value");
+                throw new InvalidFieldException(__('errors.field_required', ['field' => __("validation.attributes.$fieldName")]));
             }
         }
     }

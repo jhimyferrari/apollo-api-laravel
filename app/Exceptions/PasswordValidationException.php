@@ -2,6 +2,8 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
+
 class PasswordValidationException extends BaseException
 {
     public function __construct(string $message)
@@ -9,7 +11,7 @@ class PasswordValidationException extends BaseException
         parent::__construct(
             message: $message,
             statusCode: 422,
-            errorCode: 'INVALID_PASSWORD'
+            errorCode: ErrorType::InvalidPassword
 
         );
     }

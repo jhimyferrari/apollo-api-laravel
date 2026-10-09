@@ -109,7 +109,7 @@ describe('SupplierService', function () {
                 'legal_name' => '',
                 'trade_name' => 'trade_name',
                 'document' => fake()->cnpj(),
-            ], $this->user))->toThrow(InvalidFieldException::class, 'The field `legal_name` must have a value');
+            ], $this->user))->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.legal_name')]));
         });
 
         it('throws an error when not pass a trade_name ', function () {
@@ -117,7 +117,7 @@ describe('SupplierService', function () {
                 'legal_name' => 'some_legal_name',
                 'trade_name' => '',
                 'document' => fake()->cpf(),
-            ], $this->user))->toThrow(InvalidFieldException::class, 'The field `trade_name` must have a value');
+            ], $this->user))->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.trade_name')]));
         });
 
         it('throws an error when not pass a document ', function () {
@@ -125,7 +125,7 @@ describe('SupplierService', function () {
                 'legal_name' => 'some_legal_name',
                 'trade_name' => 'some_trade_name',
                 'document' => '',
-            ], $this->user))->toThrow(InvalidFieldException::class, 'The field `document` must have a value');
+            ], $this->user))->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.document')]));
         });
     });
     describe('update', function () {
@@ -223,14 +223,14 @@ describe('SupplierService', function () {
             $supplier = Supplier::factory()->create(['organization_id' => $this->user->organization_id]);
 
             expect(fn () => $this->service->update($supplier, ['legal_name' => '']))
-                ->toThrow(InvalidFieldException::class, 'The field `legal_name` must have a value');
+                ->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.legal_name')]));
         });
 
         it('throws an error when pass an empty trade_name', function () {
             $supplier = Supplier::factory()->create(['organization_id' => $this->user->organization_id]);
 
             expect(fn () => $this->service->update($supplier, ['trade_name' => '']))
-                ->toThrow(InvalidFieldException::class, 'The field `trade_name` must have a value');
+                ->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.trade_name')]));
         });
 
         it('should update the phone and email of a supplier', function () {

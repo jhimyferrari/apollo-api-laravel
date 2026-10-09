@@ -14,12 +14,12 @@ class ValidateNCM
     public function execute(string $value): NcmCode
     {
         if (! preg_match_all('/^\d{8}$/', $value)) {
-            throw new InvalidFieldException("The ncm `$value` it is out of format");
+            throw new InvalidFieldException(__('validation.regex', ['attribute' => 'ncm']));
         }
         $ncm = NcmCode::where('code', $value)->first();
         if ($ncm != null) {
             if (! $ncm->isActive) {
-                throw new InvalidFieldException("The ncm `$ncm` was inactivated");
+                throw new InvalidFieldException(__('errors.ncm.inactive', ['ncm' => $value]));
             }
 
             return $ncm;

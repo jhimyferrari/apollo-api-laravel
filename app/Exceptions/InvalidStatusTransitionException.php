@@ -2,14 +2,16 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
+
 class InvalidStatusTransitionException extends BaseException
 {
-    public function __construct(string $message = '')
+    public function __construct(string $message = '', ErrorType $errorCode = ErrorType::InvalidStatusTransition)
     {
         parent::__construct(
             message: $message,
             statusCode: 422,
-            errorCode: 'INVALID_STATUS_TRANSATION'
+            errorCode: $errorCode
         );
     }
 

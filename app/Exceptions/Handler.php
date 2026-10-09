@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -19,14 +20,14 @@ class Handler
     {
         [$status, $code, $extra] = match (true) {
             $e instanceof BaseException => [$e->getStatusCode(), $e->getErrorCode(), []],
-            $e instanceof AuthenticationException => [401, 'UNAUTHENTICATED', []],
-            $e instanceof AuthorizationException == 403 => [403, 'FORBIDDEN', []],
-            $e instanceof HttpException && $e->getStatusCode() == 403 => [403, 'FORBIDDEN', []],
-            $e instanceof ModelNotFoundException => [404, 'NOT_FOUND', []],
-            $e instanceof NotFoundHttpException => [404, 'NOT_FOUND', []],
-            $e instanceof MethodNotAllowedHttpException => [405, 'METHOD_NOT_ALLOWED', []],
-            $e instanceof ValidationException => [422, 'VALIDATION_ERROR', ['fields' => $e->getMessage()]],
-            default => [500, 'INTERNAL_ERROR', []],
+            $e instanceof AuthenticationException => [401, ErrorType::Unauthenticated, []],
+            $e instanceof AuthorizationException == 403 => [403, ErrorType::Forbidden, []],
+            $e instanceof HttpException && $e->getStatusCode() == 403 => [403, ErrorType::Forbidden, []],
+            $e instanceof ModelNotFoundException => [404, ErrorType::NotFound, []],
+            $e instanceof NotFoundHttpException => [404, ErrorType::NotFound, []],
+            $e instanceof MethodNotAllowedHttpException => [405, ErrorType::MethodNotAllowed, []],
+            $e instanceof ValidationException => [422, ErrorType::ValidationError, ['fields' => $e->getMessage()]],
+            default => [500, ErrorType::InternalError, []],
         };
 
         return response()->json([

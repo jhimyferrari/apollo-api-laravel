@@ -2,9 +2,11 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
+
 class ModelIsDeletedException extends BaseException
 {
-    public function __construct(string $message = '', int $statusCode = 409, string $errorCode = 'MODEL_IS_DELETED', ?\Throwable $previous = null)
+    public function __construct(string $message = '', int $statusCode = 409, ErrorType $errorCode = ErrorType::ModelIsDeleted, ?\Throwable $previous = null)
     {
         parent::__construct(
             message: $message,

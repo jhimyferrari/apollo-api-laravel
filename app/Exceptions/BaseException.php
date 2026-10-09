@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -13,14 +14,14 @@ class BaseException extends Exception
         /**
          * @param  string  $message  message explaining the error
          * @param  int  $statusCode  http status code of the error
-         * @param  string  $errorCode  type of errors name
+         * @param  ErrorType  $errorCode  type of errors name
          */
         string $message = '',
         protected int $statusCode = 500,
-        protected string $errorCode = 'INTERNAL ERROR',
+        protected ErrorType $errorCode = ErrorType::InternalError,
         ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, 0, $previous);
     }
 
     public function getStatusCode(): int
@@ -28,7 +29,7 @@ class BaseException extends Exception
         return $this->statusCode;
     }
 
-    public function getErrorCode(): string
+    public function getErrorCode(): ErrorType
     {
         return $this->errorCode;
     }
