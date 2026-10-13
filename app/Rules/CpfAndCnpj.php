@@ -19,9 +19,9 @@ class CpfAndCnpj implements ValidationRule
         $value = DocumentHelper::remove_pontuation($value);
 
         match (\strlen($value)) {
-            11 => $this->validateCpf($value) ?: $fail('Invalid document.'),
-            14 => $this->validateCnpj($value) ?: $fail('Invalid document.'),
-            default => $fail('Invalid document.'),
+            11 => $this->validateCpf($value) ?: $fail(__('validation.document', ['attribute' => $value])),
+            14 => $this->validateCnpj($value) ?: $fail(__('validation.document', ['attribute' => $value])),
+            default => $fail(__('validation.document', ['attribute' => $value])),
         };
 
     }

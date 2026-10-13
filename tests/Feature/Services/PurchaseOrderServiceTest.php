@@ -3,12 +3,10 @@
 use App\Enum\Status\OrderStatus;
 use App\Enum\Status\PaymentStatus;
 use App\Enum\StockMovementType;
-use App\Exceptions\InvalidFieldException;
 use App\Exceptions\InvalidStatusException;
 use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\ModelIsDeletedException;
 use App\Exceptions\OrderCannotBeDeletedException;
-use App\Exceptions\ResourceNotFoundException;
 use App\Exceptions\StockException;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
@@ -17,6 +15,7 @@ use App\Models\User;
 use App\Services\PurchaseOrderService;
 use App\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -159,7 +158,7 @@ describe('PurchaseOrderService', function () {
                 'supplier_id' => $supplier->id,
                 'status' => OrderStatus::Draft->value,
                 'items' => [],
-            ], $this->user))->toThrow(InvalidFieldException::class, __('errors.field_required', ['field' => __('validation.attributes.items')]));
+            ], $this->user))->toThrow(ValidationException::class, __('validation.required', ['attribute' => __('validation.attributes.items')]));
         });
 
         it('throws an error when an item has zero quantity', function () {
@@ -172,7 +171,7 @@ describe('PurchaseOrderService', function () {
                 'items' => [
                     ['product_id' => $product->id, 'quantity' => 0, 'number' => 1],
                 ],
-            ], $this->user))->toThrow(InvalidFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
 
         it('throws an error when an item has negative quantity', function () {
@@ -185,7 +184,7 @@ describe('PurchaseOrderService', function () {
                 'items' => [
                     ['product_id' => $product->id, 'quantity' => -5, 'number' => 1],
                 ],
-            ], $this->user))->toThrow(InvalidFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
 
         it('throws an error when an item references a nonexistent product', function () {
@@ -197,7 +196,7 @@ describe('PurchaseOrderService', function () {
                 'items' => [
                     ['product_id' => (string) Str::uuid(), 'quantity' => 5, 'number' => 1],
                 ],
-            ], $this->user))->toThrow(ResourceNotFoundException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
 
         it('throws an error when a product belongs to a different organization', function () {
@@ -210,7 +209,7 @@ describe('PurchaseOrderService', function () {
                 'items' => [
                     ['product_id' => $otherOrganizationProduct->id, 'quantity' => 5, 'number' => 1],
                 ],
-            ], $this->user))->toThrow(ResourceNotFoundException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
 
         it('does not persist anything when one item in the middle is invalid', function () {
@@ -225,7 +224,7 @@ describe('PurchaseOrderService', function () {
                     ['product_id' => $products[1]->id, 'quantity' => -1, 'number' => 2],
                     ['product_id' => $products[2]->id, 'quantity' => 5, 'number' => 3],
                 ],
-            ], $this->user))->toThrow(InvalidFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
 
             $this->assertDatabaseCount('purchase_orders', 0);
             $this->assertDatabaseCount('purchase_order_items', 0);
@@ -763,7 +762,7 @@ describe('PurchaseOrderService', function () {
 
             expect(fn () => $this->service->update($purchaseOrder, [
                 'supplier_id' => (string) Str::uuid(),
-            ]))->toThrow(ResourceNotFoundException::class);
+            ]))->toThrow(ValidationException::class);
         });
 
         it('throw an exception when supplier_id belongs to a different organization', function () {
@@ -772,7 +771,7 @@ describe('PurchaseOrderService', function () {
 
             expect(fn () => $this->service->update($purchaseOrder, [
                 'supplier_id' => $otherOrganizationSupplier->id,
-            ]))->toThrow(ResourceNotFoundException::class);
+            ]))->toThrow(ValidationException::class);
         });
 
         describe('items.to_add', function () {
@@ -805,7 +804,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => null, 'quantity' => 5],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when number is not numeric', function () {
@@ -818,7 +817,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => 'abc', 'quantity' => 5],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when number is negative', function () {
@@ -831,7 +830,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => -1, 'quantity' => 5],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when number is zero', function () {
@@ -844,7 +843,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => 0, 'quantity' => 5],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when product_id does not exist', function () {
@@ -856,7 +855,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => (string) Str::uuid(), 'number' => 1, 'quantity' => 5],
                         ],
                     ],
-                ]))->toThrow(ResourceNotFoundException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when product_id belongs to a different organization', function () {
@@ -869,7 +868,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $otherOrganizationProduct->id, 'number' => 1, 'quantity' => 5],
                         ],
                     ],
-                ]))->toThrow(ResourceNotFoundException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when quantity is null', function () {
@@ -882,7 +881,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => 1, 'quantity' => null],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when quantity is negative', function () {
@@ -895,7 +894,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => 1, 'quantity' => -5],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when quantity is zero', function () {
@@ -908,7 +907,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => 1, 'quantity' => 0],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
         });
 
@@ -959,7 +958,7 @@ describe('PurchaseOrderService', function () {
                             ['id' => $otherOrderItem->id, 'number' => 2, 'quantity' => 20],
                         ],
                     ],
-                ]))->toThrow(ResourceNotFoundException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when id does not exist', function () {
@@ -971,7 +970,7 @@ describe('PurchaseOrderService', function () {
                             ['id' => (string) Str::ulid(), 'number' => 2, 'quantity' => 20],
                         ],
                     ],
-                ]))->toThrow(ResourceNotFoundException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when number is negative', function () {
@@ -993,7 +992,7 @@ describe('PurchaseOrderService', function () {
                             ['id' => $item->id, 'number' => -1, 'quantity' => 20],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when number is not numeric', function () {
@@ -1015,7 +1014,7 @@ describe('PurchaseOrderService', function () {
                             ['id' => $item->id, 'number' => 'abc', 'quantity' => 20],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when quantity is negative', function () {
@@ -1037,7 +1036,7 @@ describe('PurchaseOrderService', function () {
                             ['id' => $item->id, 'number' => 2, 'quantity' => -20],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when quantity is zero', function () {
@@ -1059,7 +1058,7 @@ describe('PurchaseOrderService', function () {
                             ['id' => $item->id, 'number' => 2, 'quantity' => 0],
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
             });
         });
 
@@ -1105,7 +1104,7 @@ describe('PurchaseOrderService', function () {
                     'items' => [
                         'to_remove' => [$otherOrderItem->id],
                     ],
-                ]))->toThrow(ResourceNotFoundException::class);
+                ]))->toThrow(ValidationException::class);
             });
 
             it('throw an exception when id does not exist', function () {
@@ -1115,7 +1114,7 @@ describe('PurchaseOrderService', function () {
                     'items' => [
                         'to_remove' => [(string) Str::uuid()],
                     ],
-                ]))->toThrow(ResourceNotFoundException::class);
+                ]))->toThrow(ValidationException::class);
             });
         });
 
@@ -1181,7 +1180,7 @@ describe('PurchaseOrderService', function () {
                             ['product_id' => $product->id, 'number' => -1, 'quantity' => 8], // inválido
                         ],
                     ],
-                ]))->toThrow(InvalidFieldException::class);
+                ]))->toThrow(ValidationException::class);
 
                 // nada foi persistido — o item original continua intacto
                 $this->assertDatabaseHas('purchase_order_items', [

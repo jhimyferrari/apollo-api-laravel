@@ -34,4 +34,9 @@ class InvalidFieldException extends BaseException
     {
         return new self(message: "The value `$value` must be negative");
     }
+
+    public static function mustBeArray(string $value): self
+    {
+        return new self(message: "The value `$value` must be an array");
+    }
 }

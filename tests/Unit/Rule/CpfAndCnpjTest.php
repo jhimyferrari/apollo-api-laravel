@@ -59,6 +59,5 @@ describe('CpfAndCnpj', function () {
             ['field' => new CpfAndCnpj]
         );
         expect($validator->passes())->toBeFalse();
-
     });
 });

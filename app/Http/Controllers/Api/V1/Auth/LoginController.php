@@ -35,4 +35,11 @@ class LoginController extends Controller
             'token' => $token,
             'user' => $user], 200);
     }
+
+    public function logout()
+    {
+        Auth()->user()->currentAccessToken()->delete();
+
+        return response()->noContent();
+    }
 }

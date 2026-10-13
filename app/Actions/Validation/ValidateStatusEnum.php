@@ -4,6 +4,7 @@ namespace App\Actions\Validation;
 
 use App\Exceptions\InvalidStatusException;
 use App\Interfaces\Models\HasStatus;
+use Illuminate\Validation\ValidationException;
 
 class ValidateStatusEnum
 {
@@ -12,7 +13,8 @@ class ValidateStatusEnum
         $enum = $model->statusEnumClass();
         $newStatus = $enum::tryFrom($value);
         if ($newStatus === null) {
-            throw new InvalidStatusException("`$value` status doesn`t exist for ".class_basename($model));
+            report(new InvalidStatusException(__('errors.invalid_status', ['value' => $value, 'model' => \class_basename($model)])));
+            throw ValidationException::withMessages(['status' => __('validation.status', ['attribute' => 'status', 'model' => \class_basename($model)])]);
         }
     }
 }

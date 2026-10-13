@@ -36,7 +36,7 @@ describe('GetNextSequencialNumber', function () {
         expect(fn () => (new GetNextSequencialNumber)->execute($organization, 'non_created_table'))
             ->toThrow(
                 RuntimeException::class,
-                "Sequence 'non_created_table' not found for organization {$organization->id}."
+                __('errors.internal_error')
             );
     });
 });

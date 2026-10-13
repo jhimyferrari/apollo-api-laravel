@@ -4,5 +4,5 @@ namespace App\Services\TreatmentService\Strategies;
 
 interface TreatmentStrategy
 {
-    public function handle(mixed $value): mixed;
+    public function handle(mixed $value, string $field): mixed;
 }

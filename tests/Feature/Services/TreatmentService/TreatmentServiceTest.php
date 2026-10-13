@@ -23,7 +23,7 @@ describe('TreatmentService', function () {
     it('returns the value treated by the strategy', function () {
         $this->strategy->shouldReceive('handle')
             ->once()
-            ->with('raw value')
+            ->with('raw value', 'name')
             ->andReturn('treated value');
 
         $result = $this->service->handle(
@@ -69,7 +69,7 @@ describe('TreatmentService', function () {
 
         $this->strategy->shouldReceive('handle')
             ->once()
-            ->with('')
+            ->with('', 'name')
             ->andReturn('');
 
         $this->service->handle(
@@ -84,7 +84,7 @@ describe('TreatmentService', function () {
     it('calls ValidateDuplicateField with the treated value when mustBeUnique is true', function () {
         $this->strategy->shouldReceive('handle')
             ->once()
-            ->with('raw-doc')
+            ->with('raw-doc', 'document')
             ->andReturn('treated-doc');
 
         $this->validateDuplicateField->shouldReceive('execute')
@@ -127,7 +127,7 @@ describe('TreatmentService', function () {
     it('builds and executes the treatment through the fluent builder', function () {
         $this->strategy->shouldReceive('handle')
             ->once()
-            ->with('raw-doc')
+            ->with('raw-doc', 'document')
             ->andReturn('treated-doc');
 
         $this->validateFieldIsNotNull->shouldReceive('execute')->once();

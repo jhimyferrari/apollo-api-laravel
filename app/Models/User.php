@@ -111,12 +111,12 @@ class User extends Authenticatable
     {
         static::updating(function (User $user) {
             if ($user->isDirty('is_administrator')) {
-                throw new ForbiddenException('Administrator atribute cannot be changed');
+                throw new ForbiddenException(__('validation.admin_update'));
             }
         });
         static::deleting(function (User $user) {
             if ($user->isAdministrator()) {
-                throw new ForbiddenException('The administrator cannot be removed');
+                throw new ForbiddenException(__('validation.admin_delete'));
             }
         });
     }

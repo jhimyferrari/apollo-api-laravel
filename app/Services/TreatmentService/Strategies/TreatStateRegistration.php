@@ -21,7 +21,7 @@ class TreatStateRegistration implements TreatmentStrategy
      * @throws DuplicateFieldException
      * @throws InvalidFieldException
      */
-    public function handle(mixed $value): ?string
+    public function handle(mixed $value, string $field): ?string
     {
         $value = trim($value);
         $value = DocumentHelper::remove_pontuation($value);

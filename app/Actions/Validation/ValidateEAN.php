@@ -2,15 +2,18 @@
 
 namespace App\Actions\Validation;
 
-use App\Exceptions\InvalidFieldException;
+use Illuminate\Validation\ValidationException;
 
 class ValidateEAN
 {
     /**
-     * @throws InvalidFieldException
+     * @throws ValidationException
      */
-    public function execute(string $value): string
+    public function execute(string $value, $field): string
     {
+        if (! \is_string($value)) {
+            throw ValidationException::withMessages([$field => __('validation.ean', ['attribute' => 'ean'])]);
+        }
         $value = trim($value);
         $isValid = match (\strlen($value)) {
             13 => $this->validateEan13($value),
@@ -18,7 +21,7 @@ class ValidateEAN
             default => false
         };
         if (! $isValid) {
-            throw new InvalidFieldException("The EAN code `$value` it`s not valid ");
+            throw ValidationException::withMessages([$field => __('validation.ean', ['attribute' => 'ean'])]);
         }
 
         return $value;

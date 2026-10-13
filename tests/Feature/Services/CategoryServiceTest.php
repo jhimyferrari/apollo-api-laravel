@@ -1,11 +1,11 @@
 <?php
 
-use App\Exceptions\DuplicateFieldException;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\CategoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -42,7 +42,8 @@ describe('CategoryService', function () {
             Category::factory()->create(['organization_id' => $this->user->organization_id, 'name' => 'duplicateName']);
             expect(fn () => $this->service->create([
                 'name' => ' duplicateName',
-            ], $this->user))->toThrow(DuplicateFieldException::class, 'Category name `duplicateName` already exist');
+            ], $this->user))
+                ->toThrow(ValidationException::class, __('validation.unique', ['attribute' => 'nome']));
         });
         it('should allow to use same name in differents organizations', function () {
             Category::factory()->create(['name' => 'validName']);
@@ -94,7 +95,8 @@ describe('CategoryService', function () {
             expect(fn () => $this->service->update(
                 $category,
                 ['name' => ' duplicateName']
-            ))->toThrow(DuplicateFieldException::class, 'Category name `duplicateName` already exist');
+            ))
+                ->toThrow(ValidationException::class, __('validation.unique', ['attribute' => 'nome']));
         });
         it('should allow to use same name in differents organization', function () {
             Category::factory()->create(['name' => 'validName']);

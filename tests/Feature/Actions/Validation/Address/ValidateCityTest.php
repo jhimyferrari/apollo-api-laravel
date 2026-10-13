@@ -4,8 +4,8 @@ use App\Actions\Validation\Address\ValidateCity;
 use App\Models\City;
 use Database\Seeders\CitiesSeeder;
 use Database\Seeders\UfSeeder;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
@@ -15,15 +15,15 @@ describe('ValidateCity', function () {
         new CitiesSeeder()->run(1);
         $city = City::first();
 
-        $result = app(ValidateCity::class)->execute($city->ibge_code);
+        $result = app(ValidateCity::class)->execute($city->ibge_code, 'ibge_city_code');
 
         expect($result->ibge_code)->toBe($city->ibge_code);
     });
 
-    it('throws ModelNotFoundException when the ibge code does not exist', function () {
+    it('throws ValidationException when the ibge code does not exist', function () {
         $invalidIbgeCode = '0000000';
 
-        expect(fn () => app(ValidateCity::class)->execute($invalidIbgeCode))
-            ->toThrow(ModelNotFoundException::class, "Does not find a city for IBGE code $invalidIbgeCode");
+        expect(fn () => app(ValidateCity::class)->execute($invalidIbgeCode, 'city_ibge_code'))
+            ->toThrow(ValidationException::class, __('validation.city', ['attribute' => __('validation.attributes.city_ibge_code')]));
     });
 });

@@ -2,7 +2,7 @@
 
 namespace App\Services\TreatmentService\Strategies;
 
-use App\Exceptions\InvalidFieldException;
+use Illuminate\Validation\ValidationException;
 
 final class TreatNumber implements TreatmentStrategy
 {
@@ -26,24 +26,25 @@ final class TreatNumber implements TreatmentStrategy
         return new self(mustBeInteger: $this->mustBeInteger, mustBePositive: false);
     }
 
-    public function handle(mixed $value): int|float
+    public function handle(mixed $value, string $field): int|float
     {
         if (! is_numeric($value)) {
-            throw InvalidFieldException::mustBeNumeric($value);
+            throw ValidationException::withMessages([$field => __('validation.numeric', ['attribute' => __("validation.attribute.$field")])]);
         }
 
         if ($this->mustBeInteger && ! $this->isIntegerValue($value)) {
-            throw InvalidFieldException::mustBeInteger($value);
+            throw ValidationException::withMessages([$field => __('validation.integer', ['attribute' => __("validation.attribute.$field")])]);
         }
 
         $number = $this->mustBeInteger ? (int) $value : (float) $value;
 
         if ($this->mustBePositive === true && $number <= 0) {
-            throw InvalidFieldException::mustBePositive($value);
+            throw ValidationException::withMessages([$field => __('validation.numeric.positive', ['attribute' => __("validation.attribute.$field")])]);
         }
 
         if ($this->mustBePositive === false && $number >= 0) {
-            throw InvalidFieldException::mustBeNegative($value);
+
+            throw ValidationException::withMessages([$field => __('validation.numeric.negative', ['attribute' => __("validation.attribute.$field")])]);
         }
 
         return $number;

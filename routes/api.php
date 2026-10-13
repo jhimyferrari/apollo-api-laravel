@@ -32,6 +32,8 @@ Route::prefix('v1')
         // Authenticated routes
         Route::middleware('auth:sanctum')->group(function () {
 
+            Route::post('/logout', [LoginControllerV1::class, 'logout'])->name('logout');
+
             Route::group(['as' => 'addresses.', 'prefix' => '/addresses'], function () {
                 Route::patch('/{address}', [AddressControllerV1::class, 'update'])->name('update');
                 Route::delete('/{address}', [AddressControllerV1::class, 'destroy'])->name('destroy');

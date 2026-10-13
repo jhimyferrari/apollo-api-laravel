@@ -19,7 +19,6 @@ use App\Services\TreatmentService\Strategies\TreatArray;
 use App\Services\TreatmentService\Strategies\TreatClient;
 use App\Services\TreatmentService\Strategies\TreatNumber;
 use App\Services\TreatmentService\Strategies\TreatProduct;
-use App\Services\TreatmentService\Strategies\TreatSalesOrder;
 use App\Services\TreatmentService\Strategies\TreatSalesOrderItem;
 use App\Services\TreatmentService\Strategies\TreatSeller;
 use App\Services\TreatmentService\TreatmentService;
@@ -32,7 +31,6 @@ class SalesOrderService extends BaseService
         private readonly TreatmentService $treatment,
         private readonly ValidateStatusEnum $validateStatus,
         private readonly TreatProduct $treatProduct,
-        private readonly TreatSalesOrder $treatSalesOrder,
         private readonly TreatClient $treatClient,
         private readonly TreatSeller $treatSeller,
         private readonly TreatArray $treatArray,

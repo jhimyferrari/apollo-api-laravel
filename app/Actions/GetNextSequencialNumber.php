@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Organization;
 use App\Models\SequencialNumber;
+use RuntimeException;
 
 class GetNextSequencialNumber
 {
@@ -14,11 +15,11 @@ class GetNextSequencialNumber
             ->lockForUpdate()
             ->first();
 
-        throw_if(
-            empty($sequence),
-            \RuntimeException::class,
-            "Sequence '{$table}' not found for organization {$organization->id}."
-        );
+        if (empty($sequence)) {
+            \report(new RuntimeException(__('errors.sequence_number_not_found', ['table' => $table, 'org' => $organization->id])));
+            throw new RuntimeException(__('errors.internal_error'));
+        }
+
         $sequence->last_number++;
         $sequence->save();
 

@@ -1,6 +1,5 @@
 <?php
 
-use App\Exceptions\InvalidFieldException;
 use App\Models\Address;
 use App\Models\City;
 use App\Models\Client;
@@ -10,6 +9,7 @@ use App\Services\AddressService;
 use Database\Seeders\CitiesSeeder;
 use Database\Seeders\UfSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -90,7 +90,7 @@ describe('AddressService', function () {
             expect($seller->defaultAddress)->id->toBe($address->id);
 
         });
-        it('should throw InvalidFieldException when street is null', function () {
+        it('should throw ValidationException when street is null', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $data = [
                 'street' => null,
@@ -101,9 +101,9 @@ describe('AddressService', function () {
             ];
 
             $this->service->create($seller, $data);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when neighborhood is null', function () {
+        it('should throw ValidationException when neighborhood is null', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $data = [
                 'street' => 'Rua A',
@@ -114,9 +114,9 @@ describe('AddressService', function () {
             ];
 
             $this->service->create($seller, $data);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when number is null', function () {
+        it('should throw ValidationException when number is null', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $data = [
                 'street' => 'Rua A',
@@ -127,9 +127,9 @@ describe('AddressService', function () {
             ];
 
             $this->service->create($seller, $data);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when cep is null', function () {
+        it('should throw ValidationException when cep is null', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $data = [
                 'street' => 'Rua A',
@@ -140,9 +140,9 @@ describe('AddressService', function () {
             ];
 
             $this->service->create($seller, $data);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when city_ibge_code is null', function () {
+        it('should throw ValidationException when city_ibge_code is null', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $data = [
                 'street' => 'Rua A',
@@ -153,7 +153,7 @@ describe('AddressService', function () {
             ];
 
             $this->service->create($seller, $data);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
     });
     describe('setDefault', function () {
 
@@ -248,50 +248,50 @@ describe('AddressService', function () {
             expect($address)->is_default->toBeTrue();
             expect($oldDefault)->is_default->toBeFalse();
         });
-        it('should throw InvalidFieldException when street is set to null', function () {
+        it('should throw ValidationException when street is set to null', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $address = $client->addresses()->create(
                 Address::factory()->for($this->user->organization)->make()->toArray()
             );
 
             $this->service->update($address, ['street' => null]);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when neighborhood is set to null', function () {
+        it('should throw ValidationException when neighborhood is set to null', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $address = $client->addresses()->create(
                 Address::factory()->for($this->user->organization)->make()->toArray()
             );
 
             $this->service->update($address, ['neighborhood' => null]);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when number is set to null', function () {
+        it('should throw ValidationException when number is set to null', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $address = $client->addresses()->create(
                 Address::factory()->for($this->user->organization)->make()->toArray()
             );
 
             $this->service->update($address, ['number' => null]);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when cep is set to null', function () {
+        it('should throw ValidationException when cep is set to null', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $address = $client->addresses()->create(
                 Address::factory()->for($this->user->organization)->make()->toArray()
             );
 
             $this->service->update($address, ['cep' => null]);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
-        it('should throw InvalidFieldException when city_ibge_code is set to null', function () {
+        it('should throw ValidationException when city_ibge_code is set to null', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $address = $client->addresses()->create(
                 Address::factory()->for($this->user->organization)->make()->toArray()
             );
 
             $this->service->update($address, ['city_ibge_code' => null]);
-        })->throws(InvalidFieldException::class);
+        })->throws(ValidationException::class);
 
     });
     describe('delete', function () {

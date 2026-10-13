@@ -13,13 +13,9 @@ class ValidateDocument
      */
     public function execute(string $document)
     {
-        $validator = Validator::make(
+        Validator::make(
             ['document' => $document],
             ['document' => ['required', new CpfAndCnpj]]
-        );
-
-        if ($validator->fails()) {
-            throw new InvalidFieldException($validator->errors()->first('document'));
-        }
+        )->validated();
     }
 }
