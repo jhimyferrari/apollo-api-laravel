@@ -28,7 +28,7 @@ describe('POST api/organizations', function () {
         );
         $response
             ->assertCreated()
-            ->assertJson(['message' => 'Organization created successfully.']);
+            ->assertJson(['message' => __('messages.created', ['resource' => 'Organização'])]);
 
         $this->assertDatabaseCount('organizations', 1);
         $this->assertDatabaseCount('users', 1);
@@ -42,7 +42,7 @@ describe('POST api/organizations', function () {
 
         $response = $this->postJson(route('v1.organizations.store'), $data);
         $response->assertCreated()
-            ->assertJson(['message' => 'Organization created successfully.']);
+            ->assertJson(['message' => __('messages.created', ['resource' => 'Organização'])]);
 
     });
     it('should create an Admin User with all permissions ', function () {

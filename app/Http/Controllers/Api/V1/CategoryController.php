@@ -43,7 +43,7 @@ class CategoryController extends Controller implements HasMiddleware
     {
         $newCategory = $this->categoryService->create($request->validated(), Auth()->user());
 
-        return $this->success($newCategory, 'Category created successfully.', 201);
+        return $this->success($newCategory, __('messages.created', ['resource' => __('validation.resources.category')]), 201);
     }
 
     /**

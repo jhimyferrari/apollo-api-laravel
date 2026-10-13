@@ -45,7 +45,7 @@ class BrandController extends Controller implements HasMiddleware
     {
         $newBrand = $this->brandService->create($request->validated(), Auth()->user());
 
-        return $this->success($newBrand, 'Brand created successfully', 201);
+        return $this->success($newBrand, __('messages.created', ['resource' => __('validation.resources.brand')]), 201);
     }
 
     /**

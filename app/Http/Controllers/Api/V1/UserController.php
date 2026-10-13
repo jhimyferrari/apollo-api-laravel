@@ -43,7 +43,7 @@ class UserController extends Controller implements HasMiddleware
     {
         $newUser = $this->userService->create($request->validated(), Auth()->user());
 
-        return $this->success($newUser, 'User created successfully.', 201);
+        return $this->success($newUser, __('messages.created', ['resource' => __('validation.resources.user')]), 201);
     }
 
     /**

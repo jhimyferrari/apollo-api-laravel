@@ -50,7 +50,7 @@ class SalesOrderController extends Controller implements HasMiddleware
     {
         $newOrder = $this->service->create($request->validated(), Auth()->user());
 
-        return $this->success($newOrder, 'SalesOrder created sucessfully.', 201);
+        return $this->success($newOrder, __('messages.created', ['resource' => __('validation.resources.sales_order')]), 201);
     }
 
     /**

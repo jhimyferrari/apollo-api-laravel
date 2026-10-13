@@ -31,7 +31,7 @@ describe('POST api/users', function () {
         $this->assertDatabaseCount('users', 2);
         $response
             ->assertStatus(201)
-            ->assertJson(['message' => 'User created successfully.']);
+            ->assertJson(['message' => __('messages.created', ['resource' => 'Usuário'])]);
         $userWithoutPermission = User::where('email', $data['email'])->first();
 
         // assert password is hashed
@@ -51,7 +51,7 @@ describe('POST api/users', function () {
         );
         $response
             ->assertStatus(201)
-            ->assertJson(['message' => 'User created successfully.']);
+            ->assertJson(['message' => __('messages.created', ['resource' => 'Usuário'])]);
 
         // assert user has all permissions passed by post
         $userWithPermissions = User::where('email', $data['email'])->first();
