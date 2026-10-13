@@ -28,7 +28,7 @@ class TreatmentService
             return null;
         }
 
-        $treated = $strategy->handle($value);
+        $treated = $strategy->handle($value, $field);
 
         if ($options->mustBeUnique) {
             $this->validateDuplicateField->execute(

@@ -5,6 +5,7 @@ namespace App\Actions\Validation;
 use App\Exceptions\DuplicateFieldException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 /**
@@ -23,13 +24,15 @@ class ValidateDuplicateField
     public function execute(Model $model, string $field, mixed $value, ?string $ignoredId = null, ?string $organizationId = null)
     {
         if (! Schema::hasColumn($model->getTable(), $field)) {
-            throw new RuntimeException("Attribute `$field` does not exist in ".class_basename($model));
+            throw new RuntimeException(__('errors.attribute_doesnt_exists_on_model',
+                ['attribute' => $field, 'model' => \class_basename($model)]));
         }
         $findResults = $model->newQuery()->where($field, $value);
 
         if ($organizationId !== null) {
             if (! Schema::hasColumn($model->getTable(), 'organization_id')) {
-                throw new RuntimeException('Attribute `organization_id` does not exist in '.class_basename($model));
+                throw new RuntimeException(__('errors.attribute_doesnt_exists_on_model',
+                    ['attribute' => 'organization_id', 'model' => \class_basename($model)]));
             }
             $findResults->where('organization_id', $organizationId);
         }
@@ -38,7 +41,7 @@ class ValidateDuplicateField
         }
 
         if ($findResults->exists()) {
-            throw new DuplicateFieldException(class_basename($model)." $field `$value` already exist");
+            throw ValidationException::withMessages([$field => __('validation.unique', ['attribute' => __("validation.attributes.$field")])]);
         }
 
     }

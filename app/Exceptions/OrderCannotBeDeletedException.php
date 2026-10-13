@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
 use App\Enum\Status\OrderStatus;
 
 class OrderCannotBeDeletedException extends BaseException
@@ -11,7 +12,7 @@ class OrderCannotBeDeletedException extends BaseException
         parent::__construct(
             message: $message,
             statusCode: 422,
-            errorCode: 'ORDER_CANNOT_BE_DELETED'
+            errorCode: ErrorType::OrderNotDeletable
         );
     }
 

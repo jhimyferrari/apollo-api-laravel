@@ -18,7 +18,6 @@ use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatArray;
 use App\Services\TreatmentService\Strategies\TreatNumber;
 use App\Services\TreatmentService\Strategies\TreatProduct;
-use App\Services\TreatmentService\Strategies\TreatPurchaseOrder;
 use App\Services\TreatmentService\Strategies\TreatPurchaseOrderItem;
 use App\Services\TreatmentService\Strategies\TreatSupplier;
 use App\Services\TreatmentService\TreatmentService;
@@ -31,7 +30,6 @@ class PurchaseOrderService extends BaseService
         private readonly TreatmentService $treatment,
         private readonly ValidateStatusEnum $validateStatus,
         private readonly TreatProduct $treatProduct,
-        private readonly TreatPurchaseOrder $treatPurchaseOrder,
         private readonly TreatSupplier $treatSupplier,
         private readonly TreatArray $treatArray,
         private readonly TreatNumber $treatNumber,

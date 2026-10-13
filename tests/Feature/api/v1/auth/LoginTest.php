@@ -24,7 +24,7 @@ describe('Create Organization and Login flow', function () {
         $response->assertStatus(201);
         $responseBody = $response->json();
 
-        expect($responseBody['message'])->toBe('Organization created successfully.');
+        expect($responseBody['message'])->toBe(__('messages.created', ['resource' => 'Organização']));
         $this->assertDatabaseHas('organizations', ['document' => $data['document']]);
 
         // Doing Login using the Admin User

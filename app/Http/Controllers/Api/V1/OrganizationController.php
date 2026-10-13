@@ -29,7 +29,8 @@ class OrganizationController extends Controller
 
         return $this->success([
             'organization' => $newOrganization,
-            'admin_email' => $adminUser->email], 'Organization created successfully.', 201);
+            'admin_email' => $adminUser->email], __('messages.created', ['resource' => __('validation.resources.organization')]), 201);
+
     }
 
     /**

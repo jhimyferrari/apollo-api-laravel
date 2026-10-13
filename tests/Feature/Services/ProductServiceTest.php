@@ -1,15 +1,13 @@
 <?php
 
-use App\Exceptions\DuplicateFieldException;
-use App\Exceptions\InvalidFieldException;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\ProductService;
 use App\ValueObjects\Money;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -103,7 +101,7 @@ describe('ProductService', function () {
                 'cost_price' => '10.5000',
                 'sale_price' => '19.9000',
                 'ean' => $ean,
-            ], $this->user))->toThrow(DuplicateFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
 
         it('throws an error when not pass a name', function () {
@@ -111,7 +109,7 @@ describe('ProductService', function () {
                 'name' => '',
                 'cost_price' => '10.5000',
                 'sale_price' => '19.9000',
-            ], $this->user))->toThrow(InvalidFieldException::class, 'The field `name` must have a value');
+            ], $this->user))->toThrow(ValidationException::class, __('validation.required', ['attribute' => __('validation.attributes.name')]));
         });
 
         it('throws an error when brand_id does not exist', function () {
@@ -120,17 +118,17 @@ describe('ProductService', function () {
                 'cost_price' => '10.5000',
                 'sale_price' => '19.9000',
                 'brand_id' => 999999,
-            ], $this->user))->toThrow(ModelNotFoundException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
 
-        // AJUSTAR: troque InvalidFieldException pela exception real lançada por ValidateUnitProduct
+        // AJUSTAR: troque ValidationException pela exception real lançada por ValidateUnitProduct
         it('throws an error when pass an invalid unit', function () {
             expect(fn () => $this->service->create([
                 'name' => 'productName',
                 'cost_price' => '10.5000',
                 'sale_price' => '19.9000',
                 'unit' => 'INVALID_UNIT',
-            ], $this->user))->toThrow(InvalidFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
     });
 
@@ -195,7 +193,7 @@ describe('ProductService', function () {
 
             expect(fn () => $this->service->update($product, ['brand_id' => 999999]))
 
-                ->toThrow(ModelNotFoundException::class);
+                ->toThrow(ValidationException::class);
         });
 
         it('should throw an error when pass an used ean', function () {
@@ -206,7 +204,7 @@ describe('ProductService', function () {
             $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
 
             expect(fn () => $this->service->update($product, ['ean' => $ean]))
-                ->toThrow(DuplicateFieldException::class);
+                ->toThrow(ValidationException::class);
         });
 
         it('should update successfully when passing the same ean as before', function () {
@@ -237,7 +235,7 @@ describe('ProductService', function () {
             $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
 
             expect(fn () => $this->service->update($product, ['name' => '']))
-                ->toThrow(InvalidFieldException::class, 'The field `name` must have a value');
+                ->toThrow(ValidationException::class, __('validation.required', ['attribute' => __('validation.attributes.name')]));
         });
 
         it('should update cost_price preserving 4 decimal places', function () {

@@ -51,7 +51,7 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     {
         $newOrder = $this->service->create($request->validated(), Auth()->user());
 
-        return $this->success($newOrder, 'PurchaseOrder created sucessfully.', 201);
+        return $this->success($newOrder, __('messages.created', ['resource' => __('validation.purchase_order')]), 201);
     }
 
     /**

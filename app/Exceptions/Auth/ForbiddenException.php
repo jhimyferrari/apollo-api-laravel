@@ -2,6 +2,7 @@
 
 namespace App\Exceptions\Auth;
 
+use App\Enum\ErrorType;
 use App\Exceptions\BaseException;
 
 class ForbiddenException extends BaseException
@@ -11,7 +12,7 @@ class ForbiddenException extends BaseException
         parent::__construct(
             message: $message,
             statusCode: 403,
-            errorCode: 'FORBIDDEN'
+            errorCode: ErrorType::Forbidden
         );
     }
 }

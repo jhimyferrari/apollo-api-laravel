@@ -43,7 +43,7 @@ class ProductController extends Controller implements HasMiddleware
     {
         $newProduct = $this->productService->create($request->validated(), Auth()->user());
 
-        return $this->success($newProduct, 'Product created successfully.', 201);
+        return $this->success($newProduct, __('messages.created', ['resource' => __('validation.resources.product')]), 201);
     }
 
     /**

@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Organization;
+use App\Models\Permission;
+use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -8,6 +10,7 @@ uses(RefreshDatabase::class);
 
 describe('POST api/organizations', function () {
     test('With Unique and Valid data', function () {
+
         $this->assertDatabaseEmpty('organizations');
         $this->assertDatabaseEmpty('users');
 
@@ -25,7 +28,7 @@ describe('POST api/organizations', function () {
         );
         $response
             ->assertCreated()
-            ->assertJson(['message' => 'Organization created successfully.']);
+            ->assertJson(['message' => __('messages.created', ['resource' => 'Organização'])]);
 
         $this->assertDatabaseCount('organizations', 1);
         $this->assertDatabaseCount('users', 1);
@@ -39,7 +42,27 @@ describe('POST api/organizations', function () {
 
         $response = $this->postJson(route('v1.organizations.store'), $data);
         $response->assertCreated()
-            ->assertJson(['message' => 'Organization created successfully.']);
+            ->assertJson(['message' => __('messages.created', ['resource' => 'Organização'])]);
+
+    });
+    it('should create an Admin User with all permissions ', function () {
+        $this->seed(PermissionSeeder::class);
+        $data = [
+            'name' => fake()->company,
+            'document' => fake()->cnpj(false),
+            'email' => fake()->email,
+            'password' => $this->validPassword(),
+        ];
+
+        $this->postJson(route('v1.organizations.store'),
+            $data,
+        );
+
+        $user = User::where('email', $data['email'])->first();
+        foreach (Permission::all()->pluck('id') as $p) {
+            expect($user->permissions->pluck('id'))->toContain($p);
+
+        }
 
     });
     test('With unique and non valid data', function () {

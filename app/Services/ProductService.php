@@ -39,7 +39,7 @@ class ProductService extends BaseService
             $data['ean'] = $this->treatment->for($this->treatEAN, $data['ean'], 'ean', $this->model)->mustBeUnique()->handle();
         }
         if (isset($data['unit'])) {
-            $this->validateUnit->execute($data['unit']);
+            $this->validateUnit->execute($data['unit'], 'product_unit');
         }
 
         $data['cost_price'] = $this->treatment->for($this->treatMoney, $data['cost_price'], 'cost_price', $this->model)->handle();
@@ -84,7 +84,7 @@ class ProductService extends BaseService
                 ->mustBeUnique()->ignoredId($product->id)->handle();
         }
         if (\array_key_exists('unit', $data)) {
-            app(ValidateUnitProduct::class)->execute($data['unit']);
+            app(ValidateUnitProduct::class)->execute($data['unit'], 'unit');
             $product->unit = $data['unit'];
         }
         if (\array_key_exists('ncm', $data)) {
@@ -95,7 +95,6 @@ class ProductService extends BaseService
         }
         if (\array_key_exists('cost_price', $data)) {
             $product->cost_price = $this->treatment->for($this->treatMoney, $data['cost_price'], 'cost_price', $this->model)->handle();
-
         }
         if (\array_key_exists('sale_price', $data)) {
             $product->sale_price = $this->treatment->for($this->treatMoney, $data['sale_price'], 'sale_price', $this->model)->handle();

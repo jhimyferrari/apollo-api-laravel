@@ -1,11 +1,11 @@
 <?php
 
-use App\Exceptions\DuplicateFieldException;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\BrandService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -48,7 +48,8 @@ describe('BrandService', function () {
             Brand::factory()->create(['organization_id' => $this->user->organization_id, 'name' => 'duplicateName']);
             expect(fn () => $this->service->create([
                 'name' => ' duplicateName ',
-            ], $this->user))->toThrow(DuplicateFieldException::class, 'Brand name `duplicateName` already exist');
+            ], $this->user))
+                ->toThrow(ValidationException::class, __('validation.unique', ['attribute' => 'nome']));
         });
         it('should allow to use same name in differents organizations', function () {
             /** @var BrandService $this->service */
@@ -106,7 +107,8 @@ describe('BrandService', function () {
 
             expect(fn () => $this->service->update($brand, [
                 'name' => ' duplicateName ',
-            ]))->toThrow(DuplicateFieldException::class, 'Brand name `duplicateName` already exist');
+            ]))
+                ->toThrow(ValidationException::class, __('validation.unique', ['attribute' => 'nome']));
         });
 
         it('should allow to use same name in differents organizations', function () {

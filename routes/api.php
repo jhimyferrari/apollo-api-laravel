@@ -32,6 +32,8 @@ Route::prefix('v1')
         // Authenticated routes
         Route::middleware('auth:sanctum')->group(function () {
 
+            Route::post('/logout', [LoginControllerV1::class, 'logout'])->name('logout');
+
             Route::group(['as' => 'addresses.', 'prefix' => '/addresses'], function () {
                 Route::patch('/{address}', [AddressControllerV1::class, 'update'])->name('update');
                 Route::delete('/{address}', [AddressControllerV1::class, 'destroy'])->name('destroy');
@@ -71,7 +73,7 @@ Route::prefix('v1')
                 Route::patch('/{seller}/addresses/{address}/setDefault', [SellerControllerV1::class, 'setDefaultAddress'])->name('addresses.setDefault');
             });
 
-            Route::group(['as' => 'suppliers.', 'prefix' => '/suplliers'], function () {
+            Route::group(['as' => 'suppliers.', 'prefix' => '/suppliers'], function () {
                 Route::post('/', [SupplierControllerV1::class, 'store'])->name('store');
                 Route::get('/', [SupplierControllerV1::class, 'index'])->name('index');
                 Route::get('/{supplier}', [SupplierControllerV1::class, 'show'])->name('show');

@@ -2,27 +2,33 @@
 
 use App\Actions\Fetch\Ncm\FetchNcmFromReceita;
 use App\Actions\Validation\ValidateNCM;
-use App\Exceptions\InvalidFieldException;
 use App\Models\NcmCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 describe('ValidateNCM', function () {
 
     it('throws when format is invalid', function () {
-        app(ValidateNCM::class)->execute('123');
-    })->throws(InvalidFieldException::class);
+        expect(fn () => app(ValidateNCM::class)->execute('123', 'ncm'))
+            ->toThrow(
+                ValidationException::class, __('validation.regex', ['attribute' => 'ncm'])
+            );
+    });
 
     it('throws when format has letters', function () {
-        app(ValidateNCM::class)->execute('8471301a');
-    })->throws(InvalidFieldException::class);
+        expect(fn () => app(ValidateNCM::class)->execute('8471301a', 'ncm'))
+            ->toThrow(
+                ValidationException::class, __('validation.regex', ['attribute' => 'ncm'])
+            );
+    });
 
     it('returns the ncm when it exists locally and is active', function () {
         $ncm = NcmCode::factory()->create([
             'code' => '84713012',
         ]);
 
-        $result = app(ValidateNCM::class)->execute('84713012');
+        $result = app(ValidateNCM::class)->execute('84713012', 'ncm');
 
         expect($result->id)->toBe($ncm->id);
     });
@@ -32,8 +38,11 @@ describe('ValidateNCM', function () {
             'code' => '84713012',
         ]);
 
-        app(ValidateNCM::class)->execute('84713012');
-    })->throws(InvalidFieldException::class);
+        expect(fn () => app(ValidateNCM::class)->execute('84713012', 'ncm'))
+            ->toThrow(
+                ValidationException::class, __('validation.ncm.inactive', ['value' => '84713012'])
+            );
+    });
 
     it('falls back to receita when ncm is not found locally', function () {
         $fetched = NcmCode::factory()->make(['code' => '99999999']);
@@ -45,9 +54,9 @@ describe('ValidateNCM', function () {
                 ->andReturn($fetched);
         });
 
-        $result = app(ValidateNCM::class)->execute('99999999');
+        $result = app(ValidateNCM::class)->execute('99999999', 'ncm');
 
-        expect($result->code)->toBe('99999999');
+        expect($result->code)->toBe('99999999', 'ncm');
     });
 
     it('throws when ncm is not found locally nor in receita', function () {
@@ -58,16 +67,20 @@ describe('ValidateNCM', function () {
                 ->andReturn(null);
         });
 
-        app(ValidateNCM::class)->execute('00000000');
-    })->throws(InvalidFieldException::class);
+        expect(fn () => app(ValidateNCM::class)->execute('00000000', 'ncm'))
+            ->toThrow(
+                ValidationException::class, __('validation.ncm.not_found', ['value' => '00000000'])
+            );
+
+    });
 
     it('does not call the fetch fallback when ncm already exists locally', function () {
         NcmCode::factory()->create(['code' => '84713012']);
 
         $this->mock(FetchNcmFromReceita::class, function ($mock) {
-            $mock->shouldNotReceive('execute');
+            $mock->shouldNotReceive('execute', 'ncm');
         });
 
-        app(ValidateNCM::class)->execute('84713012');
+        app(ValidateNCM::class)->execute('84713012', 'ncm');
     });
 });

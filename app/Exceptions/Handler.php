@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -17,22 +18,22 @@ class Handler
 {
     public static function render(Throwable $e, Request $request): JsonResponse
     {
-        [$status, $code, $extra] = match (true) {
-            $e instanceof BaseException => [$e->getStatusCode(), $e->getErrorCode(), []],
-            $e instanceof AuthenticationException => [401, 'UNAUTHENTICATED', []],
-            $e instanceof AuthorizationException == 403 => [403, 'FORBIDDEN', []],
-            $e instanceof HttpException && $e->getStatusCode() == 403 => [403, 'FORBIDDEN', []],
-            $e instanceof ModelNotFoundException => [404, 'NOT_FOUND', []],
-            $e instanceof NotFoundHttpException => [404, 'NOT_FOUND', []],
-            $e instanceof MethodNotAllowedHttpException => [405, 'METHOD_NOT_ALLOWED', []],
-            $e instanceof ValidationException => [422, 'VALIDATION_ERROR', ['fields' => $e->getMessage()]],
-            default => [500, 'INTERNAL_ERROR', []],
+        [$status, $code,$message, $extra] = match (true) {
+            $e instanceof BaseException => [$e->getStatusCode(), $e->getErrorCode(), null, []],
+            $e instanceof AuthenticationException => [401, ErrorType::Unauthenticated, __('errors.unauthenticated'), []],
+            $e instanceof AuthorizationException == 403 => [403, ErrorType::Forbidden, __('errors.forbidden'), []],
+            $e instanceof HttpException && $e->getStatusCode() == 403 => [403, ErrorType::Forbidden, __('errors.forbidden'), []],
+            $e instanceof ModelNotFoundException => [404, ErrorType::NotFound, null, []],
+            $e instanceof NotFoundHttpException => [404, ErrorType::NotFound, null, []],
+            $e instanceof MethodNotAllowedHttpException => [405, ErrorType::MethodNotAllowed, __('errors.method_not_allowed'), []],
+            $e instanceof ValidationException => [422, ErrorType::ValidationError, null, ['fields' => $e->errors()]],
+            default => [500, ErrorType::InternalError, null, []],
         };
 
         return response()->json([
             'error' => [
                 'code' => $code,
-                'message' => $e->getMessage(),
+                'message' => $message ?? $e->getMessage(),
                 ...$extra,
             ],
         ], $status);

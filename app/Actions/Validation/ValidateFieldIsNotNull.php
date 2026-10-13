@@ -3,6 +3,7 @@
 namespace App\Actions\Validation;
 
 use App\Exceptions\InvalidFieldException;
+use Illuminate\Validation\ValidationException;
 
 class ValidateFieldIsNotNull
 {
@@ -13,11 +14,11 @@ class ValidateFieldIsNotNull
     {
         if (\is_array($value)) {
             if (empty($value)) {
-                throw new InvalidFieldException("The field `$fieldName` must have a value");
+                throw ValidationException::withMessages([__('validation.required', ['attribute' => __("validation.attributes.$fieldName")])]);
             }
         } else {
             if ($value === null || $value === '' || preg_match('/^[\p{Z}\s]*$/u', $value)) {
-                throw new InvalidFieldException("The field `$fieldName` must have a value");
+                throw ValidationException::withMessages([__('validation.required', ['attribute' => __("validation.attributes.$fieldName")])]);
             }
         }
     }

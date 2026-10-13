@@ -2,14 +2,16 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
+
 class InvalidFieldException extends BaseException
 {
-    public function __construct(string $message)
+    public function __construct(string $message, ErrorType $errorCode = ErrorType::InvalidField)
     {
         parent::__construct(
             message: $message,
             statusCode: 422,
-            errorCode: 'INVALID_FIELD'
+            errorCode: ErrorType::InvalidField
         );
     }
 
@@ -31,5 +33,10 @@ class InvalidFieldException extends BaseException
     public static function mustBeNegative(string $value): self
     {
         return new self(message: "The value `$value` must be negative");
+    }
+
+    public static function mustBeArray(string $value): self
+    {
+        return new self(message: "The value `$value` must be an array");
     }
 }

@@ -10,9 +10,9 @@ class TreatCEP implements TreatmentStrategy
         private readonly ValidateCep $validateCep
     ) {}
 
-    public function handle(mixed $value): string
+    public function handle(mixed $value, string $field): string
     {
-        return $this->validateCep->execute($value);
+        return $this->validateCep->execute($value, $field);
 
     }
 }

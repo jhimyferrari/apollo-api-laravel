@@ -2,15 +2,15 @@
 
 namespace App\Services\TreatmentService\Strategies;
 
-use App\Exceptions\InvalidFieldException;
+use Illuminate\Validation\ValidationException;
 
 class TreatEmail implements TreatmentStrategy
 {
-    public function handle(mixed $value): string
+    public function handle(mixed $value, string $field): string
     {
 
         if (! \is_string($value)) {
-            throw new InvalidFieldException("The value must be a string type, given $value");
+            throw ValidationException::withMessages([$field => __('validation.email', ['attribute' => __('validation.attributes.email')])]);
         }
         $value = trim($value);
 

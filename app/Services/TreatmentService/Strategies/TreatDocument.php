@@ -14,7 +14,7 @@ class TreatDocument implements TreatmentStrategy
         private ValidateDocument $validateDocument,
     ) {}
 
-    public function handle(mixed $value): string
+    public function handle(mixed $value, string $field): string
     {
 
         $value = DocumentHelper::remove_pontuation($value);

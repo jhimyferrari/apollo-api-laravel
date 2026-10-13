@@ -50,7 +50,7 @@ class ClientController extends Controller implements HasMiddleware
     {
         $newClient = $this->clientService->create($request->validated(), Auth()->user());
 
-        return $this->success($newClient, 'Client created succesfully.', 201);
+        return $this->success($newClient, __('messages.created', ['resource' => __('validation.resources.client')]), 201);
     }
 
     /**
@@ -85,7 +85,7 @@ class ClientController extends Controller implements HasMiddleware
     {
         $newAddress = $this->addressService->create($client, $request->validated());
 
-        return $this->success($newAddress, 'Address created successfully.', 201);
+        return $this->success($newAddress, __('messages.created', ['resource' => __('validation.resources.address')]), 201);
     }
 
     public function setDefaultAddress(Client $client, Address $address)

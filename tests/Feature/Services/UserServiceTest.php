@@ -2,14 +2,12 @@
 
 use App\Enum\PermissionType;
 use App\Exceptions\CannotDeleteAdminException;
-use App\Exceptions\DuplicateFieldException;
-use App\Exceptions\InvalidFieldException;
-use App\Exceptions\PasswordValidationException;
 use App\Models\Permission;
 use App\Models\User;
 use App\Services\UserService;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
@@ -77,7 +75,8 @@ describe('UserService', function () {
                 'name' => 'duplicatedEmail',
                 'email' => $email,
                 'password' => $this->validPassword(),
-            ], $this->user))->toThrow(DuplicateFieldException::class, "User email `$email` already exist");
+            ], $this->user))
+                ->toThrow(ValidationException::class, __('validation.unique', ['attribute' => 'e-mail']));
         });
         it('throw an exception when using a weak password', function () {
 
@@ -85,7 +84,7 @@ describe('UserService', function () {
                 'name' => 'weakPassword',
                 'email' => 'wake@email.com',
                 'password' => 'weakPassword',
-            ], $this->user))->toThrow(PasswordValidationException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
 
         it('throw an exception when not pass a name', function () {
@@ -94,7 +93,7 @@ describe('UserService', function () {
                 'email' => 'weak@email.com',
                 'name' => '',
                 'password' => $this->validPassword(),
-            ], $this->user))->toThrow(InvalidFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
         it('throw an exception when not pass an email', function () {
 
@@ -102,7 +101,7 @@ describe('UserService', function () {
                 'email' => '',
                 'name' => 'weakPassword',
                 'password' => $this->validPassword(),
-            ], $this->user))->toThrow(InvalidFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
         it('throw an exception when pass a permission that not exist', function () {
 
@@ -111,7 +110,7 @@ describe('UserService', function () {
                 'name' => 'wrongPermission',
                 'password' => $this->validPassword(),
                 'permissions' => [...PermissionType::byModel('seller'), 'a', 'b', 'c'],
-            ], $this->user))->toThrow(InvalidFieldException::class, 'The permissions [a,b,c] doesn`t exist');
+            ], $this->user))->toThrow(ValidationException::class, __('validation.permission.exist', ['values' => 'a,b,c']));
         });
     });
     describe('update', function () {
@@ -166,14 +165,14 @@ describe('UserService', function () {
             $user = User::factory()->create(['organization_id' => $this->user->organization_id]);
             expect(fn () => $this->service->update($user, [
                 'name' => '',
-            ]))->toThrow(InvalidFieldException::class);
+            ]))->toThrow(ValidationException::class);
         });
         it('throw an exception when pass a null email', function () {
 
             $user = User::factory()->create(['organization_id' => $this->user->organization_id]);
             expect(fn () => $this->service->update($user, [
                 'email' => '',
-            ], $this->user))->toThrow(InvalidFieldException::class);
+            ], $this->user))->toThrow(ValidationException::class);
         });
     });
     describe('delete', function () {

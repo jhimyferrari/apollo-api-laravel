@@ -2,11 +2,12 @@
 
 namespace App\Exceptions;
 
+use App\Enum\ErrorType;
 use App\Models\Product;
 
 class StockException extends BaseException
 {
-    public function __construct(string $message, int $statusCode = 422, string $errorCode = 'ERROR_WITH_STOCK')
+    public function __construct(string $message, int $statusCode = 422, ErrorType $errorCode = ErrorType::InsufficientStock)
     {
         parent::__construct(
             message: $message,
@@ -21,7 +22,7 @@ class StockException extends BaseException
         return new self(
             message: "Insufficient stock for '{$product->name}'. Available: {$product->stock_quantity}, requested: {$requested}.",
             statusCode: 422,
-            errorCode: 'INSUFFICIENT_STOCK'
+            errorCode: ErrorType::InsufficientStock
         );
     }
 }

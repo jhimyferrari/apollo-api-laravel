@@ -9,7 +9,7 @@ use App\ValueObjects\Money;
  */
 class TreatMoney implements TreatmentStrategy
 {
-    public function handle(mixed $value): Money
+    public function handle(mixed $value, string $field): Money
     {
 
         return Money::fromDecimal($value);

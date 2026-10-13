@@ -11,9 +11,9 @@ class TreatNCM implements TreatmentStrategy
         private ValidateNCM $validateNcm,
     ) {}
 
-    public function handle(mixed $value): NcmCode
+    public function handle(mixed $value, string $field): NcmCode
     {
-        return $this->validateNcm->execute($value);
+        return $this->validateNcm->execute($value, $field);
 
     }
 }

@@ -49,7 +49,7 @@ class SellerController extends Controller implements HasMiddleware
     {
         $newSeller = $this->sellerService->create($request->validated(), Auth()->user());
 
-        return $this->success($newSeller, 'Seller created sucessfully.', 201);
+        return $this->success($newSeller, __('messages.created', ['resource' => __('validation.resources.seller')]), 201);
     }
 
     /**
@@ -85,7 +85,7 @@ class SellerController extends Controller implements HasMiddleware
     {
         $newAddress = $this->addressService->create($seller, $request->validated());
 
-        return $this->success($newAddress, 'Address created successfully.', 201);
+        return $this->success($newAddress, __('messages.created', ['resource' => __('validation.resources.address')]), 201);
     }
 
     public function setDefaultAddress(Seller $seller, Address $address)

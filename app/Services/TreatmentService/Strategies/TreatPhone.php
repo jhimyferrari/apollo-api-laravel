@@ -4,7 +4,7 @@ namespace App\Services\TreatmentService\Strategies;
 
 class TreatPhone implements TreatmentStrategy
 {
-    public function handle($value): string
+    public function handle($value, $field): string
     {
         $value = trim($value);
 

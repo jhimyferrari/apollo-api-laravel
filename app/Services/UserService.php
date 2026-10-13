@@ -5,13 +5,13 @@ namespace App\Services;
 use App\Actions\Validation\ValidatePasswordComplexity;
 use App\Enum\PermissionType;
 use App\Exceptions\CannotDeleteAdminException;
-use App\Exceptions\InvalidFieldException;
 use App\Models\Permission;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatEmail;
 use App\Services\TreatmentService\Strategies\TreatRegularString;
 use App\Services\TreatmentService\TreatmentService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class UserService extends BaseService
 {
@@ -81,7 +81,7 @@ class UserService extends BaseService
 
         if (! empty($diff)) {
 
-            throw new InvalidFieldException('The permissions ['.implode(',', $diff).'] doesn`t exist');
+            throw ValidationException::withMessages(['permission' => __('validation.permission.exist', ['values' => implode(',', $diff)])]);
         }
         $permissions = Permission::whereIn('name', $permissions)->pluck('id');
         $user->permissions()->sync($permissions);

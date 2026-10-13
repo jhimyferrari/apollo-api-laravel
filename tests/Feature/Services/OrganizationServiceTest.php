@@ -1,11 +1,11 @@
 <?php
 
-use App\Exceptions\DuplicateFieldException;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 beforeEach(function () {
@@ -60,7 +60,8 @@ describe('OrganizationService', function () {
                 'document' => $document,
                 'email' => 'admin@organization.com',
                 'password' => 'Str$on%gP4ssw0rd',
-            ]))->toThrow(DuplicateFieldException::class, "Organization document `$document` already exist");
+            ]))
+                ->toThrow(ValidationException::class, __('validation.unique', ['attribute' => 'documento']));
         });
     });
 

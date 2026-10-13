@@ -16,14 +16,14 @@ class LoginController extends Controller
 
         $organization = Organization::where('document', $request['organization_document'])->get()->first();
         if (! $organization) {
-            return response()->json(['message' => 'Invalid Credentials.'], 404);
+            return response()->json(['message' => __('auth.failed')], 404);
         }
         $user = User::where('organization_id', $organization->id)
             ->where('email', $request['email'])->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Credenciais Inválidas',
+                'message' => __('auth.failed'),
             ], 404);
         }
 
@@ -34,5 +34,12 @@ class LoginController extends Controller
         return $this->success([
             'token' => $token,
             'user' => $user], 200);
+    }
+
+    public function logout()
+    {
+        Auth()->user()->currentAccessToken()->delete();
+
+        return response()->noContent();
     }
 }
