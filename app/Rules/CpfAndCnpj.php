@@ -47,6 +47,11 @@ class CpfAndCnpj implements ValidationRule
 
     private function validateCnpj(string $cnpj): bool
     {
+
+        if (! preg_match('/^[A-Z0-9]{12}[0-9]{2}$/', $cnpj)) {
+            return false;
+        }
+
         if (str_repeat($cnpj[0], 14) === $cnpj) {
             return false;
         }
@@ -54,13 +59,16 @@ class CpfAndCnpj implements ValidationRule
         $weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
         $weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
 
-        foreach ([$weights1, $weights2] as $i => $weights) {
+        foreach ([$weights1, $weights2] as $weights) {
             $sum = 0;
             foreach ($weights as $j => $w) {
-                $sum += $cnpj[$j] * $w;
+                $sum += (\ord($cnpj[$j]) - 48) * $w;
             }
-            $digit = $sum % 11 < 2 ? 0 : 11 - ($sum % 11);
-            if ($cnpj[\count($weights)] != $digit) {
+
+            $remainder = $sum % 11;
+            $digit = $remainder < 2 ? 0 : 11 - $remainder;
+
+            if ((int) $cnpj[\count($weights)] !== $digit) {
                 return false;
             }
         }

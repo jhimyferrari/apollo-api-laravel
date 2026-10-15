@@ -49,6 +49,7 @@ describe('CpfAndCnpj', function () {
     });
 
     it('should not accept only valids CPF ', function () {
+
         $validator = Validator::make(
             ['field' => '149.126.390-60'],
             ['field' => new CpfAndCnpj]
@@ -56,6 +57,31 @@ describe('CpfAndCnpj', function () {
         expect($validator->passes())->toBeFalse();
         $validator = Validator::make(
             ['field' => '306271793045'],
+            ['field' => new CpfAndCnpj]
+        );
+        expect($validator->passes())->toBeFalse();
+    });
+
+    it('should accept CNPJ with Alfanumeric', function () {
+        $validator = Validator::make(
+            ['field' => 'HO.KCF.2IO/0001-60'],
+            ['field' => new CpfAndCnpj]
+        );
+        expect($validator->passes())->toBeTrue();
+        $validator = Validator::make(
+            ['field' => 'LHH05WON000139'],
+            ['field' => new CpfAndCnpj]
+        );
+        expect($validator->passes())->toBeTrue();
+    });
+    it('should not accept invalid CNPJ with Alfanumeric', function () {
+        $validator = Validator::make(
+            ['field' => 'UO.KCF.2IO/0001-60'],
+            ['field' => new CpfAndCnpj]
+        );
+        expect($validator->passes())->toBeFalse();
+        $validator = Validator::make(
+            ['field' => 'PHH05WON000139'],
             ['field' => new CpfAndCnpj]
         );
         expect($validator->passes())->toBeFalse();

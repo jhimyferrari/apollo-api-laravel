@@ -5,11 +5,11 @@ namespace App\Helpers;
 class DocumentHelper
 {
     /**
-     * Return string just with numerical characters.
+     * Return string just with alfanumerics characters in uppercase.
      */
     public static function remove_pontuation(string $rawValue): string
     {
-        return preg_replace('/[^0-9]/', '', $rawValue);
+        return strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $rawValue));
 
     }
 }
