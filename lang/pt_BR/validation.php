@@ -304,6 +304,11 @@ return [
         'organization_id' => 'id da Organização',
         'purchase_order_id' => 'id da compra',
         'product_unit' => 'Unidade do produto',
+        'order.status' => [
+            'draft' => 'Aberto',
+            'confirmed' => 'Confirmado',
+            'cancelled' => 'Cancelado',
+        ],
     ],
     'resources' => [
         'organization' => 'Organização',
@@ -340,6 +345,13 @@ return [
     'numeric.negative' => 'O campo :attribute deve ser negativo',
 
     'product_unit' => 'O campo :attribute não contém uma unidade de produto válida',
+
+    'order.reopen' => 'A :model já foi reaberta e substituida',
+    'order.already_open' => 'A :model já está aberta',
+    'order.payment_status' => 'O status de pagamento não é válido para a :model',
+    'order.status.update' => 'Não é possível atualizar uma :model de status :status',
+
+    'product.wasDelete' => 'O produto de id :product deve ter sido deletado e não foi encontrado para uso na',
 
     'admin_delete' => 'O Administrador não pode ser deletado.',
     'admin_update' => 'Não é possivel alterar o atributo de administrador.',

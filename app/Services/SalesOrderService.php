@@ -24,6 +24,7 @@ use App\Services\TreatmentService\Strategies\TreatSeller;
 use App\Services\TreatmentService\TreatmentService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SalesOrderService extends BaseService
 {
@@ -70,7 +71,8 @@ class SalesOrderService extends BaseService
     public function update(Model $order, array $data): SalesOrder
     {
         if ($order->status !== OrderStatus::Draft) {
-            throw new InvalidStatusException("Cannot update a order on status `{$order->status}`");
+
+            throw new InvalidStatusException(__('validation.order.status.update', ['model' => __('validation.resources.sales_order'), 'status' => __("valiation.attribute.order.status.$order->status")]));
         }
 
         if (\array_key_exists('client_id', $data)) {
@@ -84,7 +86,8 @@ class SalesOrderService extends BaseService
         if (\array_key_exists('payment_status', $data)) {
             $status = PaymentStatus::tryFrom($data['payment_status']);
             if ($status == null) {
-                throw new InvalidStatusException("`{$data['payment_status']}` status doesn`t exist");
+                report(new InvalidStatusException(__('errors.invalid_status', ['value' => $status, 'model' => __('validation.resources.sales_order')])));
+                throw ValidationException::withMessages(['payment_status' => __('validation.order.payment_status', ['model' => __('validation.resources.sales_order')])]);
             }
             $order->payment_status = $status;
         }
@@ -124,10 +127,10 @@ class SalesOrderService extends BaseService
     public function recreateFrom(SalesOrder $previousOrder, ?string $reason = null): array
     {
         if ($previousOrder->replacedBy()->exists()) {
-            throw new InvalidStatusTransitionException('Sales Order already has been replaced');
+            throw new InvalidStatusTransitionException(__('validation.order.reopen', ['model' => __('validation.resources.sales_order')]));
         }
         if ($previousOrder->status === OrderStatus::Draft) {
-            throw new InvalidStatusTransitionException('Sales Order is already open');
+            throw new InvalidStatusTransitionException(__('validation.order.already_open', ['model' => __('validation.resources.sales_order')]));
         }
 
         return DB::transaction(function () use ($previousOrder, $reason) {
@@ -148,7 +151,7 @@ class SalesOrderService extends BaseService
 
             foreach ($previousOrder->items as $item) {
                 if ($item->product->deleted_at !== null) {
-                    throw ModelIsDeletedException::forProduct('SalesOrder', $item->product_id);
+                    throw ModelIsDeletedException::forProduct($item->product_id);
                 }
                 $newSalesOrder->items()->create(
                     [

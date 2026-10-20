@@ -3,7 +3,6 @@
 use App\Enum\Status\OrderStatus;
 use App\Enum\Status\PaymentStatus;
 use App\Enum\StockMovementType;
-use App\Exceptions\InvalidStatusException;
 use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\ModelIsDeletedException;
 use App\Exceptions\OrderCannotBeDeletedException;
@@ -754,7 +753,7 @@ describe('PurchaseOrderService', function () {
         it('throw an exception when pass an invalid status', function () {
             $purchaseOrder = PurchaseOrder::factory()->for($this->organization)->createOne();
 
-            expect(fn () => $this->service->update($purchaseOrder, ['payment_status' => 'invalid']))->toThrow(InvalidStatusException::class);
+            expect(fn () => $this->service->update($purchaseOrder, ['payment_status' => 'invalid']))->toThrow(ValidationException::class);
         });
 
         it('throw an exception when supplier_id does not exist', function () {
