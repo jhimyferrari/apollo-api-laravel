@@ -25,7 +25,7 @@ class ProductResource extends JsonResource
             'ean' => $this->ean,
             'cost_price' => $this->cost_price,
             'sale_price' => $this->sale_price,
-            'stock_quantity' => $this->sale_price,
+            'stock_quantity' => $this->stock_quantity,
             'brand' => new BrandResource($this->whenLoaded('brand')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'created_at' => $this->created_at,

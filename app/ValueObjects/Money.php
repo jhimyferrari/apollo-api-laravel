@@ -9,11 +9,21 @@ use Brick\Money\Money as BrickMoney;
 
 use function PHPUnit\Framework\isFloat;
 
-final readonly class Money
+final readonly class Money implements \JsonSerializable
 {
     public function __construct(
         private BrickMoney $money
     ) {}
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'amount' => $this->toStorageString(),
+            'minor' => $this->money->getMinorAmount()->toInt(),
+            'currency' => $this->money->getCurrency()->getCurrencyCode(),
+            'formatted' => $this->formatted(),
+        ];
+    }
 
     public static function fromDecimal(string|int|float $amount, string $currency = 'BRL'): self
     {
@@ -64,7 +74,7 @@ final readonly class Money
 
     public function equals(Money $other): bool
     {
-        return $this->money->isEqualTo($other);
+        return $this->money->isEqualTo($other->money);
     }
 
     public function isGreaterThan(Money $other): bool
