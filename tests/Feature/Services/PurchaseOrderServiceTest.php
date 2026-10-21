@@ -6,7 +6,6 @@ use App\Enum\StockMovementType;
 use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\ModelIsDeletedException;
 use App\Exceptions\OrderCannotBeDeletedException;
-use App\Exceptions\StockException;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
@@ -269,7 +268,7 @@ describe('PurchaseOrderService', function () {
         });
     });
     describe('confirm', function () {
-        it('confirms a draft order and decrements stock', function () {
+        it('confirms a draft order and increments stock', function () {
             $product = Product::factory()->for($this->organization)->withStock(20)->create();
             $order = PurchaseOrder::factory()->for($this->organization)->create(['status' => OrderStatus::Draft]);
             $order->items()->create([
@@ -285,7 +284,7 @@ describe('PurchaseOrderService', function () {
 
             expect($order->fresh()->status)->toBe(OrderStatus::Confirmed);
             expect($order->fresh()->confirmed_at)->not->toBeNull();
-            expect($product->fresh()->stock_quantity)->toEqual(15.000);
+            expect($product->fresh()->stock_quantity)->toEqual(25.000);
         });
 
         it('creates a stock movement referencing the order', function () {
@@ -304,7 +303,7 @@ describe('PurchaseOrderService', function () {
 
             $this->assertDatabaseHas('stock_movements', [
                 'product_id' => $product->id,
-                'type' => StockMovementType::Out->value,
+                'type' => StockMovementType::In->value,
                 'reference_type' => PurchaseOrder::class,
                 'reference_id' => $order->id,
             ]);
@@ -341,24 +340,6 @@ describe('PurchaseOrderService', function () {
             expect($product->fresh()->stock_quantity)->toEqual(20.000);
         });
 
-        it('throws when stock is insufficient', function () {
-            $product = Product::factory()->for($this->organization)->withStock(2)->create();
-            $order = PurchaseOrder::factory()->for($this->organization)->create(['status' => OrderStatus::Draft]);
-            $order->items()->create([
-                'product_id' => $product->id,
-                'number' => 1,
-                'quantity' => 10,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(10),
-                'organization_id' => $this->organization->id,
-            ]);
-
-            expect(fn () => $this->service->confirm($order))
-                ->toThrow(StockException::class);
-
-            expect($order->fresh()->status)->toBe(OrderStatus::Draft);
-            expect($product->fresh()->stock_quantity)->toEqual(2.000);
-        });
     });
     describe('cancel', function () {
         it('cancels a draft order without touching stock', function () {

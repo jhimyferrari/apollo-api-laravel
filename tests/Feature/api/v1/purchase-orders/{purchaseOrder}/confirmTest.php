@@ -29,7 +29,7 @@ describe('POST api/purchase-orders/{purchaseOrder}/confirm', function () {
 
         $response->assertNoContent();
 
-        expect($product->fresh()->stock_quantity)->toEqual(15.000);
+        expect($product->fresh()->stock_quantity)->toEqual(25.000);
     });
 
     test('Non logged user', function () {
@@ -67,24 +67,4 @@ describe('POST api/purchase-orders/{purchaseOrder}/confirm', function () {
         $response->assertUnprocessable();
     });
 
-    test('Logged user trying to confirm an order with insufficient stock', function () {
-        $user = User::factory()->create();
-        $product = Product::factory()->for($user->organization)->withStock(2)->create();
-        $order = PurchaseOrder::factory()->for($user->organization)->create(['status' => OrderStatus::Draft]);
-        $order->items()->create([
-            'product_id' => $product->id,
-            'number' => 1,
-            'quantity' => 10,
-            'unit_price' => $product->sale_price,
-            'subtotal' => $product->sale_price->multiply(10),
-            'organization_id' => $user->organization_id,
-        ]);
-
-        Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_UPDATE->value]);
-
-        $response = $this->patchJson(route('v1.purchase-orders.confirm', $order));
-        $response->assertUnprocessable();
-
-        expect($order->fresh()->status)->toBe(OrderStatus::Draft);
-    });
 });

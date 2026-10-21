@@ -200,7 +200,7 @@ class PurchaseOrderService extends BaseService
     public function confirm(PurchaseOrder $order): void
     {
         if ($order->status === OrderStatus::Draft) {
-            $this->confirmOrder->execute($order, StockMovementType::Out);
+            $this->confirmOrder->execute($order, StockMovementType::In);
         } else {
             throw InvalidStatusTransitionException::make($order->status, OrderStatus::Confirmed);
         }
