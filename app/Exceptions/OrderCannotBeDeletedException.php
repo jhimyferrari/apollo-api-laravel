@@ -19,7 +19,7 @@ class OrderCannotBeDeletedException extends BaseException
     public static function notDraft(OrderStatus $currentStatus): self
     {
         return new self(
-            message: "Order cannot be deleted because it is `{$currentStatus->value}`. Only draft orders can be deleted.",
+            message: __('messages.order_cannot_be_delete', ['status' => $currentStatus->value]),
         );
     }
 }
