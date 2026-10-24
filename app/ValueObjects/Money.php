@@ -19,7 +19,6 @@ final readonly class Money implements \JsonSerializable
     {
         return [
             'amount' => $this->toStorageString(),
-            'minor' => $this->money->getMinorAmount()->toInt(),
             'currency' => $this->money->getCurrency()->getCurrencyCode(),
             'formatted' => $this->formatted(),
         ];
