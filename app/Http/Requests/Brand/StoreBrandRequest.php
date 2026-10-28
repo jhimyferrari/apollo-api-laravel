@@ -28,6 +28,7 @@ class StoreBrandRequest extends FormRequest
                 'string',
             ],
             'description' => [
+                'nullable',
                 'string',
             ],
         ];
