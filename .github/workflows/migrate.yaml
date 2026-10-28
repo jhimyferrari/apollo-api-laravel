@@ -1,0 +1,18 @@
+name: migrate
+on:
+  push:
+    branches: [main]
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo_pgsql
+      - run: composer install --no-dev --no-interaction --prefer-dist
+      - run: php artisan migrate --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_URL: ${{ secrets.DATABASE_URL }}
