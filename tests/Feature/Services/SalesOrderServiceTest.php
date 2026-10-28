@@ -3,7 +3,6 @@
 use App\Enum\Status\OrderStatus;
 use App\Enum\Status\PaymentStatus;
 use App\Enum\StockMovementType;
-use App\Exceptions\InvalidStatusException;
 use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\ModelIsDeletedException;
 use App\Exceptions\OrderCannotBeDeletedException;
@@ -795,10 +794,10 @@ describe('SalesOrderService', function () {
             expect($result->items)->toHaveCount(1);
         });
 
-        it('throw an exception when pass an invalid status', function () {
+        it('throw an exception when pass an invalid payment status', function () {
             $salesOrder = SalesOrder::factory()->for($this->organization)->createOne();
 
-            expect(fn () => $this->service->update($salesOrder, ['payment_status' => 'invalid']))->toThrow(InvalidStatusException::class);
+            expect(fn () => $this->service->update($salesOrder, ['payment_status' => 'invalid']))->toThrow(ValidationException::class);
         });
 
         it('throw an exception when client_id does not exist', function () {

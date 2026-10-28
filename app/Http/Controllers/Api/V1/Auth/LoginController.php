@@ -31,6 +31,8 @@ class LoginController extends Controller
 
         $token = $user->createToken('api-token', $abilities)->plainTextToken;
 
+        $user->load('permissions');
+
         return $this->success([
             'token' => $token,
             'user' => $user], 200);

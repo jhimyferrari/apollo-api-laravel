@@ -20,7 +20,7 @@ class StockException extends BaseException
     public static function insufficientStock(Product $product, float $requested): self
     {
         return new self(
-            message: "Insufficient stock for '{$product->name}'. Available: {$product->stock_quantity}, requested: {$requested}.",
+            message: __('messages.insufficient_stock', ['product' => $product->name, 'available' => $product->stock_quantity, 'requested' => $requested]),
             statusCode: 422,
             errorCode: ErrorType::InsufficientStock
         );

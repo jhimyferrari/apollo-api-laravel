@@ -10,6 +10,7 @@ use App\Services\TreatmentService\Strategies\TreatCategory;
 use App\Services\TreatmentService\Strategies\TreatEAN;
 use App\Services\TreatmentService\Strategies\TreatMoney;
 use App\Services\TreatmentService\Strategies\TreatNCM;
+use App\Services\TreatmentService\Strategies\TreatNumber;
 use App\Services\TreatmentService\Strategies\TreatRegularString;
 use App\Services\TreatmentService\TreatmentService;
 use DB;
@@ -25,6 +26,7 @@ class ProductService extends BaseService
         private readonly TreatCategory $treatCategory,
         private readonly TreatBrand $treatBrand,
         private readonly TreatMoney $treatMoney,
+        private readonly TreatNumber $treatNumber,
         private readonly ValidateUnitProduct $validateUnit
     ) {
         parent::__construct(new Product);
@@ -40,6 +42,10 @@ class ProductService extends BaseService
         }
         if (isset($data['unit'])) {
             $this->validateUnit->execute($data['unit'], 'product_unit');
+        }
+
+        if (isset($data['stock_quantity'])) {
+            $data['stock_quantity'] = $this->treatment->for($this->treatNumber, $data['stock_quantity'], 'stock_quantity', $this->model)->handle();
         }
 
         $data['cost_price'] = $this->treatment->for($this->treatMoney, $data['cost_price'], 'cost_price', $this->model)->handle();

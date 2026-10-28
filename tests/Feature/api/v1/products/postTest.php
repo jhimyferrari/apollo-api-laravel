@@ -17,14 +17,13 @@ describe('POST api/producst', function () {
         Sanctum::actingAs($user, [PermissionType::PRODUCT_CREATE->value]);
         $brand = Brand::factory()->create(['organization_id' => $user->organization_id]);
         $categories = Category::factory()->count(5)->create(['organization_id' => $user->organization_id]);
-        $cost_price = fake()->randomNumber(7);
         $data = [
             'name' => fake()->word(),
             'unit' => ProductUnit::random(),
             'ncm' => NcmCode::factory()->create()->code,
             'ean' => fake()->ean13(),
-            'cost_price' => $cost_price,
-            'sale_price' => fake()->numberBetween($cost_price, 100000000),
+            'cost_price' => 5,
+            'sale_price' => '10.0001',
             'brand_id' => $brand->id,
             'categories' => $categories->map(fn ($c) => ['id' => $c->id])->toArray(),
         ];

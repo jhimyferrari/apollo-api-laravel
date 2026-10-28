@@ -16,10 +16,10 @@ class ModelIsDeletedException extends BaseException
         );
     }
 
-    public static function forProduct(string $operation, string $productId): self
+    public static function forProduct(string $productId): self
     {
         return new self(
-            message: "Product `{$productId}` was not found for use in `{$operation}`. It may have been deleted."
+            message: __('validation.product.wasDelete', ['product' => $productId])
         );
 
     }
