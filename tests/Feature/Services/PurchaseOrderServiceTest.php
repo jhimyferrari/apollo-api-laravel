@@ -76,9 +76,9 @@ describe('PurchaseOrderService', function () {
                     ->and($item->number)->toBe($index + 1)
                     ->and((float) $item->quantity)->toBe((float) $expected['quantity'])
                     ->and($item->unit_price)->toBeInstanceOf(Money::class)
-                    ->and($item->unit_price->toStorageString())->toBe($expected['product']->sale_price->toStorageString())
+                    ->and($item->unit_price->toStorageString())->toBe($expected['product']->cost_price->toStorageString())
                     ->and($item->subtotal->toStorageString())
-                    ->toBe($expected['product']->sale_price->multiply($expected['quantity'])->toStorageString());
+                    ->toBe($expected['product']->cost_price->multiply($expected['quantity'])->toStorageString());
             }
         });
 
@@ -95,8 +95,8 @@ describe('PurchaseOrderService', function () {
                 ],
             ], $this->user);
 
-            $expectedTotal = $products[0]->sale_price->multiply(5)
-                ->add($products[1]->sale_price->multiply(15));
+            $expectedTotal = $products[0]->cost_price->multiply(5)
+                ->add($products[1]->cost_price->multiply(15));
 
             expect($order->total)->toBeInstanceOf(Money::class)
                 ->and($order->total->toStorageString())->toBe($expectedTotal->toStorageString());
@@ -258,8 +258,8 @@ describe('PurchaseOrderService', function () {
                 'product_id' => $product->id,
                 'number' => 1,
                 'quantity' => 2,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(2),
+                'unit_price' => $product->cost_price,
+                'subtotal' => $product->cost_price->multiply(2),
                 'organization_id' => $this->organization->id,
             ]);
             expect(fn () => $this->service->delete($order))->toThrow(OrderCannotBeDeletedException::class);
@@ -275,8 +275,8 @@ describe('PurchaseOrderService', function () {
                 'product_id' => $product->id,
                 'number' => 1,
                 'quantity' => 5,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(5),
+                'unit_price' => $product->cost_price,
+                'subtotal' => $product->cost_price->multiply(5),
                 'organization_id' => $this->organization->id,
             ]);
 
@@ -294,8 +294,8 @@ describe('PurchaseOrderService', function () {
                 'product_id' => $product->id,
                 'number' => 1,
                 'quantity' => 5,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(5),
+                'unit_price' => $product->cost_price,
+                'subtotal' => $product->cost_price->multiply(5),
                 'organization_id' => $this->organization->id,
             ]);
 
@@ -330,8 +330,8 @@ describe('PurchaseOrderService', function () {
                 'product_id' => $product->id,
                 'number' => 1,
                 'quantity' => 5,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(5),
+                'unit_price' => $product->cost_price,
+                'subtotal' => $product->cost_price->multiply(5),
                 'organization_id' => $this->organization->id,
             ]);
 
@@ -350,8 +350,8 @@ describe('PurchaseOrderService', function () {
                 'product_id' => $product->id,
                 'number' => 1,
                 'quantity' => 5,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(5),
+                'unit_price' => $product->cost_price,
+                'subtotal' => $product->cost_price->multiply(5),
             ]);
 
             $this->service->cancel($order);
@@ -369,18 +369,18 @@ describe('PurchaseOrderService', function () {
                 'organization_id' => $this->organization->id,
                 'number' => 1,
                 'quantity' => 5,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(5),
+                'unit_price' => $product->cost_price,
+                'subtotal' => $product->cost_price->multiply(5),
             ]);
 
             $this->service->cancel($order);
 
             expect($order->fresh()->status)->toBe(OrderStatus::Cancelled);
-            expect($product->fresh()->stock_quantity)->toEqual(20.000);
+            expect($product->fresh()->stock_quantity)->toEqual(10.000);
 
             $this->assertDatabaseHas('stock_movements', [
                 'product_id' => $product->id,
-                'type' => StockMovementType::In->value,
+                'type' => StockMovementType::Out->value,
                 'quantity' => 5,
                 'reference_type' => PurchaseOrder::class,
                 'reference_id' => $order->id,
@@ -428,8 +428,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 5,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(5),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(5),
                 ]);
 
                 $result = $this->service->recreateFrom($order, 'Quantidade incorreta');
@@ -452,13 +452,13 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 5,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(5),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(5),
                 ]);
 
                 $this->service->recreateFrom($order);
 
-                expect($product->fresh()->stock_quantity)->toEqual(20.000);
+                expect($product->fresh()->stock_quantity)->toEqual(10.000);
             });
         });
         describe('from a Cancelled order', function () {
@@ -473,8 +473,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 3,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(3),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(3),
                 ]);
 
                 $result = $this->service->recreateFrom($order);
@@ -493,8 +493,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 3,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(3),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(3),
                 ]);
 
                 $this->service->recreateFrom($order);
@@ -521,7 +521,7 @@ describe('PurchaseOrderService', function () {
         describe('item replication', function () {
             it('preserves the historical unit_price, not the current product price', function () {
                 $product = Product::factory()->for($this->organization)->withStock(20)->create([
-                    'sale_price' => Money::fromStorage('180.0000'), // preço atual, já reajustado
+                    'cost_price' => Money::fromStorage('180.0000'), // preço atual, já reajustado
                 ]);
                 $order = PurchaseOrder::factory()->for($this->organization)->create(['status' => OrderStatus::Confirmed]);
                 $order->items()->create([
@@ -540,7 +540,7 @@ describe('PurchaseOrderService', function () {
 
             it('preserves the historical subtotal and order total', function () {
                 $product = Product::factory()->for($this->organization)->withStock(20)->create([
-                    'sale_price' => Money::fromStorage('180.0000'),
+                    'cost_price' => Money::fromStorage('180.0000'),
                 ]);
                 $order = PurchaseOrder::factory()->for($this->organization)->create([
                     'status' => OrderStatus::Confirmed,
@@ -571,8 +571,8 @@ describe('PurchaseOrderService', function () {
                         'product_id' => $product->id,
                         'number' => $index + 1,
                         'quantity' => ($index + 1) * 2,
-                        'unit_price' => $product->sale_price,
-                        'subtotal' => $product->sale_price->multiply(($index + 1) * 2),
+                        'unit_price' => $product->cost_price,
+                        'subtotal' => $product->cost_price->multiply(($index + 1) * 2),
                     ]);
                 }
 
@@ -595,8 +595,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 5,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(5),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(5),
                 ]);
 
                 $result = $this->service->recreateFrom($order);
@@ -616,7 +616,7 @@ describe('PurchaseOrderService', function () {
         describe('outdated price detection', function () {
             it('flags an item whose product price changed since negotiation', function () {
                 $product = Product::factory()->for($this->organization)->withStock(20)->create([
-                    'sale_price' => Money::fromStorage('180.0000'),
+                    'cost_price' => Money::fromStorage('180.0000'),
                     'name' => 'Cadeira Gamer X',
                 ]);
                 $order = PurchaseOrder::factory()->for($this->organization)->create(['status' => OrderStatus::Confirmed]);
@@ -640,7 +640,7 @@ describe('PurchaseOrderService', function () {
 
             it('does not flag an item whose price matches the current product price', function () {
                 $product = Product::factory()->for($this->organization)->withStock(20)->create([
-                    'sale_price' => Money::fromStorage('150.0000'),
+                    'cost_price' => Money::fromStorage('150.0000'),
                 ]);
                 $order = PurchaseOrder::factory()->for($this->organization)->create(['status' => OrderStatus::Confirmed]);
                 $order->items()->create([
@@ -659,9 +659,9 @@ describe('PurchaseOrderService', function () {
 
             it('flags only the items that diverge when there are multiple', function () {
                 $productChanged = Product::factory()->for($this->organization)->withStock(20)
-                    ->create(['sale_price' => Money::fromStorage('200.0000')]);
+                    ->create(['cost_price' => Money::fromStorage('200.0000')]);
                 $productSame = Product::factory()->for($this->organization)->withStock(20)
-                    ->create(['sale_price' => Money::fromStorage('50.0000')]);
+                    ->create(['cost_price' => Money::fromStorage('50.0000')]);
 
                 $order = PurchaseOrder::factory()->for($this->organization)->create(['status' => OrderStatus::Confirmed]);
                 $order->items()->create([
@@ -690,8 +690,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 5,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(5),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(5),
                 ]);
 
                 $product->delete();
@@ -712,8 +712,8 @@ describe('PurchaseOrderService', function () {
                 'product_id' => $product->id,
                 'number' => 1,
                 'quantity' => 10,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price->multiply(10),
+                'unit_price' => $product->cost_price,
+                'subtotal' => $product->cost_price->multiply(10),
                 'organization_id' => $this->organization->id,
             ]);
 
@@ -900,8 +900,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -927,8 +927,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -961,8 +961,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -983,8 +983,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -1005,8 +1005,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -1027,8 +1027,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -1051,8 +1051,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -1075,8 +1075,8 @@ describe('PurchaseOrderService', function () {
                     'product_id' => $product->id,
                     'number' => 1,
                     'quantity' => 10,
-                    'unit_price' => $product->sale_price,
-                    'subtotal' => $product->sale_price->multiply(10),
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(10),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -1105,12 +1105,12 @@ describe('PurchaseOrderService', function () {
 
                 $itemToRemove = $purchaseOrder->items()->create([
                     'product_id' => $products[0]->id, 'number' => 1, 'quantity' => 5,
-                    'unit_price' => $products[0]->sale_price, 'subtotal' => $products[0]->sale_price->multiply(5),
+                    'unit_price' => $products[0]->cost_price, 'subtotal' => $products[0]->cost_price->multiply(5),
                     'organization_id' => $this->organization->id,
                 ]);
                 $itemToUpdate = $purchaseOrder->items()->create([
                     'product_id' => $products[1]->id, 'number' => 2, 'quantity' => 5,
-                    'unit_price' => $products[1]->sale_price, 'subtotal' => $products[1]->sale_price->multiply(5),
+                    'unit_price' => $products[1]->cost_price, 'subtotal' => $products[1]->cost_price->multiply(5),
                     'organization_id' => $this->organization->id,
                 ]);
 
@@ -1147,7 +1147,7 @@ describe('PurchaseOrderService', function () {
 
                 $item = $purchaseOrder->items()->create([
                     'product_id' => $product->id, 'number' => 1, 'quantity' => 5,
-                    'unit_price' => $product->sale_price, 'subtotal' => $product->sale_price->multiply(5),
+                    'unit_price' => $product->cost_price, 'subtotal' => $product->cost_price->multiply(5),
                     'organization_id' => $this->organization->id,
                 ]);
 

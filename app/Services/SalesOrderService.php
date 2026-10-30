@@ -239,9 +239,12 @@ class SalesOrderService extends BaseService
             $item = $this->treatment->for($this->treatSalesOrderItem->order($order), $itemRaw['id'], 'item_id', $this->model)->mustBeNotNull()->handle();
 
             if (\array_key_exists('product_id', $itemRaw)) {
+                /**
+                 * @var Product $product
+                 */
                 $product = $this->treatment->for($this->treatProduct, $itemRaw['product_id'], 'product_id', $this->model)->mustBeNotNull()->handle();
                 $item->product_id = $product->id;
-                $item->unit_price = $product->unit_price;
+                $item->unit_price = $product->sale_price;
             }
             if (\array_key_exists('quantity', $itemRaw)) {
                 $item->quantity = $this->treatment->for($this->treatNumber->positive(), $itemRaw['quantity'], 'quantity', $this->model)->mustBeNotNull()->handle();

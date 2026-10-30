@@ -41,7 +41,7 @@ describe('PATCH api/purchase-orders/{purchaseOrder}/cancel', function () {
         $response = $this->patchJson(route('v1.purchase-orders.cancel', $order));
 
         $response->assertNoContent();
-        expect($product->fresh()->stock_quantity)->toEqual(20.000);
+        expect($product->fresh()->stock_quantity)->toEqual(10.000);
     });
 
     test('Non logged user', function () {

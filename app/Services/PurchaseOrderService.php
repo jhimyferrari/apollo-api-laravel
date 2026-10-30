@@ -157,12 +157,12 @@ class PurchaseOrderService extends BaseService
                     ]
                 );
 
-                if (! $item->product->sale_price->equals($item->unit_price)) {
+                if (! $item->product->cost_price->equals($item->unit_price)) {
                     $outdatedPrices[] = [
                         'product_id' => $item->product_id,
                         'product_name' => $item->product->name,
                         'negotiated_price' => $item->unit_price->toStorageString(),
-                        'current_price' => $item->product->sale_price->toStorageString(),
+                        'current_price' => $item->product->cost_price->toStorageString(),
                     ];
                 }
             }
@@ -190,7 +190,7 @@ class PurchaseOrderService extends BaseService
     {
 
         if ($order->status === OrderStatus::Confirmed || $order->status === OrderStatus::Draft) {
-            $this->cancelOrder->execute($order, StockMovementType::In, $reason);
+            $this->cancelOrder->execute($order, StockMovementType::Out, $reason);
         } else {
             throw InvalidStatusTransitionException::make($order->status, OrderStatus::Cancelled);
         }
@@ -213,14 +213,14 @@ class PurchaseOrderService extends BaseService
             $product = $this->treatment->for($this->treatProduct, $item['product_id'], 'product_id', $this->model)->mustBeNotNull()->handle();
 
             $quantity = $this->treatment->for($this->treatNumber->positive(), $item['quantity'], 'quantity', $this->model)->mustBeNotNull()->handle();
-            $subtotal = $product->sale_price->multiply($quantity);
+            $subtotal = $product->cost_price->multiply($quantity);
 
             $order->items()->create([
                 'organization_id' => $order->organization_id,
                 'product_id' => $product->id,
                 'number' => $this->treatment->for($this->treatNumber->positive()->asInteger(), $item['number'], 'number', $this->model)->mustBeNotNull()->handle(),
                 'quantity' => $quantity,
-                'unit_price' => $product->sale_price,
+                'unit_price' => $product->cost_price,
                 'subtotal' => $subtotal,
             ]);
         }
@@ -232,9 +232,12 @@ class PurchaseOrderService extends BaseService
             $item = $this->treatment->for($this->treatPurchaseOrderItem->order($order), $itemRaw['id'], 'item_id', $this->model)->mustBeNotNull()->handle();
 
             if (\array_key_exists('product_id', $itemRaw)) {
+                /**
+                 * @var Product $product
+                 */
                 $product = $this->treatment->for($this->treatProduct, $itemRaw['product_id'], 'product_id', $this->model)->mustBeNotNull()->handle();
                 $item->product_id = $product->id;
-                $item->unit_price = $product->unit_price;
+                $item->unit_price = $product->cost_price;
             }
             if (\array_key_exists('quantity', $itemRaw)) {
                 $item->quantity = $this->treatment->for($this->treatNumber->positive(), $itemRaw['quantity'], 'quantity', $this->model)->mustBeNotNull()->handle();
