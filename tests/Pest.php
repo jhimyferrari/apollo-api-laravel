@@ -1,5 +1,10 @@
 <?php
 
+use App\Models\Product;
+use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Tests\TestCase;
 
 /*
@@ -42,3 +47,35 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+function draftOrderFor(User $user, Model $model): SalesOrder|PurchaseOrder
+{
+    $organization = $user->organization;
+    $product = Product::factory()->for($organization)->withStock(10)->create();
+
+    if ($model instanceof SalesOrder) {
+        $order = SalesOrder::factory()->for($organization)->create();
+
+        $order->items()->create([
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 5,
+            'unit_price' => $product->sale_price,
+            'subtotal' => $product->sale_price->multiply(5),
+            'organization_id' => $user->organization_id,
+        ]);
+    } else {
+        $order = PurchaseOrder::factory()->for($organization)->create();
+
+        $order->items()->create([
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 5,
+            'unit_price' => $product->cost_price,
+            'subtotal' => $product->cost_price->multiply(5),
+            'organization_id' => $user->organization_id,
+        ]);
+    }
+
+    return $order->fresh('items');
+}

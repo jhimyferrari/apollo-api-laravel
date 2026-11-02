@@ -36,13 +36,13 @@ class UpdatePurchaseOrderRequest extends FormRequest
             'items.to_add.*.quantity' => ['required_with:items.to_add', 'numeric', 'gt:0'],
 
             'items.to_update' => ['sometimes', 'array'],
-            'items.to_update.*.id' => ['sometimes', 'uuid'],
+            'items.to_update.*.id' => ['required_with:items.to_update', 'uuid'],
             'items.to_update.*.product_id' => ['sometimes', 'integer', 'min:1'],
             'items.to_update.*.number' => ['sometimes', 'integer', 'min:1'],
             'items.to_update.*.quantity' => ['sometimes', 'numeric', 'gt:0'],
 
             'items.to_remove' => ['sometimes', 'array'],
-            'items.to_remove.*.id' => ['uuid'],
+            'items.to_remove.*' => ['required_with:items.to_remove', 'uuid', 'distinct'],
         ];
     }
 }
