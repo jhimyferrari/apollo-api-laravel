@@ -59,7 +59,7 @@ describe('PATCH api/products/{product}', function () {
         Sanctum::actingAs($user);
         $response = $this->patchJson(route('v1.products.update', $product), []);
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
     });
     test('Non logged user', function () {

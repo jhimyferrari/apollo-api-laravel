@@ -46,7 +46,7 @@ describe('GET api/clients/{client}', function () {
         $client = Client::factory()->create(['organization_id' => $user->organization_id]);
         $response = $this->getJson(route('v1.clients.show', $client));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
     });
 });

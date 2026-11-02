@@ -46,7 +46,7 @@ describe('GET api/brands/{brand}', function () {
         $brand = Brand::factory()->create(['organization_id' => $user->organization_id]);
         $response = $this->getJson(route('v1.brands.show', $brand));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
     });
 });

@@ -31,7 +31,7 @@ describe('GET api/products/{product}', function () {
         $product = Product::factory()->create(['organization_id' => $user->organization_id]);
         Sanctum::actingAs($user);
         $response = $this->getJson(route('v1.products.show', $product));
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
     test('Non logged user', function () {
         $product = Product::factory()->create();

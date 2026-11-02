@@ -119,7 +119,7 @@ describe('PATCH api/sales-orders/{salesOrder}', function () {
         Sanctum::actingAs($user);
 
         $response = $this->patchJson(route('v1.sales-orders.update', $order), []);
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 
     test('Logged user cannot update an order from a different organization', function () {

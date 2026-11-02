@@ -32,7 +32,7 @@ describe('DELETE api/sellers/{seller}', function () {
         Sanctum::actingAs($user);
         $response = $this->deleteJson(route('v1.sellers.destroy', $seller));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
         $otherOrganizationSeller = Seller::factory()->create();
 

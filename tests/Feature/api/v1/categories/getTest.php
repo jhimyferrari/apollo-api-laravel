@@ -37,7 +37,7 @@ describe('GET api/categories', function () {
         Sanctum::actingAs(User::factory()->create());
         $response = $this->getJson(route('v1.categories.index'));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
     });
     test('Non logged user', function () {

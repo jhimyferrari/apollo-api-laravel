@@ -63,6 +63,6 @@ describe('GET api/sales-orders/{salesOrder}', function () {
             route('v1.sales-orders.show', $salesOrder)
         );
 
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 });

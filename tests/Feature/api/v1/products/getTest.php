@@ -23,7 +23,7 @@ describe('GET api/products', function () {
     test('Logged user without permission', function () {
         Sanctum::actingAs(User::factory()->create());
         $response = $this->getJson(route('v1.products.index'));
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
     test('Non logged user', function () {
         $response = $this->getJson(route('v1.products.index'));

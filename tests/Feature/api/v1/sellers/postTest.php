@@ -35,7 +35,7 @@ describe('POST api/sellers', function () {
         Sanctum::actingAs(User::factory()->create());
         $response = $this->postJson(route('v1.sellers.store'), []);
 
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
     test('Non logged user', function () {
         $response = $this->postJson(route('v1.sellers.store'), []);

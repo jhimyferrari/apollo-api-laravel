@@ -86,6 +86,6 @@ describe('POST api/users', function () {
     test('Logged user without permission', function () {
         Sanctum::actingAs(User::factory()->create());
         $response = $this->postJson(route('v1.users.store'));
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 });

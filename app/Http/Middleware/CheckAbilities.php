@@ -17,12 +17,12 @@ class CheckAbilities extends SanctumCheckAbilities
     public function handle($request, $next, ...$abilities)
     {
         if (! $request->user() || ! $request->user()->currentAccessToken()) {
-            abort(404);
+            abort(403);
         }
 
         foreach ($abilities as $ability) {
             if (! $request->user()->tokenCan($ability)) {
-                abort(404);
+                abort(403);
             }
         }
 

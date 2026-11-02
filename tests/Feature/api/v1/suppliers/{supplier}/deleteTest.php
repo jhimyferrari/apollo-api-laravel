@@ -29,7 +29,7 @@ describe('DELETE api/suppliers/{supplier}', function () {
         );
 
         $response = $this->deleteJson(route('v1.suppliers.destroy', $supplier));
-        $response->assertNotFound();
+        $response->assertForbidden();
 
     });
     test('Non logged user', function () {
