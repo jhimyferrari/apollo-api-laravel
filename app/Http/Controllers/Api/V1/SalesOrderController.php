@@ -105,6 +105,6 @@ class SalesOrderController extends Controller implements HasMiddleware
         ]);
         $data = $this->service->recreateFrom($salesOrder, $validated['reason'] ?? null);
 
-        return $this->success($data, 'SalesOrder reopened sucessfully', 201);
+        return $this->success($data, __('messages.order_reopened_successfully'), 201);
     }
 }
