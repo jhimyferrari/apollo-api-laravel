@@ -97,6 +97,6 @@ class SellerController extends Controller implements HasMiddleware
 
     public function showAddresses(Seller $seller)
     {
-        return AddressResource::collection($seller->addresses()->paginate(5));
+        return AddressResource::collection($seller->addresses()->with('city.uf')->paginate(5));
     }
 }

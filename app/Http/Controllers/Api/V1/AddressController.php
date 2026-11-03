@@ -40,6 +40,8 @@ class AddressController extends Controller
 
         $this->verifyPermission($address->addressable, __FUNCTION__);
 
+        $address->load(['city.uf']);
+
         return AddressResource::make($address);
     }
 

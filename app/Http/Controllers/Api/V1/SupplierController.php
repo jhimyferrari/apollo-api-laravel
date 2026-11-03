@@ -98,6 +98,6 @@ class SupplierController extends Controller implements HasMiddleware
 
     public function showAddresses(Supplier $supplier)
     {
-        return AddressResource::collection($supplier->addresses()->paginate(5));
+        return AddressResource::collection($supplier->addresses()->with('city.uf')->paginate(5));
     }
 }
