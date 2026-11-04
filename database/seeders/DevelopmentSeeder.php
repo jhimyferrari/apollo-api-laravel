@@ -349,7 +349,6 @@ class DevelopmentSeeder extends Seeder
                 'email' => 'consulta@apollo.com.br',
                 'password' => self::DEFAULT_PASSWORD,
                 'permissions' => [
-                    PermissionType::USER_READ->value,
                     PermissionType::CLIENT_READ->value,
                     PermissionType::SELLER_READ->value,
                     PermissionType::SUPPLIER_READ->value,
