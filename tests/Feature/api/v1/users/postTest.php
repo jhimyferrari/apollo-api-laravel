@@ -38,7 +38,7 @@ describe('POST api/users', function () {
         $this->assertTrue(Hash::check($passwordPlain, $userWithoutPermission->getRawOriginal('password')));
 
         // creating a user with permission
-        $permissions = Permission::where('name', 'like', 'user.%')->pluck('name');
+        $permissions = Permission::where('name', 'like', 'client.%')->pluck('name');
         $data = [
             'name' => fake()->name,
             'email' => fake()->email,
@@ -59,6 +59,28 @@ describe('POST api/users', function () {
             $userWithPermissions->permissions()->pluck('name')->diff($permissions)->isEmpty());
 
     });
+
+    test('Logged user cannot assign user control permissions', function () {
+        $this->seed(PermissionSeeder::class);
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
+
+        $userPermissions = Permission::where('name', 'like', 'user.%')->pluck('name');
+        $data = [
+            'name' => fake()->name,
+            'email' => fake()->email,
+            'password' => $this->validPassword(),
+            'permissions' => $userPermissions,
+        ];
+        $response = $this->postJson(
+            route('v1.users.store'),
+            $data
+        );
+        $response->assertStatus(422);
+        $response->assertJsonPath('error.fields.permission.0', __('validation.permission.user_forbidden'));
+    });
+
     test('Non-logged user', function () {
 
         $response = $this->postJson(route('v1.users.store'),

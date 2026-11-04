@@ -335,6 +335,7 @@ return [
     'purchase_order' => 'O campo :attribute não contém um id de compra válido.',
     'money' => 'O campo :attribute não contém um valor monetário válido.',
     'permission.exist' => 'As permissões :values não existem',
+    'permission.user_forbidden' => 'Permissões relativas a controle de usuário não podem ser atribuídas.',
 
     'array.type' => 'Os valores para o campo :attribute devem ser do tipo :type.',
 

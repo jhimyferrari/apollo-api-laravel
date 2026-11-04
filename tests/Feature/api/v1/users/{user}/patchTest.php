@@ -23,12 +23,18 @@ describe('PATCH api/users/{user}', function () {
         ]);
 
         Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
-        $permissions = Permission::where('name', 'like', 'user.%')->pluck('name');
+        $permissions = Permission::where('name', 'like', 'client.%')->pluck('name');
         $response = $this->patchJson(route('v1.users.update', $secondUser), [
+            'name' => 'Updated Name',
+            'email' => 'updated_email@test.com',
             'permissions' => $permissions,
         ]);
 
         $response->assertNoContent();
+
+        $secondUser->refresh();
+        expect($secondUser->name)->toBe('Updated Name')
+            ->and($secondUser->email)->toBe('updated_email@test.com');
 
         $permissionIds = Permission::whereIn('name', $permissions)->pluck('id');
         foreach ($permissionIds as $permissionId) {
@@ -46,6 +52,27 @@ describe('PATCH api/users/{user}', function () {
         ]);
         $response->assertNotFound();
 
+    });
+
+    test('Logged user cannot assign user control permissions', function () {
+        $this->seed(PermissionSeeder::class);
+
+        $organization = Organization::factory()->create();
+        $user = User::factory()->create([
+            'organization_id' => $organization->id,
+        ]);
+        $secondUser = User::factory()->create([
+            'organization_id' => $organization->id,
+        ]);
+
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
+        $userPermissions = Permission::where('name', 'like', 'user.%')->pluck('name');
+        $response = $this->patchJson(route('v1.users.update', $secondUser), [
+            'permissions' => $userPermissions,
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonPath('error.fields.permission.0', __('validation.permission.user_forbidden'));
     });
 
     test('Logged user with non valid data', function () {

@@ -112,6 +112,15 @@ describe('UserService', function () {
                 'permissions' => [...PermissionType::byModel('seller'), 'a', 'b', 'c'],
             ], $this->user))->toThrow(ValidationException::class, __('validation.permission.exist', ['values' => 'a,b,c']));
         });
+        it('throw an exception when trying to create user with user control permissions', function () {
+
+            expect(fn () => $this->service->create([
+                'email' => 'user_perm@email.com',
+                'name' => 'userPerm',
+                'password' => $this->validPassword(),
+                'permissions' => [PermissionType::USER_CREATE->value],
+            ], $this->user))->toThrow(ValidationException::class, __('validation.permission.user_forbidden'));
+        });
     });
     describe('update', function () {
         it('should update an user successfully', function () {
@@ -174,6 +183,34 @@ describe('UserService', function () {
                 'email' => '',
             ], $this->user))->toThrow(ValidationException::class);
         });
+
+        it('should update name, email and permissions simultaneously', function () {
+            $this->seed(PermissionSeeder::class);
+            $user = User::factory()->create(['organization_id' => $this->user->organization_id]);
+            $permissions = PermissionType::byModel('brand');
+
+            $updatedUser = $this->service->update(
+                $user,
+                [
+                    'name' => 'Updated Brand Manager',
+                    'email' => 'brand_manager@test.com',
+                    'permissions' => $permissions,
+                ]
+            );
+
+            expect($updatedUser)
+                ->toBeInstanceOf(User::class)
+                ->name->toBe('Updated Brand Manager')
+                ->email->toBe('brand_manager@test.com');
+
+            $permissionIds = Permission::whereIn('name', $permissions)->pluck('id');
+            foreach ($permissionIds as $permissionId) {
+                $this->assertDatabaseHas('user_permissions', [
+                    'user_id' => $user->id,
+                    'permission_id' => $permissionId,
+                ]);
+            }
+        });
     });
     describe('delete', function () {
         it('should delete a regular user', function () {
@@ -205,6 +242,14 @@ describe('UserService', function () {
                     'permission_id' => $permissionId,
                 ]);
             }
+        });
+
+        it('throw an exception when trying to assign user control permissions', function () {
+            $this->seed(PermissionSeeder::class);
+            $user = User::factory()->create();
+
+            expect(fn () => $this->service->updatePermissions($user, [PermissionType::USER_UPDATE->value]))
+                ->toThrow(ValidationException::class, __('validation.permission.user_forbidden'));
         });
     });
     describe('createAdmin', function () {
