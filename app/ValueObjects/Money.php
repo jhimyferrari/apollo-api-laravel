@@ -7,8 +7,6 @@ use Brick\Money\AllocationMode;
 use Brick\Money\Context\CustomContext;
 use Brick\Money\Money as BrickMoney;
 
-use function PHPUnit\Framework\isFloat;
-
 final readonly class Money implements \JsonSerializable
 {
     public function __construct(
@@ -26,7 +24,7 @@ final readonly class Money implements \JsonSerializable
 
     public static function fromDecimal(string|int|float $amount, string $currency = 'BRL'): self
     {
-        if (isFloat($amount)) {
+        if (is_float($amount)) {
             $amount = (strval($amount));
         }
 
