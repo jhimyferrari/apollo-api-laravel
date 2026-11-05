@@ -44,7 +44,7 @@ describe('POST api/purchase-orders', function () {
         Sanctum::actingAs(User::factory()->create());
 
         $response = $this->postJson(route('v1.purchase-orders.store'), []);
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 
     test('Logged user with missing supplier_id', function () {

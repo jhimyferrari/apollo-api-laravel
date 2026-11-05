@@ -22,6 +22,7 @@ class AddressResource extends JsonResource
             'complement' => $this->complement,
             'cep' => $this->cep,
             'city_ibge_code' => $this->city_ibge_code,
+            'city' => new CityResource($this->whenLoaded('city')),
         ];
     }
 }

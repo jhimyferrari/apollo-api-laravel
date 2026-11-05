@@ -53,6 +53,7 @@ class SellerService extends BaseService
         if (isset($data['phone'])) {
             $data['phone'] = $this->treament->for($this->treatPhone, $data['phone'], 'phone', $this->model)->handle();
         }
+        $data['started_at'] ??= now();
 
         $newSeller = new Seller($data);
         $newSeller->organization_id = $user->organization_id;

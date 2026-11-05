@@ -32,7 +32,7 @@ describe('DELETE api/categories/{category}', function () {
         Sanctum::actingAs($user);
         $response = $this->deleteJson(route('v1.categories.destroy', $category));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
         $otherOrganizationCategory = Category::factory()->create();
 

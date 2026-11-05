@@ -57,13 +57,11 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    // This field updatePermissions of users
     public function update(UpdateUserRequest $request, User $user)
     {
-        $this->userService->updatePermissions($user, $request->validated()['permissions']);
+        $this->userService->update($user, $request->validated());
 
         return response()->noContent();
-
     }
 
     /**

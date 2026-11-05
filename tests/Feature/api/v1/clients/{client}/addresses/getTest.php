@@ -59,7 +59,7 @@ describe('GET api/clients/{client}/address', function () {
         $client = Client::factory()->for($user->organization)->create();
         Sanctum::actingAs($user);
         $this->getJson(route('v1.clients.addresses.show', $client))
-            ->assertNotFound();
+            ->assertForbidden();
     });
     test('Non logged user', function () {
         $client = Client::factory()->create();

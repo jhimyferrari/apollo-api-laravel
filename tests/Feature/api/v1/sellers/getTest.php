@@ -37,7 +37,7 @@ describe('GET api/sellers', function () {
         Sanctum::actingAs(User::factory()->create());
         $response = $this->getJson(route('v1.sellers.index'));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
     });
     test('Non logged user', function () {

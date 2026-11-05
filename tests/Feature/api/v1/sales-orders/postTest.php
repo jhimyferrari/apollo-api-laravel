@@ -48,7 +48,7 @@ describe('POST api/sales-orders', function () {
         Sanctum::actingAs(User::factory()->create());
 
         $response = $this->postJson(route('v1.sales-orders.store'), []);
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 
     test('Logged user with missing client_id', function () {

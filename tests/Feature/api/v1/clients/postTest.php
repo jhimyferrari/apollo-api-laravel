@@ -36,6 +36,6 @@ describe('POST api/clients', function () {
         Sanctum::actingAs($user);
         $response = $this->postJson(route('v1.clients.store'));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 });

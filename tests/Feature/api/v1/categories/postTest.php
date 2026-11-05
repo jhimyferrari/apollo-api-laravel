@@ -31,7 +31,7 @@ describe('POST api/categories', function () {
         Sanctum::actingAs(User::factory()->create());
         $response = $this->postJson(route('v1.categories.store'), []);
 
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
     test('Non logged user', function () {
         $response = $this->postJson(route('v1.categories.store'), []);

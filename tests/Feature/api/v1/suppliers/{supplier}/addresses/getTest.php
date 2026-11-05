@@ -60,7 +60,7 @@ describe('GET api/suppliers/{supplier}/address', function () {
         $supplier = Supplier::factory()->for($user->organization)->create();
         Sanctum::actingAs($user);
         $this->getJson(route('v1.suppliers.addresses.show', $supplier))
-            ->assertNotFound();
+            ->assertForbidden();
     });
     test('Non logged user', function () {
         $supplier = Supplier::factory()->create();

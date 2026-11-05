@@ -32,7 +32,7 @@ describe('DELETE api/products/{product}', function () {
         Sanctum::actingAs($user);
         $product = Product::factory()->create(['organization_id' => $user->organization_id]);
         $response = $this->deleteJson(route('v1.products.destroy', $product));
-        $response->assertNotFound();
+        $response->assertForbidden();
 
     });
     test('Non logged user', function () {

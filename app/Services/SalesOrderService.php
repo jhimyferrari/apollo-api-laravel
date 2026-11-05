@@ -71,8 +71,8 @@ class SalesOrderService extends BaseService
     public function update(Model $order, array $data): SalesOrder
     {
         if ($order->status !== OrderStatus::Draft) {
-
-            throw new InvalidStatusException(__('validation.order.status.update', ['model' => __('validation.resources.sales_order'), 'status' => __("valiation.attribute.order.status.$order->status")]));
+            $status = $order->status->value;
+            throw new InvalidStatusException(__('validation.order.status.update', ['model' => __('validation.resources.sales_order'), 'status' => __("valiation.attribute.order.status.$status")]));
         }
 
         if (\array_key_exists('client_id', $data)) {
@@ -101,7 +101,7 @@ class SalesOrderService extends BaseService
                 if (\array_key_exists('to_remove', $items)) {
                     foreach ($items['to_remove'] as $itemToRemoved) {
                         $item = $this->treatment->for($this->treatSalesOrderItem->order($order), $itemToRemoved, 'item_id', $this->model)->handle();
-                        $item->number = 0;
+                        $item->update(['number' => 0]);
                         $item->delete();
                     }
                 }

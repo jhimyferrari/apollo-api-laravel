@@ -41,6 +41,6 @@ describe('GET api/clients', function () {
 
         Sanctum::actingAs($user);
         $response = $this->getJson(route('v1.clients.index'));
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 });

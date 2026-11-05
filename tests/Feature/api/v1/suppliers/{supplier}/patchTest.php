@@ -51,7 +51,7 @@ describe('PATCH api/suppliers/{supplier}', function () {
         Sanctum::actingAs($user);
         $response = $this->patchJson(route('v1.suppliers.update', $supplier), []);
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
         $otherOrganizationSupplier = Supplier::factory()->create();
         $response = $this->patchJson(route('v1.suppliers.update', $otherOrganizationSupplier), []);

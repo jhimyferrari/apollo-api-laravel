@@ -47,7 +47,7 @@ describe('PATCH api/categories/{category}', function () {
         Sanctum::actingAs($user);
         $response = $this->patchJson(route('v1.categories.update', $category), []);
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
         $otherOrganizationCategory = Category::factory()->create();
         $response = $this->patchJson(route('v1.categories.update', $otherOrganizationCategory), []);

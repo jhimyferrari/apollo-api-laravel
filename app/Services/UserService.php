@@ -57,6 +57,12 @@ class UserService extends BaseService
             $user->email = $this->treatment->for($this->emailTreat, $data['email'], 'email', $this->model)
                 ->mustBeNotNull()->mustBeUnique()->ignoredId($user->id)->handle();
         }
+        if (array_key_exists('permissions', $data)) {
+            if ($user->isAdministrator()) {
+                throw ValidationException::withMessages(['permission' => __('validation.permission.admin_forbidden')]);
+            }
+            $this->updatePermissions($user, $data['permissions']);
+        }
         $user->save();
 
         return $user;
@@ -80,12 +86,17 @@ class UserService extends BaseService
         $diff = array_diff($permissions, PermissionType::allValues());
 
         if (! empty($diff)) {
-
             throw ValidationException::withMessages(['permission' => __('validation.permission.exist', ['values' => implode(',', $diff)])]);
         }
+
+        $userControlPermissions = array_intersect($permissions, PermissionType::byModel('user'));
+
+        if (! empty($userControlPermissions)) {
+            throw ValidationException::withMessages(['permission' => __('validation.permission.user_forbidden')]);
+        }
+
         $permissions = Permission::whereIn('name', $permissions)->pluck('id');
         $user->permissions()->sync($permissions);
-
     }
 
     public function createAdmin(array $data): User

@@ -97,6 +97,6 @@ class ClientController extends Controller implements HasMiddleware
 
     public function showAddresses(Client $client)
     {
-        return AddressResource::collection($client->addresses()->paginate(5));
+        return AddressResource::collection($client->addresses()->with('city.uf')->paginate(5));
     }
 }

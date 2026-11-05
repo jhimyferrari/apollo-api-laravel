@@ -43,6 +43,6 @@ describe('GET api/purchase-orders', function () {
     test('Logged user without permission', function () {
         Sanctum::actingAs(User::factory()->create());
         $response = $this->getJson(route('v1.purchase-orders.index'));
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 });

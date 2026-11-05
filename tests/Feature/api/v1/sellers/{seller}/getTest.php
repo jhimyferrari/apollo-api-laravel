@@ -30,7 +30,7 @@ describe('GET api/sellers/{seller}', function () {
         $seller = Seller::factory()->create(['organization_id' => $user->organization_id]);
         $response = $this->getJson(route('v1.sellers.show', $seller));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
 
         $otherOrganizationSeller = Seller::factory()->create();
         $response = $this->getJson(route('v1.sellers.show', $otherOrganizationSeller));

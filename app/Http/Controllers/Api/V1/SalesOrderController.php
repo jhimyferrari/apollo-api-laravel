@@ -35,6 +35,7 @@ class SalesOrderController extends Controller implements HasMiddleware
      */
     public function index()
     {
+
         return SalesOrderResource::collection(SalesOrder::with([
             'client',
             'seller',
@@ -58,6 +59,8 @@ class SalesOrderController extends Controller implements HasMiddleware
      */
     public function show(SalesOrder $salesOrder)
     {
+        $salesOrder->load(['client', 'seller', 'items.product']);
+
         return SalesOrderResource::make($salesOrder);
     }
 
@@ -102,6 +105,6 @@ class SalesOrderController extends Controller implements HasMiddleware
         ]);
         $data = $this->service->recreateFrom($salesOrder, $validated['reason'] ?? null);
 
-        return $this->success($data, 'SalesOrder reopened sucessfully', 201);
+        return $this->success($data, __('messages.order_reopened_successfully'), 201);
     }
 }

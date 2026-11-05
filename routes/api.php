@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\ClientController as ClientControllerV1;
 use App\Http\Controllers\Api\V1\OrganizationController as OrganizationControllerV1;
 use App\Http\Controllers\Api\V1\ProductController as ProductControllerV1;
 use App\Http\Controllers\Api\V1\PurchaseOrderController as PurchaseOrderControllerV1;
+use App\Http\Controllers\Api\V1\Reports\PurchaseReportController as PurchaseReportControllerV1;
+use App\Http\Controllers\Api\V1\Reports\SalesReportController as SalesReportControllerV1;
 use App\Http\Controllers\Api\V1\SalesOrderController as SalesOrderControllerV1;
 use App\Http\Controllers\Api\V1\SellerController as SellerControllerV1;
 use App\Http\Controllers\Api\V1\SupplierController as SupplierControllerV1;
@@ -130,6 +132,18 @@ Route::prefix('v1')
                 Route::patch('/{purchaseOrder}/reopen', [PurchaseOrderControllerV1::class, 'reopen'])->name('reopen');
                 Route::patch('/{purchaseOrder}/confirm', [PurchaseOrderControllerV1::class, 'confirm'])->name('confirm');
                 Route::patch('/{purchaseOrder}/cancel', [PurchaseOrderControllerV1::class, 'cancel'])->name('cancel');
+            });
+
+            Route::group(['as' => 'reports.', 'prefix' => '/reports'], function () {
+                Route::group(['as' => 'sales.', 'prefix' => '/sales'], function () {
+                    Route::get('/summary', [SalesReportControllerV1::class, 'summary'])->name('summary');
+                    Route::get('/by-product', [SalesReportControllerV1::class, 'byProduct'])->name('by-product');
+                    Route::get('/by-seller', [SalesReportControllerV1::class, 'bySeller'])->name('by-seller');
+                });
+
+                Route::group(['as' => 'purchases.', 'prefix' => '/purchases'], function () {
+                    Route::get('/summary', [PurchaseReportControllerV1::class, 'summary'])->name('summary');
+                });
             });
 
         });

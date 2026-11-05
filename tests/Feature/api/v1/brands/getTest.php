@@ -46,6 +46,6 @@ describe('GET api/brands', function () {
 
         Sanctum::actingAs(User::factory()->create());
         $response = $this->getJson(route('v1.brands.index'));
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 });
