@@ -58,6 +58,9 @@ class UserService extends BaseService
                 ->mustBeNotNull()->mustBeUnique()->ignoredId($user->id)->handle();
         }
         if (array_key_exists('permissions', $data)) {
+            if ($user->isAdministrator()) {
+                throw ValidationException::withMessages(['permission' => __('validation.permission.admin_forbidden')]);
+            }
             $this->updatePermissions($user, $data['permissions']);
         }
         $user->save();
