@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Auth\LoginController as LoginControllerV1;
 use App\Http\Controllers\Api\V1\BrandController as BrandControllerV1;
 use App\Http\Controllers\Api\V1\CategoryController as CategoryControllerV1;
 use App\Http\Controllers\Api\V1\ClientController as ClientControllerV1;
+use App\Http\Controllers\Api\V1\LookupController as LookupControllerV1;
 use App\Http\Controllers\Api\V1\OrganizationController as OrganizationControllerV1;
 use App\Http\Controllers\Api\V1\ProductController as ProductControllerV1;
 use App\Http\Controllers\Api\V1\PurchaseOrderController as PurchaseOrderControllerV1;
@@ -144,6 +145,15 @@ Route::prefix('v1')
                 Route::group(['as' => 'purchases.', 'prefix' => '/purchases'], function () {
                     Route::get('/summary', [PurchaseReportControllerV1::class, 'summary'])->name('summary');
                 });
+            });
+
+            Route::group(['as' => 'lookups.', 'prefix' => '/lookups'], function () {
+                Route::get('/clients', [LookupControllerV1::class, 'clients'])->name('clients');
+                Route::get('/sellers', [LookupControllerV1::class, 'sellers'])->name('sellers');
+                Route::get('/products', [LookupControllerV1::class, 'products'])->name('products');
+                Route::get('/suppliers', [LookupControllerV1::class, 'suppliers'])->name('suppliers');
+                Route::get('/brands', [LookupControllerV1::class, 'brands'])->name('brands');
+                Route::get('/categories', [LookupControllerV1::class, 'categories'])->name('categories');
             });
 
         });
