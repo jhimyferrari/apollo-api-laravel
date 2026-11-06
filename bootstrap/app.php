@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            // Using personal Middleware to return 404
+            // Using personal Middleware to return 403
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
         ]);

@@ -96,7 +96,7 @@ describe('POST api/suppliers/{supplier}/address', function () {
 
         $response = $this->postJson(route('v1.suppliers.addresses.store', $supplier), []);
 
-        $response->assertNotFound();
+        $response->assertForbidden();
     });
 
     test('Non logged user', function () {

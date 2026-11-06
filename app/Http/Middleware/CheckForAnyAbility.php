@@ -17,7 +17,7 @@ class CheckForAnyAbility extends SanctumCheckForAnyAbility
     public function handle($request, $next, ...$abilities)
     {
         if (! $request->user() || ! $request->user()->currentAccessToken()) {
-            abort(404);
+            abort(403);
         }
 
         foreach ($abilities as $ability) {
@@ -26,6 +26,6 @@ class CheckForAnyAbility extends SanctumCheckForAnyAbility
             }
         }
 
-        abort(404);
+        abort(403);
     }
 }

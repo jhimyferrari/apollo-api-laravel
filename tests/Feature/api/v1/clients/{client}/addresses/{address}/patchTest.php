@@ -110,7 +110,7 @@ describe('PATCH api/clients/{client}/addresses/{address}/setDefault', function (
         $this->patchJson(route('v1.clients.addresses.setDefault', [
             'client' => $this->client->id,
             'address' => $this->address->id,
-        ]))->assertNotFound();
+        ]))->assertForbidden();
     });
 
     it('Non logged user', function () {
