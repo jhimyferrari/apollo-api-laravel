@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatRegularString;
 use App\Services\TreatmentService\TreatmentService;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class BrandService extends BaseService
 {
@@ -52,16 +51,24 @@ class BrandService extends BaseService
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [
+            'products' => 'produtos',
+        ];
+    }
+
+    /**
      * Delete a Brand from database
-     * and decouples all associated products
      *
      * @param  Brand  $model
      */
     public function delete(Model $model): void
     {
-        DB::transaction(function () use ($model) {
-            $model->products()->update(['brand_id' => null]);
-            $model->delete();
-        });
+        $this->ensureHasNoDependencies($model);
+
+        $model->delete();
     }
 }

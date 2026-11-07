@@ -108,8 +108,20 @@ class ClientService extends BaseService
 
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [
+            'salesOrders' => 'pedidos de venda',
+        ];
+    }
+
     public function delete(Model $client): void
     {
+        $this->ensureHasNoDependencies($client);
+
         DB::transaction(function () use ($client) {
             $client->addresses()->delete();
             $client->delete();

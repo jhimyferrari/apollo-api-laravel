@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -118,15 +119,22 @@ describe('CategoryService', function () {
         });
     });
     describe('delete', function () {
-        it('should softDelete some category and detached from products tables', function () {
-            $categories = Category::factory()->count(10)->create(['organization_id' => $this->user->organization_id]);
-            $product = Product::factory()->withCategories($categories)->create();
+        it('should softDelete some category when has no products', function () {
+            $category = Category::factory()->create(['organization_id' => $this->user->organization_id]);
 
-            $category = $categories->pop();
             $this->service->delete($category);
-            $this->assertSoftDeleted($category)
-                ->assertFalse($product->categories->contains($category));
-            $this->assertEmpty($product->categories->diff($categories));
+
+            $this->assertSoftDeleted($category);
+        });
+
+        it('throws ResourceHasDependenciesException when category has products', function () {
+            $category = Category::factory()->create(['organization_id' => $this->user->organization_id]);
+            Product::factory()->create([
+                'organization_id' => $this->user->organization_id,
+            ])->categories()->sync([$category->id]);
+
+            expect(fn () => $this->service->delete($category))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 

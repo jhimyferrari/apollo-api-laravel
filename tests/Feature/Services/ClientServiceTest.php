@@ -1,9 +1,11 @@
 <?php
 
 use App\Enum\Status\ClientStatus;
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Helpers\DocumentHelper;
 use App\Helpers\Test\StateRegistrationHelper;
 use App\Models\Client;
+use App\Models\SalesOrder;
 use App\Models\User;
 use App\Services\ClientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -254,6 +256,17 @@ describe('ClientService', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $this->service->delete($client);
             $this->assertSoftDeleted($client);
+        });
+
+        it('throws ResourceHasDependenciesException when client has sales orders', function () {
+            $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
+            SalesOrder::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'client_id' => $client->id,
+            ]);
+
+            expect(fn () => $this->service->delete($client))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 

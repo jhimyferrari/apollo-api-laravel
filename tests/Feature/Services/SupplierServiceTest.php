@@ -1,8 +1,10 @@
 <?php
 
 use App\Enum\Status\SupplierStatus;
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Helpers\DocumentHelper;
 use App\Helpers\Test\StateRegistrationHelper;
+use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\SupplierService;
@@ -252,6 +254,17 @@ describe('SupplierService', function () {
             $supplier = Supplier::factory()->create(['organization_id' => $this->user->organization_id]);
             $this->service->delete($supplier);
             $this->assertSoftDeleted($supplier);
+        });
+
+        it('throws ResourceHasDependenciesException when supplier has purchase orders', function () {
+            $supplier = Supplier::factory()->create(['organization_id' => $this->user->organization_id]);
+            PurchaseOrder::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'supplier_id' => $supplier->id,
+            ]);
+
+            expect(fn () => $this->service->delete($supplier))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 

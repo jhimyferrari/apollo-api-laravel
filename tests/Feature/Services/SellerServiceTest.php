@@ -1,8 +1,10 @@
 <?php
 
 use App\Enum\Status\SellerStatus;
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Helpers\DocumentHelper;
 use App\Helpers\Test\StateRegistrationHelper;
+use App\Models\SalesOrder;
 use App\Models\Seller;
 use App\Models\User;
 use App\Services\SellerService;
@@ -267,6 +269,17 @@ describe('SellerService', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $this->service->delete($seller);
             $this->assertSoftDeleted($seller);
+        });
+
+        it('throws ResourceHasDependenciesException when seller has sales orders', function () {
+            $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+            SalesOrder::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'seller_id' => $seller->id,
+            ]);
+
+            expect(fn () => $this->service->delete($seller))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 

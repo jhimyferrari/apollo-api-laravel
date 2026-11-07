@@ -46,6 +46,8 @@ class ProductService extends BaseService
 
         if (isset($data['stock_quantity'])) {
             $data['stock_quantity'] = $this->treatment->for($this->treatNumber, $data['stock_quantity'], 'stock_quantity', $this->model)->handle();
+        } else {
+            $data['stock_quantity'] = 0;
         }
 
         $data['cost_price'] = $this->treatment->for($this->treatMoney, $data['cost_price'], 'cost_price', $this->model)->handle();
@@ -120,15 +122,27 @@ class ProductService extends BaseService
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [
+            'salesOrderItems' => 'vendas',
+            'purchaseOrderItems' => 'compras',
+            'stockMovements' => 'movimentações de estoque',
+        ];
+    }
+
+    /**
      * @param  Product  $product
      */
     public function delete(Model $product): void
     {
+        $this->ensureHasNoDependencies($product);
 
         DB::transaction(function () use ($product) {
             $product->categories()->detach();
             $product->delete();
-
         });
     }
 }

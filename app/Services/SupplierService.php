@@ -109,8 +109,19 @@ class SupplierService extends BaseService
         return $supplier;
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [
+            'purchaseOrders' => 'pedidos de compra',
+        ];
+    }
+
     public function delete(Model $supplier): void
     {
+        $this->ensureHasNoDependencies($supplier);
 
         DB::transaction(function () use ($supplier) {
             $supplier->addresses()->delete();

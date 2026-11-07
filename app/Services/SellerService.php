@@ -113,10 +113,22 @@ class SellerService extends BaseService
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [
+            'salesOrders' => 'pedidos de venda',
+        ];
+    }
+
+    /**
      * @param  Seller  $seller
      */
     public function delete(Model $seller): void
     {
+        $this->ensureHasNoDependencies($seller);
+
         DB::transaction(function () use ($seller) {
             $seller->addresses()->delete();
             $seller->delete();

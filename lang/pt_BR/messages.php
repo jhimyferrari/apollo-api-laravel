@@ -13,4 +13,5 @@ return [
     'order_reopened_successfully' => 'Ordem reaberta com sucesso',
 
     'user_cannot_update_own_permission' => 'O usuário não pode realizar modificações na própria permissão',
+    'resource_has_dependencies' => 'Não é possível excluir o recurso :resource pois existem dependências vinculadas: :dependencies.',
 ];

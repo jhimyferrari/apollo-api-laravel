@@ -21,4 +21,5 @@ enum ErrorType: string
     case OrderNotDeletable = 'ORDER_NOT_DELETABLE';
     case InvalidField = 'INVALID_FIELD';
     case AdminCannotBeDeleted = 'ADMIN_CANNOT_BE_DELETED';
+    case ResourceHasDependencies = 'RESOURCE_HAS_DEPENDENCIES';
 }
