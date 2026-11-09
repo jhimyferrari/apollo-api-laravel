@@ -1,6 +1,7 @@
 <?php
 
 use App\Enum\PermissionType;
+use App\Enum\Status\ClientStatus;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,6 +27,43 @@ describe('PATCH api/clients/{client}', function () {
 
         $response->assertNoContent();
         $this->assertDatabaseHas('clients', $newClientRequest);
+    });
+
+    test('Logged user can update client status', function () {
+        $user = User::factory()->create();
+        $client = Client::factory()->create([
+            'organization_id' => $user->organization_id,
+            'status' => ClientStatus::Active,
+        ]);
+        Sanctum::actingAs($user, [PermissionType::CLIENT_UPDATE->value]);
+
+        $payload = [
+            'document' => fake()->cnpj(false),
+            'legal_name' => fake()->company(),
+            'trade_name' => fake()->company(),
+            'status' => ClientStatus::Inactive->value,
+        ];
+        $response = $this->patchJson(route('v1.clients.update', $client), $payload);
+
+        $response->assertNoContent();
+        expect($client->fresh()->status)->toBe(ClientStatus::Inactive);
+    });
+
+    test('Logged user fails to update client with invalid status', function () {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['organization_id' => $user->organization_id]);
+        Sanctum::actingAs($user, [PermissionType::CLIENT_UPDATE->value]);
+
+        $payload = [
+            'document' => fake()->cnpj(false),
+            'legal_name' => fake()->company(),
+            'trade_name' => fake()->company(),
+            'status' => 'invalid_status',
+        ];
+        $response = $this->patchJson(route('v1.clients.update', $client), $payload);
+
+        $response->assertUnprocessable()
+            ->assertJsonStructure(['error' => ['fields' => ['status']]]);
     });
 
     test('Other organization user', function () {

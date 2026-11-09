@@ -100,7 +100,7 @@ class Product extends Model implements HasStatus
         'stock_quantity' => 'decimal:3',
     ];
 
-    public function StatusEnumClass(): string
+    public function statusEnumClass(): string
     {
         return ProductStatus::class;
     }

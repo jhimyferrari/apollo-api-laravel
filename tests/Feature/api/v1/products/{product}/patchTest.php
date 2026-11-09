@@ -2,6 +2,7 @@
 
 use App\Enum\PermissionType;
 use App\Enum\ProductUnit;
+use App\Enum\Status\ProductStatus;
 use App\Models\NcmCode;
 use App\Models\Product;
 use App\Models\User;
@@ -34,6 +35,53 @@ describe('PATCH api/products/{product}', function () {
         $newProductRequest['ncm_code_id'] = $ncm->id;
 
         $this->assertDatabaseHas('products', $newProductRequest);
+    });
+
+    test('Logged user can update product status', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'organization_id' => $user->organization_id,
+            'status' => ProductStatus::Active,
+        ]);
+        Sanctum::actingAs($user, [PermissionType::PRODUCT_UPDATE->value]);
+
+        $cost_price = 1000;
+        $payload = [
+            'name' => 'Updated Product',
+            'unit' => ProductUnit::Unit->value,
+            'cost_price' => $cost_price,
+            'sale_price' => 2000,
+            'status' => ProductStatus::Inactive->value,
+        ];
+        $response = $this->patchJson(route('v1.products.update', $product), $payload);
+
+        $response->assertNoContent();
+        expect($product->fresh()->status)->toBe(ProductStatus::Inactive);
+
+        $responseDiscontinued = $this->patchJson(route('v1.products.update', $product), [
+            ...$payload,
+            'status' => ProductStatus::Discontinued->value,
+        ]);
+        $responseDiscontinued->assertNoContent();
+        expect($product->fresh()->status)->toBe(ProductStatus::Discontinued);
+    });
+
+    test('Logged user fails to update product with invalid status', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['organization_id' => $user->organization_id]);
+        Sanctum::actingAs($user, [PermissionType::PRODUCT_UPDATE->value]);
+
+        $payload = [
+            'name' => 'Updated Product',
+            'unit' => ProductUnit::Unit->value,
+            'cost_price' => 1000,
+            'sale_price' => 2000,
+            'status' => 'invalid_status',
+        ];
+        $response = $this->patchJson(route('v1.products.update', $product), $payload);
+
+        $response->assertUnprocessable()
+            ->assertJsonStructure(['error' => ['fields' => ['status']]]);
     });
 
     test('Other organization product', function () {

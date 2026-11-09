@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Product;
 
 use App\Enum\ProductUnit;
+use App\Enum\Status\ProductStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -25,6 +26,7 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'status' => ['sometimes', Rule::enum(ProductStatus::class)],
             'name' => ['required', 'string', 'max:45'],
             'unit' => ['required', 'string', Rule::in(ProductUnit::allValues())],
             'ncm' => ['nullable', 'string', 'size:8'],

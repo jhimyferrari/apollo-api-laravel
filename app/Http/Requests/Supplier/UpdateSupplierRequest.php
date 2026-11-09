@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests\Supplier;
 
+use App\Enum\Status\SupplierStatus;
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSupplierRequest extends FormRequest
 {
@@ -25,6 +27,10 @@ class UpdateSupplierRequest extends FormRequest
     {
 
         return [
+            'status' => [
+                'sometimes',
+                Rule::enum(SupplierStatus::class),
+            ],
             'document' => [
                 'required',
                 new CpfAndCnpj,

@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests\Client;
 
+use App\Enum\Status\ClientStatus;
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateClientRequest extends FormRequest
 {
@@ -24,6 +26,10 @@ class UpdateClientRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'status' => [
+                'sometimes',
+                Rule::enum(ClientStatus::class),
+            ],
             'document' => [
                 'required',
                 new CpfAndCnpj,

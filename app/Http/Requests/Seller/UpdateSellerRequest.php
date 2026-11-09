@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Seller;
 
+use App\Enum\Status\SellerStatus;
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,6 +26,10 @@ class UpdateSellerRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'status' => [
+                'sometimes',
+                Rule::enum(SellerStatus::class),
+            ],
             'document' => [
                 'required',
                 new CpfAndCnpj,

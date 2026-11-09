@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Validation\ValidateStatusEnum;
+use App\Enum\Status\SellerStatus;
 use App\Models\Seller;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatDocument;
@@ -32,10 +33,6 @@ class SellerService extends BaseService
     public function create(array $data, User $user): Seller
     {
 
-        if (isset($data['status'])) {
-            $this->validateStatusEnum->execute($this->model, $data['status']);
-        }
-
         $data['legal_name'] = $this->treament->for($this->treatString, $data['legal_name'], 'legal_name', $this->model)->mustBeNotNull()->handle();
 
         $data['trade_name'] = $this->treament->for($this->treatString, $data['trade_name'], 'trade_name', $this->model)->mustBeNotNull()->handle();
@@ -56,6 +53,7 @@ class SellerService extends BaseService
         $data['started_at'] ??= now();
 
         $newSeller = new Seller($data);
+        $newSeller->status = SellerStatus::Active;
         $newSeller->organization_id = $user->organization_id;
 
         DB::transaction(function () use ($newSeller) {

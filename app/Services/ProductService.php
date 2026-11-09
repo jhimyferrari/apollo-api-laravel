@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Actions\Validation\ValidateStatusEnum;
 use App\Actions\Validation\ValidateUnitProduct;
+use App\Enum\Status\ProductStatus;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatBrand;
@@ -27,7 +29,8 @@ class ProductService extends BaseService
         private readonly TreatBrand $treatBrand,
         private readonly TreatMoney $treatMoney,
         private readonly TreatNumber $treatNumber,
-        private readonly ValidateUnitProduct $validateUnit
+        private readonly ValidateUnitProduct $validateUnit,
+        private readonly ValidateStatusEnum $validateStatusEnum,
     ) {
         parent::__construct(new Product);
     }
@@ -54,6 +57,7 @@ class ProductService extends BaseService
         $data['sale_price'] = $this->treatment->for($this->treatMoney, $data['sale_price'], 'sale_price', $this->model)->handle();
 
         $newProduct = new Product($data);
+        $newProduct->status = ProductStatus::Active;
 
         $newProduct->brand_id = (isset($data['brand_id']))
         ? $this->treatment->for($this->treatBrand, $data['brand_id'], 'brand_id', $this->model)->handle()?->id : null;
@@ -83,6 +87,11 @@ class ProductService extends BaseService
      */
     public function update(Model $product, array $data): Product
     {
+
+        if (\array_key_exists('status', $data)) {
+            $this->validateStatusEnum->execute($this->model, $data['status']);
+            $product->status = $data['status'];
+        }
 
         if (\array_key_exists('name', $data)) {
             $product->name = $this->treatment->for($this->treatString, $data['name'], 'name', $this->model)->mustBeNotNull()->handle();

@@ -32,6 +32,7 @@ describe('SellerService', function () {
 
             expect($seller)
                 ->toBeInstanceOf(Seller::class)
+                ->status->toBe(SellerStatus::Active)
                 ->legal_name->toBe($data['legal_name'])
                 ->trade_name->toBe($data['trade_name'])
 
@@ -40,6 +41,22 @@ describe('SellerService', function () {
                 ->email->toBeNull()
                 ->phone->toBeNull();
 
+        });
+
+        it('should always create the seller with Active status regardless of the status passed', function () {
+            $data = [
+                'legal_name' => 'sellerLegalName',
+                'trade_name' => 'sellerTradeName',
+                'document' => fake()->cnpj(false),
+                'status' => SellerStatus::Inactive->value,
+            ];
+            $seller = $this->service->create($data, $this->user);
+
+            expect($seller->status)->toBe(SellerStatus::Active);
+            $this->assertDatabaseHas('sellers', [
+                'id' => $seller->id,
+                'status' => SellerStatus::Active->value,
+            ]);
         });
 
         it('should create a Seller with optional values successfully', function () {

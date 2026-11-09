@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\Status\ProductStatus;
 use App\Enum\StockMovementType;
 use App\Exceptions\ResourceHasDependenciesException;
 use App\Models\Brand;
@@ -47,6 +48,23 @@ describe('ProductService', function () {
             expect($product->cost_price)->toBeInstanceOf(Money::class);
             expect($product->cost_price->toStorageString())->toBe('10.5000');
             expect($product->sale_price->toStorageString())->toBe('19.9000');
+        });
+
+        it('should always create the product with Active status regardless of the status passed', function () {
+            $data = [
+                'name' => 'productName',
+                'cost_price' => '10.5000',
+                'sale_price' => '19.9000',
+                'status' => ProductStatus::Inactive->value,
+            ];
+
+            $product = $this->service->create($data, $this->user);
+
+            expect($product->status)->toBe(ProductStatus::Active);
+            $this->assertDatabaseHas('products', [
+                'id' => $product->id,
+                'status' => ProductStatus::Active->value,
+            ]);
         });
 
         it('should create a Product with optional values successfully', function () {
@@ -261,6 +279,28 @@ describe('ProductService', function () {
             $updated = $this->service->update($product, ['cost_price' => '9.9999']);
 
             expect($updated->cost_price->toStorageString())->toBe('9.9999');
+        });
+
+        it('should update status successfully', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            $updated = $this->service->update($product, ['status' => ProductStatus::Inactive->value]);
+
+            expect($updated->status)->toBe(ProductStatus::Inactive);
+            $this->assertDatabaseHas('products', [
+                'id' => $product->id,
+                'status' => ProductStatus::Inactive->value,
+            ]);
+
+            $updatedAgain = $this->service->update($product, ['status' => ProductStatus::Discontinued->value]);
+            expect($updatedAgain->status)->toBe(ProductStatus::Discontinued);
+        });
+
+        it('should throw an error when pass an invalid status', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            expect(fn () => $this->service->update($product, ['status' => 'invalid_status']))
+                ->toThrow(ValidationException::class);
         });
     });
 

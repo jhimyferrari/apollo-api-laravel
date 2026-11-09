@@ -32,6 +32,7 @@ describe('ClientService', function () {
 
             expect($client)
                 ->toBeInstanceOf(Client::class)
+                ->status->toBe(ClientStatus::Active)
                 ->legal_name->toBe($data['legal_name'])
                 ->trade_name->toBe($data['trade_name'])
 
@@ -40,6 +41,22 @@ describe('ClientService', function () {
                 ->email->toBeNull()
                 ->phone->toBeNull();
 
+        });
+
+        it('should always create the client with Active status regardless of the status passed', function () {
+            $data = [
+                'legal_name' => 'clientLegalName',
+                'trade_name' => 'clientTradeName',
+                'document' => fake()->cnpj(false),
+                'status' => ClientStatus::Inactive->value,
+            ];
+            $client = $this->service->create($data, $this->user);
+
+            expect($client->status)->toBe(ClientStatus::Active);
+            $this->assertDatabaseHas('clients', [
+                'id' => $client->id,
+                'status' => ClientStatus::Active->value,
+            ]);
         });
 
         it('should create a Client with optional values successfully', function () {

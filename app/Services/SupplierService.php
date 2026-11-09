@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Validation\ValidateStatusEnum;
+use App\Enum\Status\SupplierStatus;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatDocument;
@@ -31,10 +32,6 @@ class SupplierService extends BaseService
     public function create(array $data, User $user): Supplier
     {
 
-        if (isset($data['status'])) {
-            $this->validateStatusEnum->execute($this->model, $data['status']);
-        }
-
         $data['legal_name'] = $this->treament->for($this->treatString, $data['legal_name'], 'legal_name', $this->model)->mustBeNotNull()->handle();
 
         $data['trade_name'] = $this->treament->for($this->treatString, $data['trade_name'], 'trade_name', $this->model)->mustBeNotNull()->handle();
@@ -54,6 +51,7 @@ class SupplierService extends BaseService
         }
 
         $newSupplier = new Supplier($data);
+        $newSupplier->status = SupplierStatus::Active;
         $newSupplier->organization_id = $user->organization_id;
 
         DB::transaction(function () use ($newSupplier) {
