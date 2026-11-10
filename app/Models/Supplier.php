@@ -96,6 +96,11 @@ class Supplier extends Model implements Addressable, HasStatus
         return SupplierStatus::class;
     }
 
+    public function isActive(): bool
+    {
+        return $this->status === SupplierStatus::Active;
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

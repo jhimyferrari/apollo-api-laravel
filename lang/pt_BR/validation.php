@@ -357,4 +357,5 @@ return [
 
     'admin_delete' => 'O Administrador não pode ser deletado.',
     'admin_update' => 'Não é possivel alterar o atributo de administrador.',
+    'resource_inactive' => 'O :resource selecionado está inativo.',
 ];

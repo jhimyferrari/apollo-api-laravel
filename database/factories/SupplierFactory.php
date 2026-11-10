@@ -32,4 +32,9 @@ class SupplierFactory extends Factory
             'email' => fake()->email(),
         ];
     }
+
+    public function inactive(): static
+    {
+        return $this->state(['status' => 'inactive']);
+    }
 }

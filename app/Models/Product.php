@@ -105,6 +105,11 @@ class Product extends Model implements HasStatus
         return ProductStatus::class;
     }
 
+    public function isActive(): bool
+    {
+        return $this->status === ProductStatus::Active;
+    }
+
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);

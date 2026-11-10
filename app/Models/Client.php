@@ -98,6 +98,11 @@ class Client extends Model implements Addressable, HasStatus
         return ClientStatus::class;
     }
 
+    public function isActive(): bool
+    {
+        return $this->status === ClientStatus::Active;
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

@@ -122,4 +122,64 @@ describe('POST api/sales-orders', function () {
 
         $response->assertUnprocessable();
     });
+
+    test('Logged user with inactive client', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->for($user->organization)->withStock(10)->create();
+        $client = Client::factory()->for($user->organization)->inactive()->create();
+        $seller = Seller::factory()->for($user->organization)->create();
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.sales-orders.store'), [
+            'client_id' => $client->id,
+            'seller_id' => $seller->id,
+            'items' => [
+                ['product_id' => $product->id, 'number' => 1, 'quantity' => 5],
+            ],
+        ]);
+
+        $response->assertUnprocessable();
+        expect($response->json('error.fields.client_id'))->not->toBeNull();
+    });
+
+    test('Logged user with inactive seller', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->for($user->organization)->withStock(10)->create();
+        $client = Client::factory()->for($user->organization)->create();
+        $seller = Seller::factory()->for($user->organization)->inactive()->create();
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.sales-orders.store'), [
+            'client_id' => $client->id,
+            'seller_id' => $seller->id,
+            'items' => [
+                ['product_id' => $product->id, 'number' => 1, 'quantity' => 5],
+            ],
+        ]);
+
+        $response->assertUnprocessable();
+        expect($response->json('error.fields.seller_id'))->not->toBeNull();
+    });
+
+    test('Logged user with inactive product', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->for($user->organization)->withStock(10)->inactive()->create();
+        $client = Client::factory()->for($user->organization)->create();
+        $seller = Seller::factory()->for($user->organization)->create();
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.sales-orders.store'), [
+            'client_id' => $client->id,
+            'seller_id' => $seller->id,
+            'items' => [
+                ['product_id' => $product->id, 'number' => 1, 'quantity' => 5],
+            ],
+        ]);
+
+        $response->assertUnprocessable();
+        expect($response->json('error.fields.product_id'))->not->toBeNull();
+    });
 });

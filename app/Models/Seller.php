@@ -99,6 +99,11 @@ class Seller extends Model implements Addressable, HasStatus
         return SellerStatus::class;
     }
 
+    public function isActive(): bool
+    {
+        return $this->status === SellerStatus::Active;
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

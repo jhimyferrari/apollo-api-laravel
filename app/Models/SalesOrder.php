@@ -58,6 +58,11 @@ class SalesOrder extends Model implements HasStatus, MovesStock
         return OrderStatus::class;
     }
 
+    public function isActive(): bool
+    {
+        return $this->status !== OrderStatus::Cancelled;
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

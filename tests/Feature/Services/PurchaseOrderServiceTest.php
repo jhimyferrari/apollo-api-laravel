@@ -210,6 +210,45 @@ describe('PurchaseOrderService', function () {
             ], $this->user))->toThrow(ValidationException::class);
         });
 
+        it('throws an error when supplier is inactive', function () {
+            $product = Product::factory()->for($this->organization)->withStock(100)->create();
+            $supplier = Supplier::factory()->for($this->organization)->inactive()->create();
+
+            expect(fn () => $this->service->create([
+                'supplier_id' => $supplier->id,
+                'status' => OrderStatus::Draft->value,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 5, 'number' => 1],
+                ],
+            ], $this->user))->toThrow(ValidationException::class);
+        });
+
+        it('throws an error when a product is inactive', function () {
+            $product = Product::factory()->for($this->organization)->withStock(100)->inactive()->create();
+            $supplier = Supplier::factory()->for($this->organization)->create();
+
+            expect(fn () => $this->service->create([
+                'supplier_id' => $supplier->id,
+                'status' => OrderStatus::Draft->value,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 5, 'number' => 1],
+                ],
+            ], $this->user))->toThrow(ValidationException::class);
+        });
+
+        it('throws an error when a product is discontinued', function () {
+            $product = Product::factory()->for($this->organization)->withStock(100)->discontinued()->create();
+            $supplier = Supplier::factory()->for($this->organization)->create();
+
+            expect(fn () => $this->service->create([
+                'supplier_id' => $supplier->id,
+                'status' => OrderStatus::Draft->value,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 5, 'number' => 1],
+                ],
+            ], $this->user))->toThrow(ValidationException::class);
+        });
+
         it('does not persist anything when one item in the middle is invalid', function () {
             $products = Product::factory()->for($this->organization)->withStock(100)->count(3)->create();
             $supplier = Supplier::factory()->for($this->organization)->create();
@@ -751,6 +790,15 @@ describe('PurchaseOrderService', function () {
 
             expect(fn () => $this->service->update($purchaseOrder, [
                 'supplier_id' => $otherOrganizationSupplier->id,
+            ]))->toThrow(ValidationException::class);
+        });
+
+        it('throws an error when updating to an inactive supplier', function () {
+            $purchaseOrder = PurchaseOrder::factory()->for($this->organization)->createOne();
+            $inactiveSupplier = Supplier::factory()->for($this->organization)->inactive()->create();
+
+            expect(fn () => $this->service->update($purchaseOrder, [
+                'supplier_id' => $inactiveSupplier->id,
             ]))->toThrow(ValidationException::class);
         });
 

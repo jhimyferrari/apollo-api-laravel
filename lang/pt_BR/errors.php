@@ -14,6 +14,7 @@ return [
     'not_found' => 'Não foi possivel encontrar registro :value para o campo :attribute.',
     'not_found_array' => 'Não foi possivel encontrar os registros :values para o campo :attribute.',
     'invalid_status' => 'Status :value não válido para o model :model.',
+    'resource_inactive' => 'O recurso :resource de ID :id está inativo.',
 
     'sequence_number_not_found' => 'Numero de sequência da tabela :table não encontrado para a organização :org.',
 ];
