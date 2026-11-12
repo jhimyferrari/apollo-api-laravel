@@ -3,12 +3,12 @@
 namespace App\Http\Requests\Seller;
 
 use App\Enum\Status\SellerStatus;
+use App\Http\Requests\BaseUpdateRequest;
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateSellerRequest extends FormRequest
+class UpdateSellerRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -31,15 +31,15 @@ class UpdateSellerRequest extends FormRequest
                 Rule::enum(SellerStatus::class),
             ],
             'document' => [
-                'required',
+                'sometimes',
                 new CpfAndCnpj,
             ],
             'legal_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'trade_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'state_registration' => [

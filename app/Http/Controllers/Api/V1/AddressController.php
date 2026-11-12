@@ -68,7 +68,7 @@ class AddressController extends Controller
         return response()->noContent();
     }
 
-    private function verifyPermission(Addressable $addressable, string $operation): void
+    public static function verifyPermission(Addressable $addressable, string $operation): void
     {
         $permissionMap = [
             Client::class => [

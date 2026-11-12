@@ -2,16 +2,24 @@
 
 namespace App\Http\Requests\Address;
 
+use App\Http\Controllers\Api\V1\AddressController;
+use App\Http\Requests\BaseUpdateRequest;
+use App\Models\Address;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateAddressRequest extends FormRequest
+class UpdateAddressRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
+        $address = $this->route('address');
+
+        if ($address instanceof Address) {
+            AddressController::verifyPermission($address->addressable, 'update');
+        }
+
         return true;
     }
 
@@ -24,11 +32,11 @@ class UpdateAddressRequest extends FormRequest
     {
         return [
 
-            'street' => ['nullable'],
-            'number' => ['nullable'],
-            'neighborhood' => ['nullable'],
-            'city_ibge_code' => ['nullable'],
-            'cep' => ['nullable'],
+            'street' => ['sometimes'],
+            'number' => ['sometimes'],
+            'neighborhood' => ['sometimes'],
+            'city_ibge_code' => ['sometimes'],
+            'cep' => ['sometimes'],
             'is_default' => ['nullable', 'boolean'],
             'complement' => ['nullable', 'string'],
         ];

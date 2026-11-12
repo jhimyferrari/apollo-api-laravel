@@ -157,6 +157,7 @@ describe('GET api/v1/reports/purchases/summary', function () {
 
         $response = $this->getJson(route('v1.reports.purchases.summary', [
             'supplier_id' => $supplier1->id,
+            'data_field' => 'confirmed_at',
             'start_date' => now()->subDays(3)->toDateString(),
             'end_date' => now()->toDateString(),
         ]));

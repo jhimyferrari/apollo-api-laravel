@@ -3,12 +3,12 @@
 namespace App\Http\Requests\Client;
 
 use App\Enum\Status\ClientStatus;
+use App\Http\Requests\BaseUpdateRequest;
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateClientRequest extends FormRequest
+class UpdateClientRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -31,15 +31,15 @@ class UpdateClientRequest extends FormRequest
                 Rule::enum(ClientStatus::class),
             ],
             'document' => [
-                'required',
+                'sometimes',
                 new CpfAndCnpj,
             ],
             'legal_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'trade_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'state_registration' => [
