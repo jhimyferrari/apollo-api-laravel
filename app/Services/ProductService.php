@@ -46,6 +46,9 @@ class ProductService extends BaseService
         if (isset($data['unit'])) {
             $this->validateUnit->execute($data['unit'], 'product_unit');
         }
+        if (isset($data['description'])) {
+            $data['description'] = $this->treatment->for($this->treatString, $data['description'], 'description', $this->model)->handle();
+        }
 
         if (isset($data['stock_quantity'])) {
             $data['stock_quantity'] = $this->treatment->for($this->treatNumber, $data['stock_quantity'], 'stock_quantity', $this->model)->handle();
@@ -106,6 +109,10 @@ class ProductService extends BaseService
         }
         if (\array_key_exists('ncm', $data)) {
             $product->ncm_code_id = $this->treatment->for($this->treatNcm, $data['ncm'], 'ncm', $this->model)->handle()?->id;
+        }
+
+        if (\array_key_exists('description', $data)) {
+            $product->description = $this->treatment->for($this->treatString, $data['description'], 'description', $this->model)->handle();
         }
         if (\array_key_exists('brand_id', $data)) {
             $product->brand_id = $this->treatment->for($this->treatBrand, $data['brand_id'], 'brand_id', $this->model)->handle()?->id;

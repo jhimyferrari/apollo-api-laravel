@@ -28,6 +28,7 @@ class UpdateProductRequest extends BaseUpdateRequest
         return [
             'status' => ['sometimes', Rule::enum(ProductStatus::class)],
             'name' => ['sometimes', 'string', 'max:45'],
+            'description' => ['nullable', 'string'],
             'unit' => ['sometimes', 'string', Rule::in(ProductUnit::allValues())],
             'ncm' => ['nullable', 'string', 'size:8'],
             'ean' => ['nullable', 'string', 'size:13'],

@@ -73,6 +73,7 @@ describe('ProductService', function () {
             $data = [
                 'name' => 'productName',
                 'ean' => '7891234567895',
+                'description' => 'Some description',
                 'cost_price' => '10.5000',
                 'sale_price' => '19.9000',
                 'brand_id' => $brand->id,
@@ -82,6 +83,7 @@ describe('ProductService', function () {
 
             expect($product)
                 ->toBeInstanceOf(Product::class)
+                ->description->toBe($data['description'])
                 ->name->toBe($data['name'])
                 ->ean->toBe($data['ean'])
                 ->brand_id->toBe($brand->id);
@@ -301,6 +303,17 @@ describe('ProductService', function () {
 
             expect(fn () => $this->service->update($product, ['status' => 'invalid_status']))
                 ->toThrow(ValidationException::class);
+        });
+
+        it('should update a description successfully', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            $updated = $this->service->update($product, ['description' => 'other description']);
+
+            expect($updated->description)->toBe('other description');
+
+            $updatedAgain = $this->service->update($product, ['description' => null]);
+            expect($updatedAgain->description)->toBeNull();
         });
     });
 

@@ -88,6 +88,7 @@ class Product extends Model implements HasStatus
         'name',
         'unit',
         'ean',
+        'description',
         'cost_price',
         'sale_price',
         'stock_quantity',
