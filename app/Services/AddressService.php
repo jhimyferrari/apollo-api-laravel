@@ -83,7 +83,7 @@ class AddressService
 
         return DB::transaction(function () use ($address, $data) {
             $address->save();
-            if (\array_key_exists('is_default', $data)) {
+            if (! empty($data['is_default'])) {
                 $address->addressable->setDefaultAddress($address);
             }
 
