@@ -63,7 +63,7 @@ class PurchaseReportService
             ->selectRaw('status, COUNT(*) as count, SUM(total) as total')
             ->groupBy('status')
             ->get()
-            ->mapWithKeys(function ($item) {
+            ->mapWithKeys(function (PurchaseOrder $item) {
                 $statusVal = $item->status instanceof OrderStatus ? $item->status->value : (string) $item->status;
                 $totMoney = $item->total instanceof Money ? $item->total : Money::fromDecimal($item->total ?? 0);
 
@@ -82,7 +82,7 @@ class PurchaseReportService
             ->selectRaw('payment_status, COUNT(*) as count, SUM(total) as total')
             ->groupBy('payment_status')
             ->get()
-            ->mapWithKeys(function ($item) {
+            ->mapWithKeys(function (PurchaseOrder $item) {
                 $statusVal = $item->payment_status instanceof PaymentStatus ? $item->payment_status->value : (string) $item->payment_status;
                 $totMoney = $item->total instanceof Money ? $item->total : Money::fromDecimal($item->total ?? 0);
 

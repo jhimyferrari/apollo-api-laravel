@@ -13,6 +13,9 @@ use App\Models\Address;
 use App\Models\Supplier;
 use App\Services\AddressService;
 use App\Services\SupplierService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -23,7 +26,7 @@ class SupplierController extends Controller implements HasMiddleware
         protected AddressService $addressService
     ) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
             new Middleware('abilities:'.PermissionType::SUPPLIER_CREATE->value, only: ['store']),
@@ -37,7 +40,7 @@ class SupplierController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return SupplierResource::collection(Supplier::with('addresses')->paginate(15));
 
@@ -46,7 +49,7 @@ class SupplierController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSupplierRequest $request)
+    public function store(StoreSupplierRequest $request): JsonResponse
     {
         $newSupplier = $this->supplierService->create($request->validated(), Auth()->user());
 
@@ -56,7 +59,7 @@ class SupplierController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Supplier $supplier)
+    public function show(Supplier $supplier): SupplierResource
     {
         return SupplierResource::make($supplier);
     }
@@ -64,7 +67,7 @@ class SupplierController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSupplierRequest $request, Supplier $supplier)
+    public function update(UpdateSupplierRequest $request, Supplier $supplier): Response
     {
 
         $this->supplierService->update($supplier, $request->validated());
@@ -75,28 +78,28 @@ class SupplierController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Supplier $supplier)
+    public function destroy(Supplier $supplier): Response
     {
         $this->supplierService->delete($supplier);
 
         return response()->noContent();
     }
 
-    public function storeAddress(StoreAddressRequest $request, Supplier $supplier)
+    public function storeAddress(StoreAddressRequest $request, Supplier $supplier): JsonResponse
     {
         $newAddress = $this->addressService->create($supplier, $request->validated());
 
         return $this->success($newAddress, __('messages.created', ['resource' => __('validation.resources.address')]), 201);
     }
 
-    public function setDefaultAddress(Supplier $supplier, Address $address)
+    public function setDefaultAddress(Supplier $supplier, Address $address): Response
     {
         $this->addressService->setDefault($supplier, $address);
 
         return response()->noContent();
     }
 
-    public function showAddresses(Supplier $supplier)
+    public function showAddresses(Supplier $supplier): AnonymousResourceCollection
     {
         return AddressResource::collection($supplier->addresses()->with('city.uf')->paginate(5));
     }

@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -87,6 +88,7 @@ class Product extends Model implements HasStatus
         'name',
         'unit',
         'ean',
+        'description',
         'cost_price',
         'sale_price',
         'stock_quantity',
@@ -99,9 +101,14 @@ class Product extends Model implements HasStatus
         'stock_quantity' => 'decimal:3',
     ];
 
-    public function StatusEnumClass(): string
+    public function statusEnumClass(): string
     {
         return ProductStatus::class;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === ProductStatus::Active;
     }
 
     public function brand(): BelongsTo
@@ -122,5 +129,20 @@ class Product extends Model implements HasStatus
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function salesOrderItems(): HasMany
+    {
+        return $this->hasMany(SalesOrderItem::class);
+    }
+
+    public function purchaseOrderItems(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
     }
 }

@@ -110,4 +110,40 @@ describe('POST api/purchase-orders', function () {
 
         $response->assertUnprocessable();
     });
+
+    test('Logged user with inactive supplier', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->for($user->organization)->withStock(10)->create();
+        $supplier = Supplier::factory()->for($user->organization)->inactive()->create();
+
+        Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.purchase-orders.store'), [
+            'supplier_id' => $supplier->id,
+            'items' => [
+                ['product_id' => $product->id, 'number' => 1, 'quantity' => 5],
+            ],
+        ]);
+
+        $response->assertUnprocessable();
+        expect($response->json('error.fields.supplier_id'))->not->toBeNull();
+    });
+
+    test('Logged user with inactive product', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->for($user->organization)->withStock(10)->inactive()->create();
+        $supplier = Supplier::factory()->for($user->organization)->create();
+
+        Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.purchase-orders.store'), [
+            'supplier_id' => $supplier->id,
+            'items' => [
+                ['product_id' => $product->id, 'number' => 1, 'quantity' => 5],
+            ],
+        ]);
+
+        $response->assertUnprocessable();
+        expect($response->json('error.fields.product_id'))->not->toBeNull();
+    });
 });

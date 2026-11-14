@@ -3,11 +3,12 @@
 namespace App\Http\Requests\Product;
 
 use App\Enum\ProductUnit;
+use App\Enum\Status\ProductStatus;
+use App\Http\Requests\BaseUpdateRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateProductRequest extends FormRequest
+class UpdateProductRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,16 +26,18 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:45'],
-            'unit' => ['required', 'string', Rule::in(ProductUnit::allValues())],
+            'status' => ['sometimes', Rule::enum(ProductStatus::class)],
+            'name' => ['sometimes', 'string', 'max:45'],
+            'description' => ['nullable', 'string'],
+            'unit' => ['sometimes', 'string', Rule::in(ProductUnit::allValues())],
             'ncm' => ['nullable', 'string', 'size:8'],
             'ean' => ['nullable', 'string', 'size:13'],
-            'cost_price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
-            'sale_price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'cost_price' => ['sometimes', 'numeric', 'min:0', 'decimal:0,4'],
+            'sale_price' => ['sometimes', 'numeric', 'min:0', 'decimal:0,4'],
             'stock_quantity' => ['nullable', 'numeric', 'min:0', 'decimal:0,3'],
             'brand_id' => ['nullable', 'string'],
             'categories' => ['nullable', 'array'],
-            'categories.*.id' => ['required_with', 'string'],
+            'categories.*.id' => ['uuid'],
         ];
     }
 }

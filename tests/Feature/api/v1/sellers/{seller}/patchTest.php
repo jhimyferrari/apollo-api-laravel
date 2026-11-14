@@ -1,6 +1,7 @@
 <?php
 
 use App\Enum\PermissionType;
+use App\Enum\Status\SellerStatus;
 use App\Models\Seller;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,6 +27,43 @@ describe('PATCH api/sellers/{seller}', function () {
 
         $response->assertNoContent();
         $this->assertDatabaseHas('sellers', $newSellerRequest);
+    });
+
+    test('Logged user can update seller status', function () {
+        $user = User::factory()->create();
+        $seller = Seller::factory()->create([
+            'organization_id' => $user->organization_id,
+            'status' => SellerStatus::Active,
+        ]);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
+
+        $payload = [
+            'document' => fake()->cnpj(false),
+            'legal_name' => fake()->company(),
+            'trade_name' => fake()->company(),
+            'status' => SellerStatus::Inactive->value,
+        ];
+        $response = $this->patchJson(route('v1.sellers.update', $seller), $payload);
+
+        $response->assertNoContent();
+        expect($seller->fresh()->status)->toBe(SellerStatus::Inactive);
+    });
+
+    test('Logged user fails to update seller with invalid status', function () {
+        $user = User::factory()->create();
+        $seller = Seller::factory()->create(['organization_id' => $user->organization_id]);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
+
+        $payload = [
+            'document' => fake()->cnpj(false),
+            'legal_name' => fake()->company(),
+            'trade_name' => fake()->company(),
+            'status' => 'invalid_status',
+        ];
+        $response = $this->patchJson(route('v1.sellers.update', $seller), $payload);
+
+        $response->assertUnprocessable()
+            ->assertJsonStructure(['error' => ['fields' => ['status']]]);
     });
 
     test('Other organization seller', function () {

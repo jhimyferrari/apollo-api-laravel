@@ -24,35 +24,35 @@ class TreatmentBuilder
         private readonly Model $model,
     ) {}
 
-    public function mustBeNotNull(bool $value = true)
+    public function mustBeNotNull(bool $value = true): self
     {
         $this->mustBeNotNull = $value;
 
         return $this;
     }
 
-    public function mustBeUnique(bool $value = true)
+    public function mustBeUnique(bool $value = true): self
     {
         $this->mustBeUnique = $value;
 
         return $this;
     }
 
-    public function ignoredId(string $value)
+    public function ignoredId(string $value): self
     {
         $this->ignoredId = $value;
 
         return $this;
     }
 
-    public function organizationId(string $value)
+    public function organizationId(string $value): self
     {
         $this->organizationId = $value;
 
         return $this;
     }
 
-    public function handle()
+    public function handle(): mixed
     {
         $options = new TreatmentOptions(
             mustBeNotNull: $this->mustBeNotNull,

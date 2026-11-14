@@ -9,12 +9,15 @@ use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
 class CategoryController extends Controller implements HasMiddleware
 {
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
             new Middleware('abilities:'.PermissionType::CATEGORY_CREATE->value, only: ['store']),
@@ -31,7 +34,7 @@ class CategoryController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return CategoryResource::collection(Category::paginate(15));
     }
@@ -39,7 +42,7 @@ class CategoryController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBrandRequest $request)
+    public function store(StoreBrandRequest $request): JsonResponse
     {
         $newCategory = $this->categoryService->create($request->validated(), Auth()->user());
 
@@ -49,7 +52,7 @@ class CategoryController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show(Category $category): CategoryResource
     {
         return CategoryResource::make($category);
     }
@@ -57,7 +60,7 @@ class CategoryController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category): Response
     {
         $this->categoryService->update($category, $request->validated());
 
@@ -67,7 +70,7 @@ class CategoryController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(Category $category): Response
     {
         $this->categoryService->delete($category);
 

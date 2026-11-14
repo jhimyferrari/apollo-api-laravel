@@ -9,6 +9,9 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -18,7 +21,7 @@ class ProductController extends Controller implements HasMiddleware
         protected ProductService $productService
     ) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
             new Middleware('abilities:'.PermissionType::PRODUCT_CREATE->value, only: ['store']),
@@ -31,7 +34,7 @@ class ProductController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return ProductResource::collection(Product::with(['brand', 'categories'])->paginate(15));
     }
@@ -39,7 +42,7 @@ class ProductController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): JsonResponse
     {
         $newProduct = $this->productService->create($request->validated(), Auth()->user());
 
@@ -49,7 +52,7 @@ class ProductController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Product $product): ProductResource
     {
         return ProductResource::make($product);
     }
@@ -57,7 +60,7 @@ class ProductController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): Response
     {
         $this->productService->update($product, $request->validated());
 
@@ -68,7 +71,7 @@ class ProductController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product): Response
     {
         $this->productService->delete($product);
 

@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use App\Enum\ErrorType;
+use BackedEnum;
 
 class InvalidStatusTransitionException extends BaseException
 {
@@ -15,7 +16,7 @@ class InvalidStatusTransitionException extends BaseException
         );
     }
 
-    public static function make($from, $to): self
+    public static function make(BackedEnum $from, BackedEnum $to): self
     {
         return new self(
             message: "Cannot transition from `{$from->value}` to `{$to->value}`."

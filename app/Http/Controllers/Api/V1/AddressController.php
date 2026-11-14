@@ -12,6 +12,7 @@ use App\Models\Client;
 use App\Models\Seller;
 use App\Models\Supplier;
 use App\Services\AddressService;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -35,7 +36,7 @@ class AddressController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Address $address)
+    public function show(Address $address): AddressResource
     {
 
         $this->verifyPermission($address->addressable, __FUNCTION__);
@@ -48,7 +49,7 @@ class AddressController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateAddressRequest $request, Address $address)
+    public function update(UpdateAddressRequest $request, Address $address): Response
     {
 
         $this->verifyPermission($address->addressable, __FUNCTION__);
@@ -60,7 +61,7 @@ class AddressController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Address $address)
+    public function destroy(Address $address): Response
     {
         $this->verifyPermission($address->addressable, __FUNCTION__);
         $this->service->delete($address);
@@ -68,7 +69,7 @@ class AddressController extends Controller
         return response()->noContent();
     }
 
-    private function verifyPermission(Addressable $addressable, string $operation): void
+    public static function verifyPermission(Addressable $addressable, string $operation): void
     {
         $permissionMap = [
             Client::class => [

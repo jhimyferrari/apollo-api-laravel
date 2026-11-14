@@ -13,6 +13,9 @@ use App\Models\Address;
 use App\Models\Seller;
 use App\Services\AddressService;
 use App\Services\SellerService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -23,7 +26,7 @@ class SellerController extends Controller implements HasMiddleware
         protected AddressService $addressService
     ) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
             new Middleware('abilities:'.PermissionType::SELLER_CREATE->value, only: ['store']),
@@ -37,7 +40,7 @@ class SellerController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return SellerResource::collection(Seller::paginate(15));
     }
@@ -45,7 +48,7 @@ class SellerController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSellerRequest $request)
+    public function store(StoreSellerRequest $request): JsonResponse
     {
         $newSeller = $this->sellerService->create($request->validated(), Auth()->user());
 
@@ -55,7 +58,7 @@ class SellerController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Seller $seller)
+    public function show(Seller $seller): SellerResource
     {
         return SellerResource::make($seller);
 
@@ -64,7 +67,7 @@ class SellerController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSellerRequest $request, Seller $seller)
+    public function update(UpdateSellerRequest $request, Seller $seller): Response
     {
         $this->sellerService->update($seller, $request->validated());
 
@@ -74,28 +77,28 @@ class SellerController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Seller $seller)
+    public function destroy(Seller $seller): Response
     {
         $this->sellerService->delete($seller);
 
         return response()->noContent();
     }
 
-    public function storeAddress(StoreAddressRequest $request, Seller $seller)
+    public function storeAddress(StoreAddressRequest $request, Seller $seller): JsonResponse
     {
         $newAddress = $this->addressService->create($seller, $request->validated());
 
         return $this->success($newAddress, __('messages.created', ['resource' => __('validation.resources.address')]), 201);
     }
 
-    public function setDefaultAddress(Seller $seller, Address $address)
+    public function setDefaultAddress(Seller $seller, Address $address): Response
     {
         $this->addressService->setDefault($seller, $address);
 
         return response()->noContent();
     }
 
-    public function showAddresses(Seller $seller)
+    public function showAddresses(Seller $seller): AnonymousResourceCollection
     {
         return AddressResource::collection($seller->addresses()->with('city.uf')->paginate(5));
     }

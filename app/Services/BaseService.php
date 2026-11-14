@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Interfaces\ResourceServiceInterface;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -55,8 +56,40 @@ abstract class BaseService implements ResourceServiceInterface
         return $model;
     }
 
+    /**
+     * Define relations that prevent deletion if records exist.
+     *
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [];
+    }
+
+    /**
+     * Ensure the model has no dependent relation records before deletion.
+     *
+     * @throws ResourceHasDependenciesException
+     */
+    protected function ensureHasNoDependencies(Model $model): void
+    {
+        $blocking = [];
+
+        foreach ($this->dependentRelations() as $relation => $label) {
+            if (method_exists($model, $relation) && $model->{$relation}()->exists()) {
+                $blocking[] = $label;
+            }
+        }
+
+        if (! empty($blocking)) {
+            throw ResourceHasDependenciesException::withRelations($model, $blocking);
+        }
+    }
+
     public function delete(Model $model): void
     {
+        $this->ensureHasNoDependencies($model);
+
         $model->delete();
     }
 }

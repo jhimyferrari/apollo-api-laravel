@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Actions\Validation\ValidateStatusEnum;
 use App\Actions\Validation\ValidateUnitProduct;
+use App\Enum\Status\ProductStatus;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatBrand;
@@ -27,7 +29,8 @@ class ProductService extends BaseService
         private readonly TreatBrand $treatBrand,
         private readonly TreatMoney $treatMoney,
         private readonly TreatNumber $treatNumber,
-        private readonly ValidateUnitProduct $validateUnit
+        private readonly ValidateUnitProduct $validateUnit,
+        private readonly ValidateStatusEnum $validateStatusEnum,
     ) {
         parent::__construct(new Product);
     }
@@ -41,17 +44,23 @@ class ProductService extends BaseService
             $data['ean'] = $this->treatment->for($this->treatEAN, $data['ean'], 'ean', $this->model)->mustBeUnique()->handle();
         }
         if (isset($data['unit'])) {
-            $this->validateUnit->execute($data['unit'], 'product_unit');
+            $this->validateUnit->execute($data['unit'], 'unit');
+        }
+        if (isset($data['description'])) {
+            $data['description'] = $this->treatment->for($this->treatString, $data['description'], 'description', $this->model)->handle();
         }
 
         if (isset($data['stock_quantity'])) {
             $data['stock_quantity'] = $this->treatment->for($this->treatNumber, $data['stock_quantity'], 'stock_quantity', $this->model)->handle();
+        } else {
+            $data['stock_quantity'] = 0;
         }
 
         $data['cost_price'] = $this->treatment->for($this->treatMoney, $data['cost_price'], 'cost_price', $this->model)->handle();
         $data['sale_price'] = $this->treatment->for($this->treatMoney, $data['sale_price'], 'sale_price', $this->model)->handle();
 
         $newProduct = new Product($data);
+        $newProduct->status = ProductStatus::Active;
 
         $newProduct->brand_id = (isset($data['brand_id']))
         ? $this->treatment->for($this->treatBrand, $data['brand_id'], 'brand_id', $this->model)->handle()?->id : null;
@@ -82,6 +91,11 @@ class ProductService extends BaseService
     public function update(Model $product, array $data): Product
     {
 
+        if (\array_key_exists('status', $data)) {
+            $this->validateStatusEnum->execute($this->model, $data['status']);
+            $product->status = $data['status'];
+        }
+
         if (\array_key_exists('name', $data)) {
             $product->name = $this->treatment->for($this->treatString, $data['name'], 'name', $this->model)->mustBeNotNull()->handle();
         }
@@ -95,6 +109,10 @@ class ProductService extends BaseService
         }
         if (\array_key_exists('ncm', $data)) {
             $product->ncm_code_id = $this->treatment->for($this->treatNcm, $data['ncm'], 'ncm', $this->model)->handle()?->id;
+        }
+
+        if (\array_key_exists('description', $data)) {
+            $product->description = $this->treatment->for($this->treatString, $data['description'], 'description', $this->model)->handle();
         }
         if (\array_key_exists('brand_id', $data)) {
             $product->brand_id = $this->treatment->for($this->treatBrand, $data['brand_id'], 'brand_id', $this->model)->handle()?->id;
@@ -111,8 +129,7 @@ class ProductService extends BaseService
 
             if (\array_key_exists('categories', $data)) {
                 $product->categories()->sync(
-                    $this->treatment->for($this->treatCategory, $data['categories'], 'categories', $this->model)->handle()
-                );
+                    $this->treatment->for($this->treatCategory, $data['categories'], 'categories', $this->model)->handle() ?? []);
             }
         });
 
@@ -120,15 +137,27 @@ class ProductService extends BaseService
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [
+            'salesOrderItems' => 'vendas',
+            'purchaseOrderItems' => 'compras',
+            'stockMovements' => 'movimentações de estoque',
+        ];
+    }
+
+    /**
      * @param  Product  $product
      */
     public function delete(Model $product): void
     {
+        $this->ensureHasNoDependencies($product);
 
         DB::transaction(function () use ($product) {
             $product->categories()->detach();
             $product->delete();
-
         });
     }
 }

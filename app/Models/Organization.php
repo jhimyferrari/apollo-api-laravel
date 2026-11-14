@@ -70,7 +70,7 @@ class Organization extends Model
     public function document(): Attribute
     {
         return Attribute::make(
-            set: function ($value) {
+            set: function (string $value): string {
                 $formatedValue = DocumentHelper::remove_pontuation($value);
 
                 if (\strlen($formatedValue) === 11 || \strlen($formatedValue) === 14) {

@@ -1,11 +1,21 @@
 <?php
 
+use App\Enum\Status\ProductStatus;
+use App\Enum\StockMovementType;
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Client;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
+use App\Models\Seller;
+use App\Models\StockMovement;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Services\ProductService;
 use App\ValueObjects\Money;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
@@ -40,12 +50,30 @@ describe('ProductService', function () {
             expect($product->sale_price->toStorageString())->toBe('19.9000');
         });
 
+        it('should always create the product with Active status regardless of the status passed', function () {
+            $data = [
+                'name' => 'productName',
+                'cost_price' => '10.5000',
+                'sale_price' => '19.9000',
+                'status' => ProductStatus::Inactive->value,
+            ];
+
+            $product = $this->service->create($data, $this->user);
+
+            expect($product->status)->toBe(ProductStatus::Active);
+            $this->assertDatabaseHas('products', [
+                'id' => $product->id,
+                'status' => ProductStatus::Active->value,
+            ]);
+        });
+
         it('should create a Product with optional values successfully', function () {
             $brand = Brand::factory()->create(['organization_id' => $this->user->organization_id]);
 
             $data = [
                 'name' => 'productName',
                 'ean' => '7891234567895',
+                'description' => 'Some description',
                 'cost_price' => '10.5000',
                 'sale_price' => '19.9000',
                 'brand_id' => $brand->id,
@@ -55,6 +83,7 @@ describe('ProductService', function () {
 
             expect($product)
                 ->toBeInstanceOf(Product::class)
+                ->description->toBe($data['description'])
                 ->name->toBe($data['name'])
                 ->ean->toBe($data['ean'])
                 ->brand_id->toBe($brand->id);
@@ -121,7 +150,6 @@ describe('ProductService', function () {
             ], $this->user))->toThrow(ValidationException::class);
         });
 
-        // AJUSTAR: troque ValidationException pela exception real lançada por ValidateUnitProduct
         it('throws an error when pass an invalid unit', function () {
             expect(fn () => $this->service->create([
                 'name' => 'productName',
@@ -129,6 +157,15 @@ describe('ProductService', function () {
                 'sale_price' => '19.9000',
                 'unit' => 'INVALID_UNIT',
             ], $this->user))->toThrow(ValidationException::class);
+        });
+
+        it('not throws an error when pass a null initial stock', function () {
+            expect(fn () => $this->service->create([
+                'name' => 'productName',
+                'cost_price' => '10.5000',
+                'sale_price' => '19.9000',
+                'stock_quantity' => null,
+            ], $this->user))->not->toThrow(QueryException::class);
         });
     });
 
@@ -230,7 +267,14 @@ describe('ProductService', function () {
 
             expect($product->categories()->pluck('categories.id')->all())->toBe([$categoryB->id]);
         });
+        it('should detach all categories ', function () {
+            $categories = Category::factory()->for($this->user->organization)->count(10)->create();
+            $product = Product::factory()->withCategories($categories)->create(['organization_id' => $this->user->organization_id]);
 
+            $this->service->update($product, ['categories' => null]);
+
+            expect($product->categories()->exists())->toBeFalse();
+        });
         it('throws an error when pass an empty name', function () {
             $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
 
@@ -244,6 +288,39 @@ describe('ProductService', function () {
             $updated = $this->service->update($product, ['cost_price' => '9.9999']);
 
             expect($updated->cost_price->toStorageString())->toBe('9.9999');
+        });
+
+        it('should update status successfully', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            $updated = $this->service->update($product, ['status' => ProductStatus::Inactive->value]);
+
+            expect($updated->status)->toBe(ProductStatus::Inactive);
+            $this->assertDatabaseHas('products', [
+                'id' => $product->id,
+                'status' => ProductStatus::Inactive->value,
+            ]);
+
+            $updatedAgain = $this->service->update($product, ['status' => ProductStatus::Discontinued->value]);
+            expect($updatedAgain->status)->toBe(ProductStatus::Discontinued);
+        });
+
+        it('should throw an error when pass an invalid status', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            expect(fn () => $this->service->update($product, ['status' => 'invalid_status']))
+                ->toThrow(ValidationException::class);
+        });
+
+        it('should update a description successfully', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            $updated = $this->service->update($product, ['description' => 'other description']);
+
+            expect($updated->description)->toBe('other description');
+
+            $updatedAgain = $this->service->update($product, ['description' => null]);
+            expect($updatedAgain->description)->toBeNull();
         });
     });
 
@@ -266,6 +343,67 @@ describe('ProductService', function () {
                 ->assertFalse($categories->first()->products->contains($product));
 
             $this->assertEmpty($categories->first()->products->diff($products));
+        });
+
+        it('throws an error when trying to delete a product with sales items', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+            $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
+            $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+            $order = SalesOrder::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'client_id' => $client->id,
+                'seller_id' => $seller->id,
+            ]);
+
+            $order->items()->create([
+                'organization_id' => $this->user->organization_id,
+                'product_id' => $product->id,
+                'number' => 1,
+                'quantity' => 2,
+                'unit_price' => Money::fromDecimal('10.0000'),
+                'subtotal' => Money::fromDecimal('20.0000'),
+            ]);
+
+            expect(fn () => $this->service->delete($product))
+                ->toThrow(ResourceHasDependenciesException::class);
+        });
+
+        it('throws an error when trying to delete a product with purchase items', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+            $supplier = Supplier::factory()->create(['organization_id' => $this->user->organization_id]);
+            $order = PurchaseOrder::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'supplier_id' => $supplier->id,
+            ]);
+
+            $order->items()->create([
+                'organization_id' => $this->user->organization_id,
+                'product_id' => $product->id,
+                'number' => 1,
+                'quantity' => 5,
+                'unit_price' => Money::fromDecimal('5.0000'),
+                'subtotal' => Money::fromDecimal('25.0000'),
+            ]);
+
+            expect(fn () => $this->service->delete($product))
+                ->toThrow(ResourceHasDependenciesException::class);
+        });
+
+        it('throws an error when trying to delete a product with stock movements', function () {
+            $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            $movement = new StockMovement([
+                'organization_id' => $this->user->organization_id,
+                'product_id' => $product->id,
+                'type' => StockMovementType::In,
+                'quantity' => 10,
+                'balance_after' => 10,
+            ]);
+            $movement->reference()->associate($product);
+            $movement->save();
+
+            expect(fn () => $this->service->delete($product))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 });

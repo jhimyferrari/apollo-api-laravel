@@ -1,7 +1,9 @@
 <?php
 
+use App\Enum\ErrorType;
 use App\Enum\PermissionType;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -45,5 +47,22 @@ describe('DELETE api/categories/{category}', function () {
         $response = $this->deleteJson(route('v1.categories.destroy', $category));
 
         $response->assertUnauthorized();
+    });
+
+    test('Logged user cannot delete category with products', function () {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, [PermissionType::CATEGORY_DELETE->value]);
+        $category = Category::factory()->create(['organization_id' => $user->organization_id]);
+        $product = Product::factory()->create(['organization_id' => $user->organization_id]);
+        $product->categories()->sync([$category->id]);
+
+        $response = $this->deleteJson(route('v1.categories.destroy', $category));
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'error' => [
+                    'code' => ErrorType::ResourceHasDependencies->value,
+                ],
+            ]);
     });
 });

@@ -73,7 +73,7 @@ class Client extends Model implements Addressable, HasStatus
 
     protected $primaryKey = 'id';
 
-    public $timestamp = true;
+    public $timestamps = true;
 
     protected $fillable = [
         'document',
@@ -96,6 +96,11 @@ class Client extends Model implements Addressable, HasStatus
     public function statusEnumClass(): string
     {
         return ClientStatus::class;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === ClientStatus::Active;
     }
 
     public function organization(): BelongsTo

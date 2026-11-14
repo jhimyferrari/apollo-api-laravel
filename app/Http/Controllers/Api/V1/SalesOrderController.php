@@ -9,7 +9,10 @@ use App\Http\Requests\SalesOrder\UpdateSalesOrderRequest;
 use App\Http\Resources\SalesOrderResource;
 use App\Models\SalesOrder;
 use App\Services\SalesOrderService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -19,7 +22,7 @@ class SalesOrderController extends Controller implements HasMiddleware
         private readonly SalesOrderService $service,
     ) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
             new Middleware('abilities:'.PermissionType::SALES_ORDER_CREATE->value, only: ['store']),
@@ -33,7 +36,7 @@ class SalesOrderController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
 
         return SalesOrderResource::collection(SalesOrder::with([
@@ -47,7 +50,7 @@ class SalesOrderController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSalesOrderRequest $request)
+    public function store(StoreSalesOrderRequest $request): JsonResponse
     {
         $newOrder = $this->service->create($request->validated(), Auth()->user());
 
@@ -57,7 +60,7 @@ class SalesOrderController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(SalesOrder $salesOrder)
+    public function show(SalesOrder $salesOrder): SalesOrderResource
     {
         $salesOrder->load(['client', 'seller', 'items.product']);
 
@@ -67,7 +70,7 @@ class SalesOrderController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSalesOrderRequest $request, SalesOrder $salesOrder)
+    public function update(UpdateSalesOrderRequest $request, SalesOrder $salesOrder): Response
     {
         $this->service->update($salesOrder, $request->validated());
 
@@ -77,28 +80,28 @@ class SalesOrderController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SalesOrder $salesOrder)
+    public function destroy(SalesOrder $salesOrder): Response
     {
         $this->service->delete($salesOrder);
 
         return response()->noContent();
     }
 
-    public function confirm(SalesOrder $salesOrder)
+    public function confirm(SalesOrder $salesOrder): Response
     {
         $this->service->confirm($salesOrder);
 
         return response()->noContent();
     }
 
-    public function cancel(SalesOrder $salesOrder)
+    public function cancel(SalesOrder $salesOrder): Response
     {
         $this->service->cancel($salesOrder);
 
         return response()->noContent();
     }
 
-    public function reopen(Request $request, SalesOrder $salesOrder)
+    public function reopen(Request $request, SalesOrder $salesOrder): JsonResponse
     {
         $validated = $request->validate([
             'reason' => ['nullable', 'string'],

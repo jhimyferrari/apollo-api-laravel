@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Models\Organization;
 use App\Services\OrganizationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
@@ -17,12 +18,12 @@ class OrganizationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {}
+    public function index(): void {}
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreOrganizationRequest $request)
+    public function store(StoreOrganizationRequest $request): JsonResponse
     {
 
         [$newOrganization, $adminUser] = $this->organizationService->create($request->validated());
@@ -36,7 +37,7 @@ class OrganizationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Organization $organization)
+    public function show(Organization $organization): void
     {
         //
     }
@@ -44,7 +45,7 @@ class OrganizationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Organization $organization)
+    public function update(Request $request, Organization $organization): void
     {
         //
     }
@@ -52,7 +53,7 @@ class OrganizationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Organization $organization)
+    public function destroy(Organization $organization): void
     {
         //
     }

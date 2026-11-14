@@ -9,6 +9,9 @@ use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\UserService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -17,7 +20,7 @@ class UserController extends Controller implements HasMiddleware
     public function __construct(
         protected UserService $userService) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
             new Middleware('abilities:'.PermissionType::USER_CREATE->value, only: ['store']),
@@ -30,7 +33,7 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return UserResource::collection(User::with('permissions')->paginate(15));
 
@@ -39,7 +42,7 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRequest $request): JsonResponse
     {
         $newUser = $this->userService->create($request->validated(), Auth()->user());
 
@@ -49,7 +52,7 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(User $user): UserResource
     {
         return UserResource::make($user);
     }
@@ -57,7 +60,7 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, User $user): Response
     {
         $this->userService->update($user, $request->validated());
 
@@ -67,7 +70,7 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(User $user): Response
     {
 
         $this->userService->delete($user);

@@ -58,6 +58,11 @@ class SalesOrder extends Model implements HasStatus, MovesStock
         return OrderStatus::class;
     }
 
+    public function isActive(): bool
+    {
+        return $this->status !== OrderStatus::Cancelled;
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
@@ -83,7 +88,7 @@ class SalesOrder extends Model implements HasStatus, MovesStock
         return $this->morphMany(StockMovement::class, 'reference');
     }
 
-    public function sumTotalByItems()
+    public function sumTotalByItems(): Money
     {
         $total = Money::zero();
         foreach ($this->items as $item) {

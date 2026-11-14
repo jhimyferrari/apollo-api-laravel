@@ -82,7 +82,7 @@ class Address extends Model
         'organization_id',
     ];
 
-    public function city()
+    public function city(): BelongsTo
     {
         return $this->belongsTo(City::class, 'city_ibge_code', 'ibge_code');
     }

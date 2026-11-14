@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Actions\Validation\ValidateStatusEnum;
+use App\Enum\Status\SellerStatus;
 use App\Models\Seller;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatDocument;
@@ -32,10 +33,6 @@ class SellerService extends BaseService
     public function create(array $data, User $user): Seller
     {
 
-        if (isset($data['status'])) {
-            $this->validateStatusEnum->execute($this->model, $data['status']);
-        }
-
         $data['legal_name'] = $this->treament->for($this->treatString, $data['legal_name'], 'legal_name', $this->model)->mustBeNotNull()->handle();
 
         $data['trade_name'] = $this->treament->for($this->treatString, $data['trade_name'], 'trade_name', $this->model)->mustBeNotNull()->handle();
@@ -56,6 +53,7 @@ class SellerService extends BaseService
         $data['started_at'] ??= now();
 
         $newSeller = new Seller($data);
+        $newSeller->status = SellerStatus::Active;
         $newSeller->organization_id = $user->organization_id;
 
         DB::transaction(function () use ($newSeller) {
@@ -105,6 +103,14 @@ class SellerService extends BaseService
             $seller->email = $this->treament->for($this->treatEmail, $data['email'], 'email', $this->model)->handle();
         }
 
+        if (\array_key_exists('started_at', $data)) {
+            $seller->started_at = $data['started_at'];
+        }
+
+        if (\array_key_exists('ended_at', $data)) {
+            $seller->ended_at = $data['ended_at'];
+        }
+
         DB::transaction(function () use ($seller) {
             $seller->save();
         });
@@ -113,10 +119,22 @@ class SellerService extends BaseService
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function dependentRelations(): array
+    {
+        return [
+            'salesOrders' => 'pedidos de venda',
+        ];
+    }
+
+    /**
      * @param  Seller  $seller
      */
     public function delete(Model $seller): void
     {
+        $this->ensureHasNoDependencies($seller);
+
         DB::transaction(function () use ($seller) {
             $seller->addresses()->delete();
             $seller->delete();

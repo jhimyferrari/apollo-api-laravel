@@ -247,7 +247,14 @@ describe('AddressService', function () {
 
             expect($address)->is_default->toBeTrue();
             expect($oldDefault)->is_default->toBeFalse();
+
+            // asserting false will do nothing
+            $this->service->update($oldDefault, ['is_default' => false]);
+            $address->refresh();
+            expect($oldDefault)->is_default->toBeFalse();
+
         });
+
         it('should throw ValidationException when street is set to null', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $address = $client->addresses()->create(

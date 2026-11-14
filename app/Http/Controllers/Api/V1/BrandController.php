@@ -9,6 +9,9 @@ use App\Http\Requests\Brand\UpdateBrandRequest;
 use App\Http\Resources\BrandResource;
 use App\Models\Brand;
 use App\Services\BrandService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -18,7 +21,7 @@ class BrandController extends Controller implements HasMiddleware
         protected BrandService $brandService
     ) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
 
@@ -32,7 +35,7 @@ class BrandController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
 
         return BrandResource::collection(Brand::paginate(15));
@@ -41,7 +44,7 @@ class BrandController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBrandRequest $request)
+    public function store(StoreBrandRequest $request): JsonResponse
     {
         $newBrand = $this->brandService->create($request->validated(), Auth()->user());
 
@@ -51,7 +54,7 @@ class BrandController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Brand $brand)
+    public function show(Brand $brand): BrandResource
     {
         return BrandResource::make($brand);
     }
@@ -59,7 +62,7 @@ class BrandController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBrandRequest $request, Brand $brand)
+    public function update(UpdateBrandRequest $request, Brand $brand): Response
     {
         $this->brandService->update($brand, $request->validated());
 
@@ -69,7 +72,7 @@ class BrandController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Brand $brand)
+    public function destroy(Brand $brand): Response
     {
         $this->brandService->delete($brand);
 

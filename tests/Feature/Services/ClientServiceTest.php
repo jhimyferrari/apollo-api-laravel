@@ -1,9 +1,11 @@
 <?php
 
 use App\Enum\Status\ClientStatus;
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Helpers\DocumentHelper;
 use App\Helpers\Test\StateRegistrationHelper;
 use App\Models\Client;
+use App\Models\SalesOrder;
 use App\Models\User;
 use App\Services\ClientService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,6 +32,7 @@ describe('ClientService', function () {
 
             expect($client)
                 ->toBeInstanceOf(Client::class)
+                ->status->toBe(ClientStatus::Active)
                 ->legal_name->toBe($data['legal_name'])
                 ->trade_name->toBe($data['trade_name'])
 
@@ -38,6 +41,22 @@ describe('ClientService', function () {
                 ->email->toBeNull()
                 ->phone->toBeNull();
 
+        });
+
+        it('should always create the client with Active status regardless of the status passed', function () {
+            $data = [
+                'legal_name' => 'clientLegalName',
+                'trade_name' => 'clientTradeName',
+                'document' => fake()->cnpj(false),
+                'status' => ClientStatus::Inactive->value,
+            ];
+            $client = $this->service->create($data, $this->user);
+
+            expect($client->status)->toBe(ClientStatus::Active);
+            $this->assertDatabaseHas('clients', [
+                'id' => $client->id,
+                'status' => ClientStatus::Active->value,
+            ]);
         });
 
         it('should create a Client with optional values successfully', function () {
@@ -254,6 +273,17 @@ describe('ClientService', function () {
             $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
             $this->service->delete($client);
             $this->assertSoftDeleted($client);
+        });
+
+        it('throws ResourceHasDependenciesException when client has sales orders', function () {
+            $client = Client::factory()->create(['organization_id' => $this->user->organization_id]);
+            SalesOrder::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'client_id' => $client->id,
+            ]);
+
+            expect(fn () => $this->service->delete($client))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 

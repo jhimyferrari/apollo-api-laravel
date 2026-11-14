@@ -249,6 +249,66 @@ describe('SalesOrderService', function () {
             ], $this->user))->toThrow(ValidationException::class);
         });
 
+        it('throws an error when client is inactive', function () {
+            $product = Product::factory()->for($this->organization)->withStock(100)->create();
+            $client = Client::factory()->for($this->organization)->inactive()->create();
+            $seller = Seller::factory()->for($this->organization)->create();
+
+            expect(fn () => $this->service->create([
+                'client_id' => $client->id,
+                'seller_id' => $seller->id,
+                'status' => OrderStatus::Draft->value,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 5, 'number' => 1],
+                ],
+            ], $this->user))->toThrow(ValidationException::class);
+        });
+
+        it('throws an error when seller is inactive', function () {
+            $product = Product::factory()->for($this->organization)->withStock(100)->create();
+            $client = Client::factory()->for($this->organization)->create();
+            $seller = Seller::factory()->for($this->organization)->inactive()->create();
+
+            expect(fn () => $this->service->create([
+                'client_id' => $client->id,
+                'seller_id' => $seller->id,
+                'status' => OrderStatus::Draft->value,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 5, 'number' => 1],
+                ],
+            ], $this->user))->toThrow(ValidationException::class);
+        });
+
+        it('throws an error when a product is inactive', function () {
+            $product = Product::factory()->for($this->organization)->withStock(100)->inactive()->create();
+            $client = Client::factory()->for($this->organization)->create();
+            $seller = Seller::factory()->for($this->organization)->create();
+
+            expect(fn () => $this->service->create([
+                'client_id' => $client->id,
+                'seller_id' => $seller->id,
+                'status' => OrderStatus::Draft->value,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 5, 'number' => 1],
+                ],
+            ], $this->user))->toThrow(ValidationException::class);
+        });
+
+        it('throws an error when a product is discontinued', function () {
+            $product = Product::factory()->for($this->organization)->withStock(100)->discontinued()->create();
+            $client = Client::factory()->for($this->organization)->create();
+            $seller = Seller::factory()->for($this->organization)->create();
+
+            expect(fn () => $this->service->create([
+                'client_id' => $client->id,
+                'seller_id' => $seller->id,
+                'status' => OrderStatus::Draft->value,
+                'items' => [
+                    ['product_id' => $product->id, 'quantity' => 5, 'number' => 1],
+                ],
+            ], $this->user))->toThrow(ValidationException::class);
+        });
+
         it('does not persist anything when one item in the middle is invalid', function () {
             $products = Product::factory()->for($this->organization)->withStock(100)->count(3)->create();
             $client = Client::factory()->for($this->organization)->create();
@@ -817,11 +877,29 @@ describe('SalesOrderService', function () {
             ]))->toThrow(ValidationException::class);
         });
 
+        it('throws an error when updating to an inactive client', function () {
+            $salesOrder = SalesOrder::factory()->for($this->organization)->createOne();
+            $inactiveClient = Client::factory()->for($this->organization)->inactive()->create();
+
+            expect(fn () => $this->service->update($salesOrder, [
+                'client_id' => $inactiveClient->id,
+            ]))->toThrow(ValidationException::class);
+        });
+
         it('throw an exception when seller_id does not exist', function () {
             $salesOrder = SalesOrder::factory()->for($this->organization)->createOne();
 
             expect(fn () => $this->service->update($salesOrder, [
                 'seller_id' => (string) Str::uuid(),
+            ]))->toThrow(ValidationException::class);
+        });
+
+        it('throws an error when updating to an inactive seller', function () {
+            $salesOrder = SalesOrder::factory()->for($this->organization)->createOne();
+            $inactiveSeller = Seller::factory()->for($this->organization)->inactive()->create();
+
+            expect(fn () => $this->service->update($salesOrder, [
+                'seller_id' => $inactiveSeller->id,
             ]))->toThrow(ValidationException::class);
         });
 

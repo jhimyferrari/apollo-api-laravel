@@ -8,7 +8,7 @@ use RuntimeException;
 
 class GetNextSequencialNumber
 {
-    public function execute(Organization $organization, string $table)
+    public function execute(Organization $organization, string $table): int
     {
         $sequence = SequencialNumber::where('organization_id', $organization->id)
             ->where('table', $table)

@@ -38,6 +38,7 @@ class SellerFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
+            'status' => 'inactive',
             'ended_at' => fake()->dateTimeBetween($attributes['started_at'], 'now'),
         ]);
     }

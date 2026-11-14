@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests\Supplier;
 
+use App\Enum\Status\SupplierStatus;
+use App\Http\Requests\BaseUpdateRequest;
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class UpdateSupplierRequest extends FormRequest
+class UpdateSupplierRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,16 +27,20 @@ class UpdateSupplierRequest extends FormRequest
     {
 
         return [
+            'status' => [
+                'sometimes',
+                Rule::enum(SupplierStatus::class),
+            ],
             'document' => [
-                'required',
+                'sometimes',
                 new CpfAndCnpj,
             ],
             'legal_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'trade_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'state_registration' => [

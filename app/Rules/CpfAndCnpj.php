@@ -26,7 +26,7 @@ class CpfAndCnpj implements ValidationRule
 
     }
 
-    private function validateCpf($cpf)
+    private function validateCpf(string $cpf): bool
     {
         if (str_repeat($cpf[0], 11) === $cpf) {
             return false;

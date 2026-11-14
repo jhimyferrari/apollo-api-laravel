@@ -107,7 +107,7 @@ class User extends Authenticatable
         ];
     }
 
-    protected static function booted()
+    protected static function booted(): void
     {
         static::updating(function (User $user) {
             if ($user->isDirty('is_administrator')) {

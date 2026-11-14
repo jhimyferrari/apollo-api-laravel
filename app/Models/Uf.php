@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property string $ibge_code
@@ -39,7 +40,7 @@ class Uf extends Model
         'abbreviation',
     ];
 
-    public function cities()
+    public function cities(): HasMany
     {
         return $this->hasMany(City::class, 'uf_ibge_code', 'ibge_code');
     }

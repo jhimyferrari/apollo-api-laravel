@@ -13,6 +13,9 @@ use App\Models\Address;
 use App\Models\Client;
 use App\Services\AddressService;
 use App\Services\ClientService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -23,13 +26,13 @@ class ClientController extends Controller implements HasMiddleware
         protected AddressService $addressService
     ) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
         return [
             new Middleware('abilities:'.PermissionType::CLIENT_CREATE->value, only: ['store']),
             new Middleware('abilities:'.PermissionType::CLIENT_READ->value, only: ['index', 'show', 'showAddresses']),
             new Middleware('abilities:'.PermissionType::CLIENT_UPDATE->value, only: ['update']),
-            new Middleware('abilities:'.PermissionType::CLIENT_DELETE->value, only: ['destroy']),
+            new Middleware(['abilities:'.PermissionType::CLIENT_DELETE->value], only: ['destroy']),
             new Middleware(['ability:'.PermissionType::CLIENT_CREATE->value.','.PermissionType::CLIENT_UPDATE->value], only: ['storeAddress', 'setDefaultAddress']),
         ];
     }
@@ -37,7 +40,7 @@ class ClientController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
 
         return ClientResource::collection(Client::with('addresses')->paginate(15));
@@ -46,7 +49,7 @@ class ClientController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreClientRequest $request)
+    public function store(StoreClientRequest $request): JsonResponse
     {
         $newClient = $this->clientService->create($request->validated(), Auth()->user());
 
@@ -56,7 +59,7 @@ class ClientController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Client $client)
+    public function show(Client $client): ClientResource
     {
         return ClientResource::make($client);
     }
@@ -64,7 +67,7 @@ class ClientController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateClientRequest $request, Client $client)
+    public function update(UpdateClientRequest $request, Client $client): Response
     {
         $this->clientService->update($client, $request->validated());
 
@@ -74,28 +77,28 @@ class ClientController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Client $client)
+    public function destroy(Client $client): Response
     {
         $this->clientService->delete($client);
 
         return response()->noContent();
     }
 
-    public function storeAddress(StoreAddressRequest $request, Client $client)
+    public function storeAddress(StoreAddressRequest $request, Client $client): JsonResponse
     {
         $newAddress = $this->addressService->create($client, $request->validated());
 
         return $this->success($newAddress, __('messages.created', ['resource' => __('validation.resources.address')]), 201);
     }
 
-    public function setDefaultAddress(Client $client, Address $address)
+    public function setDefaultAddress(Client $client, Address $address): Response
     {
         $this->addressService->setDefault($client, $address);
 
         return response()->noContent();
     }
 
-    public function showAddresses(Client $client)
+    public function showAddresses(Client $client): AnonymousResourceCollection
     {
         return AddressResource::collection($client->addresses()->with('city.uf')->paginate(5));
     }

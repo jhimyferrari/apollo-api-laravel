@@ -72,7 +72,7 @@ class Seller extends Model implements Addressable, HasStatus
 
     protected $primaryKey = 'id';
 
-    public $timestamp = true;
+    public $timestamps = true;
 
     protected $fillable = [
         'document',
@@ -97,6 +97,11 @@ class Seller extends Model implements Addressable, HasStatus
     public function statusEnumClass(): string
     {
         return SellerStatus::class;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === SellerStatus::Active;
     }
 
     public function organization(): BelongsTo

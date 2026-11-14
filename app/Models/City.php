@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property string $ibge_code
@@ -37,7 +38,7 @@ class City extends Model
         'uf_ibge_code',
     ];
 
-    public function uf()
+    public function uf(): BelongsTo
     {
         return $this->belongsTo(Uf::class, 'uf_ibge_code', 'ibge_code');
     }

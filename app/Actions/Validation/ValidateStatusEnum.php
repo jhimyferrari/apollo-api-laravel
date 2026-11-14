@@ -8,12 +8,13 @@ use Illuminate\Validation\ValidationException;
 
 class ValidateStatusEnum
 {
-    public function execute(HasStatus $model, string $value)
+    public function execute(HasStatus $model, string|\BackedEnum $value): void
     {
         $enum = $model->statusEnumClass();
-        $newStatus = $enum::tryFrom($value);
+        $strValue = $value instanceof \BackedEnum ? (string) $value->value : (string) $value;
+        $newStatus = $enum::tryFrom($strValue);
         if ($newStatus === null) {
-            report(new InvalidStatusException(__('errors.invalid_status', ['value' => $value, 'model' => \class_basename($model)])));
+            report(new InvalidStatusException(__('errors.invalid_status', ['value' => $strValue, 'model' => \class_basename($model)])));
             throw ValidationException::withMessages(['status' => __('validation.status', ['attribute' => 'status', 'model' => \class_basename($model)])]);
         }
     }

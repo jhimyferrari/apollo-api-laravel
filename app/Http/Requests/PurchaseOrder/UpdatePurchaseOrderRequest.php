@@ -37,7 +37,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
 
             'items.to_update' => ['sometimes', 'array'],
             'items.to_update.*.id' => ['required_with:items.to_update', 'uuid'],
-            'items.to_update.*.product_id' => ['sometimes', 'integer', 'min:1'],
+            'items.to_update.*.product_id' => ['sometimes', 'uuid'],
             'items.to_update.*.number' => ['sometimes', 'integer', 'min:1'],
             'items.to_update.*.quantity' => ['sometimes', 'numeric', 'gt:0'],
 

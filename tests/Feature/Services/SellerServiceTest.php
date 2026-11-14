@@ -1,8 +1,10 @@
 <?php
 
 use App\Enum\Status\SellerStatus;
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Helpers\DocumentHelper;
 use App\Helpers\Test\StateRegistrationHelper;
+use App\Models\SalesOrder;
 use App\Models\Seller;
 use App\Models\User;
 use App\Services\SellerService;
@@ -30,6 +32,7 @@ describe('SellerService', function () {
 
             expect($seller)
                 ->toBeInstanceOf(Seller::class)
+                ->status->toBe(SellerStatus::Active)
                 ->legal_name->toBe($data['legal_name'])
                 ->trade_name->toBe($data['trade_name'])
 
@@ -38,6 +41,22 @@ describe('SellerService', function () {
                 ->email->toBeNull()
                 ->phone->toBeNull();
 
+        });
+
+        it('should always create the seller with Active status regardless of the status passed', function () {
+            $data = [
+                'legal_name' => 'sellerLegalName',
+                'trade_name' => 'sellerTradeName',
+                'document' => fake()->cnpj(false),
+                'status' => SellerStatus::Inactive->value,
+            ];
+            $seller = $this->service->create($data, $this->user);
+
+            expect($seller->status)->toBe(SellerStatus::Active);
+            $this->assertDatabaseHas('sellers', [
+                'id' => $seller->id,
+                'status' => SellerStatus::Active->value,
+            ]);
         });
 
         it('should create a Seller with optional values successfully', function () {
@@ -261,12 +280,37 @@ describe('SellerService', function () {
                 ->phone->toBeNull()
                 ->email->toBeNull();
         });
+        it('should update started_at and ended_at of a seller', function () {
+            $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+            $data = [
+                'started_at' => now()->addDays(-30)->format('Y-m-d'),
+                'ended_at' => now()->addDays(30)->format('Y-m-d'),
+            ];
+
+            $updated = $this->service->update($seller, $data);
+
+            expect($updated)
+                ->toBeInstanceOf(Seller::class)
+                ->started_at->toDateString()->toBe($data['started_at'])
+                ->ended_at->toDateString()->toBe($data['ended_at']);
+        });
     });
     describe('delete', function () {
         it('should delete some seller', function () {
             $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
             $this->service->delete($seller);
             $this->assertSoftDeleted($seller);
+        });
+
+        it('throws ResourceHasDependenciesException when seller has sales orders', function () {
+            $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+            SalesOrder::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'seller_id' => $seller->id,
+            ]);
+
+            expect(fn () => $this->service->delete($seller))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 

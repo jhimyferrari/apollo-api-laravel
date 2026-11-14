@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Category;
 
+use App\Http\Requests\BaseUpdateRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateCategoryRequest extends FormRequest
+class UpdateCategoryRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,10 +24,11 @@ class UpdateCategoryRequest extends FormRequest
     {
         return [
             'name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'description' => [
+                'nullable',
                 'string',
             ],
         ];

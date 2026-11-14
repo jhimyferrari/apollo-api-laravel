@@ -213,7 +213,7 @@ class SalesOrderService extends BaseService
         }
     }
 
-    private function createItems(SalesOrder $order, array $items)
+    private function createItems(SalesOrder $order, array $items): void
     {
         foreach ($items as $item) {
             /** @var Product $product */
@@ -233,7 +233,7 @@ class SalesOrderService extends BaseService
         }
     }
 
-    private function updateItems(SalesOrder $order, array $items)
+    private function updateItems(SalesOrder $order, array $items): void
     {
         foreach ($items as $itemRaw) {
             $item = $this->treatment->for($this->treatSalesOrderItem->order($order), $itemRaw['id'], 'item_id', $this->model)->mustBeNotNull()->handle();

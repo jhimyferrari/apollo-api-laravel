@@ -60,6 +60,11 @@ class PurchaseOrder extends Model implements HasStatus, MovesStock
         return OrderStatus::class;
     }
 
+    public function isActive(): bool
+    {
+        return $this->status !== OrderStatus::Cancelled;
+    }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
@@ -80,7 +85,7 @@ class PurchaseOrder extends Model implements HasStatus, MovesStock
         return $this->morphMany(StockMovement::class, 'reference');
     }
 
-    public function sumTotalByItems()
+    public function sumTotalByItems(): Money
     {
         $total = Money::zero();
         foreach ($this->items as $item) {

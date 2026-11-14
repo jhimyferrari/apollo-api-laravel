@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\ResourceHasDependenciesException;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\User;
@@ -142,17 +143,26 @@ describe('BrandService', function () {
         });
     });
     describe('delete', function () {
-        it('should softDelete some brand and remove brand_id from owned products', function () {
+        it('should softDelete some brand when has no products', function () {
             /** @var BrandService $this->service */
             /** @var User $this->user */
             /** @var Brand $brand */
             $brand = Brand::factory()->create(['organization_id' => $this->user->organization_id]);
 
-            $products = Product::factory()->count(10)->withBrand($brand)->create();
             $this->service->delete($brand);
-            $this->assertSoftDeleted($brand);
 
-            $products->each(fn (Product $p) => expect($p->fresh()->brand_id)->toBe(null));
+            $this->assertSoftDeleted($brand);
+        });
+
+        it('throws ResourceHasDependenciesException when brand has products', function () {
+            /** @var BrandService $this->service */
+            /** @var User $this->user */
+            /** @var Brand $brand */
+            $brand = Brand::factory()->create(['organization_id' => $this->user->organization_id]);
+            Product::factory()->withBrand($brand)->create();
+
+            expect(fn () => $this->service->delete($brand))
+                ->toThrow(ResourceHasDependenciesException::class);
         });
     });
 });

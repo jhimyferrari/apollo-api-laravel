@@ -2,12 +2,13 @@
 
 namespace App\Http\Requests\Seller;
 
+use App\Enum\Status\SellerStatus;
+use App\Http\Requests\BaseUpdateRequest;
 use App\Rules\CpfAndCnpj;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateSellerRequest extends FormRequest
+class UpdateSellerRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,16 +26,20 @@ class UpdateSellerRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'status' => [
+                'sometimes',
+                Rule::enum(SellerStatus::class),
+            ],
             'document' => [
-                'required',
+                'sometimes',
                 new CpfAndCnpj,
             ],
             'legal_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'trade_name' => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'state_registration' => [
@@ -53,6 +58,8 @@ class UpdateSellerRequest extends FormRequest
             'started_at' => [
                 'nullable',
                 'date',
+                'after_or_equal:1900-01-01',
+                'before_or_equal:+30 days',
             ],
 
             'ended_at' => [
@@ -60,7 +67,7 @@ class UpdateSellerRequest extends FormRequest
                 'date',
                 Rule::when(
                     fn () => filled($this->started_at),
-                    ['after_or_equal:starts_at']
+                    ['after_or_equal:started_at']
                 ),
             ],
 

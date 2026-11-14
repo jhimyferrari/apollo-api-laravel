@@ -32,7 +32,7 @@ class CreateOrganizationSequencialNumbers
     {
         $tables = self::TABLES;
         if (isset($options)) {
-            $tables = array_filter($tables, fn ($n) => \in_array($n, $options));
+            $tables = array_filter($tables, fn (array $n) => \in_array($n, $options));
         }
 
         $organization->sequencialNumber()->createMany($tables);

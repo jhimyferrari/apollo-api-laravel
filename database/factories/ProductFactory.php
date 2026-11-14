@@ -63,4 +63,14 @@ class ProductFactory extends Factory
             $product->categories()->sync($categories);
         });
     }
+
+    public function inactive(): static
+    {
+        return $this->state(['status' => 'inactive']);
+    }
+
+    public function discontinued(): static
+    {
+        return $this->state(['status' => 'discontinued']);
+    }
 }
