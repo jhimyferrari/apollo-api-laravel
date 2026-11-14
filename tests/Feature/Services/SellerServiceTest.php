@@ -280,6 +280,20 @@ describe('SellerService', function () {
                 ->phone->toBeNull()
                 ->email->toBeNull();
         });
+        it('should update started_at and ended_at of a seller', function () {
+            $seller = Seller::factory()->create(['organization_id' => $this->user->organization_id]);
+            $data = [
+                'started_at' => now()->addDays(-30)->format('Y-m-d'),
+                'ended_at' => now()->addDays(30)->format('Y-m-d'),
+            ];
+
+            $updated = $this->service->update($seller, $data);
+
+            expect($updated)
+                ->toBeInstanceOf(Seller::class)
+                ->started_at->toDateString()->toBe($data['started_at'])
+                ->ended_at->toDateString()->toBe($data['ended_at']);
+        });
     });
     describe('delete', function () {
         it('should delete some seller', function () {

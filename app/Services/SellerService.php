@@ -103,6 +103,14 @@ class SellerService extends BaseService
             $seller->email = $this->treament->for($this->treatEmail, $data['email'], 'email', $this->model)->handle();
         }
 
+        if (\array_key_exists('started_at', $data)) {
+            $seller->started_at = $data['started_at'];
+        }
+
+        if (\array_key_exists('ended_at', $data)) {
+            $seller->ended_at = $data['ended_at'];
+        }
+
         DB::transaction(function () use ($seller) {
             $seller->save();
         });

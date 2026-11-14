@@ -58,6 +58,8 @@ class UpdateSellerRequest extends BaseUpdateRequest
             'started_at' => [
                 'nullable',
                 'date',
+                'after_or_equal:1900-01-01',
+                'before_or_equal:+30 days',
             ],
 
             'ended_at' => [
@@ -65,7 +67,7 @@ class UpdateSellerRequest extends BaseUpdateRequest
                 'date',
                 Rule::when(
                     fn () => filled($this->started_at),
-                    ['after_or_equal:starts_at']
+                    ['after_or_equal:started_at']
                 ),
             ],
 
