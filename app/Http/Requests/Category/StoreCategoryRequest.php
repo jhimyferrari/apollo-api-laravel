@@ -28,6 +28,7 @@ class StoreCategoryRequest extends FormRequest
                 'string',
             ],
             'description' => [
+                'nullable',
                 'string',
             ],
         ];
