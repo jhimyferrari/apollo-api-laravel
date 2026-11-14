@@ -44,7 +44,7 @@ class ProductService extends BaseService
             $data['ean'] = $this->treatment->for($this->treatEAN, $data['ean'], 'ean', $this->model)->mustBeUnique()->handle();
         }
         if (isset($data['unit'])) {
-            $this->validateUnit->execute($data['unit'], 'product_unit');
+            $this->validateUnit->execute($data['unit'], 'unit');
         }
         if (isset($data['description'])) {
             $data['description'] = $this->treatment->for($this->treatString, $data['description'], 'description', $this->model)->handle();
