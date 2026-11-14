@@ -9,7 +9,7 @@ class ValidateEAN
     /**
      * @throws ValidationException
      */
-    public function execute(string $value, $field): string
+    public function execute(string $value, string $field): string
     {
         if (! \is_string($value)) {
             throw ValidationException::withMessages([$field => __('validation.ean', ['attribute' => 'ean'])]);

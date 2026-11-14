@@ -14,7 +14,7 @@ class CheckForAnyAbility extends SanctumCheckForAnyAbility
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle($request, $next, ...$abilities)
+    public function handle($request, $next, ...$abilities): Response
     {
         if (! $request->user() || ! $request->user()->currentAccessToken()) {
             abort(403);

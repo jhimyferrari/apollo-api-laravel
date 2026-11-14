@@ -6,6 +6,7 @@ use App\Actions\Fetch\Ncm\FetchRawFromReceita;
 use App\Models\NcmCode;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Collection;
 
 class SyncNcmTableJob implements ShouldQueue
 {
@@ -28,9 +29,9 @@ class SyncNcmTableJob implements ShouldQueue
             return;
         }
         $codeCollection = collect($ncmsRaw)->pluck('Codigo');
-        collect($ncmsRaw)->chunk(500)->each(function ($chunk) {
+        collect($ncmsRaw)->chunk(500)->each(function (Collection $chunk) {
 
-            $rows = $chunk->map(fn ($item) => [
+            $rows = $chunk->map(fn (array $item) => [
                 'code' => $item['Codigo'],
                 'description' => $item['Descricao'],
                 'valid_from' => $item['Data_Inicio'],

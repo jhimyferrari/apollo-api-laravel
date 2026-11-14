@@ -11,7 +11,7 @@ class ValidateDocument
     /**
      * @throws InvalidFieldException
      */
-    public function execute(string $document)
+    public function execute(string $document): void
     {
         Validator::make(
             ['document' => $document],

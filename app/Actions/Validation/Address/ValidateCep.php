@@ -11,7 +11,7 @@ class ValidateCep
     /**
      * @throws ValidationException
      */
-    public function execute(string $cep, string $field)
+    public function execute(string $cep, string $field): string
     {
         $cep = preg_replace('/\D/', '', $cep);
 

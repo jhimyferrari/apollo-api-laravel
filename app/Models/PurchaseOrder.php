@@ -85,7 +85,7 @@ class PurchaseOrder extends Model implements HasStatus, MovesStock
         return $this->morphMany(StockMovement::class, 'reference');
     }
 
-    public function sumTotalByItems()
+    public function sumTotalByItems(): Money
     {
         $total = Money::zero();
         foreach ($this->items as $item) {

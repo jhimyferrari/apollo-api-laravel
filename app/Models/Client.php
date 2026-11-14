@@ -73,7 +73,7 @@ class Client extends Model implements Addressable, HasStatus
 
     protected $primaryKey = 'id';
 
-    public $timestamp = true;
+    public $timestamps = true;
 
     protected $fillable = [
         'document',

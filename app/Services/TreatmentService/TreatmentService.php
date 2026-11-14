@@ -15,7 +15,7 @@ class TreatmentService
         private readonly ValidateFieldIsNotNull $validateFieldIsNotNull,
     ) {}
 
-    public function for(TreatmentStrategy $strategy, mixed $value, string $field, Model $model)
+    public function for(TreatmentStrategy $strategy, mixed $value, string $field, Model $model): TreatmentBuilder
     {
         return new TreatmentBuilder(treat: $this, strategy: $strategy, value: $value, field: $field, model: $model);
     }

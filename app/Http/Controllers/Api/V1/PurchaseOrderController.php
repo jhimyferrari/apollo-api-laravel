@@ -9,7 +9,10 @@ use App\Http\Requests\PurchaseOrder\UpdatePurchaseOrderRequest;
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\PurchaseOrder;
 use App\Services\PurchaseOrderService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
@@ -19,7 +22,7 @@ class PurchaseOrderController extends Controller implements HasMiddleware
         private readonly PurchaseOrderService $service
     ) {}
 
-    public static function middleware()
+    public static function middleware(): array
     {
 
         return [
@@ -34,7 +37,7 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection
     {
         return PurchaseOrderResource::collection(PurchaseOrder::with([
             'supplier',
@@ -47,7 +50,7 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePurchaseOrderRequest $request)
+    public function store(StorePurchaseOrderRequest $request): JsonResponse
     {
         $newOrder = $this->service->create($request->validated(), Auth()->user());
 
@@ -57,7 +60,7 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(PurchaseOrder $purchaseOrder)
+    public function show(PurchaseOrder $purchaseOrder): PurchaseOrderResource
     {
         return PurchaseOrderResource::make($purchaseOrder);
     }
@@ -65,7 +68,7 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder)
+    public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): Response
     {
         $this->service->update($purchaseOrder, $request->validated());
 
@@ -75,28 +78,28 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PurchaseOrder $purchaseOrder)
+    public function destroy(PurchaseOrder $purchaseOrder): Response
     {
         $this->service->delete($purchaseOrder);
 
         return response()->noContent();
     }
 
-    public function confirm(PurchaseOrder $purchaseOrder)
+    public function confirm(PurchaseOrder $purchaseOrder): Response
     {
         $this->service->confirm($purchaseOrder);
 
         return response()->noContent();
     }
 
-    public function cancel(PurchaseOrder $purchaseOrder)
+    public function cancel(PurchaseOrder $purchaseOrder): Response
     {
         $this->service->cancel($purchaseOrder);
 
         return response()->noContent();
     }
 
-    public function reopen(Request $request, PurchaseOrder $purchaseOrder)
+    public function reopen(Request $request, PurchaseOrder $purchaseOrder): JsonResponse
     {
         $validated = $request->validate([
             'reason' => ['nullable', 'string'],

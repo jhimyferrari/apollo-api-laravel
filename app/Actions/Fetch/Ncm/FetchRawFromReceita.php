@@ -29,7 +29,7 @@ class FetchRawFromReceita
             $items = $response->json('Nomenclaturas') ?? [];
 
             return collect($items)
-                ->map(fn ($item) => [
+                ->map(fn (array $item) => [
                     ...$item,
                     'Codigo' => $this->normalizeCode($item['Codigo']),
                     'Data_Inicio' => $this->parseDate($item['Data_Inicio'] ?? null),

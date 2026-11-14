@@ -28,7 +28,7 @@ class AddressService
         private ValidateCep $validateCep
     ) {}
 
-    public function create(Addressable $addressable, array $data)
+    public function create(Addressable $addressable, array $data): Address
     {
 
         $data['street'] = $this->treatment->for($this->treatString, $data['street'], 'street', $this->model)->mustBeNotNull()->handle();
@@ -55,7 +55,7 @@ class AddressService
         });
     }
 
-    public function update(Address $address, array $data)
+    public function update(Address $address, array $data): Address
     {
 
         if (\array_key_exists('street', $data)) {
@@ -91,7 +91,7 @@ class AddressService
         });
     }
 
-    public function delete(Address $address)
+    public function delete(Address $address): void
     {
         DB::transaction(function () use ($address) {
             $address->delete();

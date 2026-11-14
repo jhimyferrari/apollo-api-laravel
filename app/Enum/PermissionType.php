@@ -56,7 +56,7 @@ enum PermissionType: string
     {
         return array_filter(
             self::allValues(),
-            fn ($case) => str_starts_with($case, $model.'.')
+            fn (string $case) => str_starts_with($case, $model.'.')
         );
     }
 }

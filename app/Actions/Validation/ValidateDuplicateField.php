@@ -21,7 +21,7 @@ class ValidateDuplicateField
      * @throws RuntimeException
      * @throws DuplicateFieldException
      */
-    public function execute(Model $model, string $field, mixed $value, ?string $ignoredId = null, ?string $organizationId = null)
+    public function execute(Model $model, string $field, mixed $value, ?string $ignoredId = null, ?string $organizationId = null): void
     {
         if (! Schema::hasColumn($model->getTable(), $field)) {
             throw new RuntimeException(__('errors.attribute_doesnt_exists_on_model',

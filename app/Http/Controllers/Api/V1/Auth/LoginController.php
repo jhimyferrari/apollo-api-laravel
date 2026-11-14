@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request): JsonResponse
     {
         $request->validated();
 
@@ -35,10 +37,11 @@ class LoginController extends Controller
 
         return $this->success([
             'token' => $token,
-            'user' => $user], 200);
+            'user' => $user,
+        ], statusCode: 200);
     }
 
-    public function logout()
+    public function logout(): Response
     {
         Auth()->user()->currentAccessToken()->delete();
 

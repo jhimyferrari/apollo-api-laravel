@@ -9,6 +9,7 @@ use App\Models\SalesOrderItem;
 use App\ValueObjects\Money;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 class SalesReportService
@@ -71,7 +72,7 @@ class SalesReportService
             ->selectRaw('status, COUNT(*) as count, SUM(total) as total')
             ->groupBy('status')
             ->get()
-            ->mapWithKeys(function ($item) {
+            ->mapWithKeys(function (SalesOrder $item) {
                 $statusVal = $item->status instanceof OrderStatus ? $item->status->value : (string) $item->status;
                 $totMoney = $item->total instanceof Money ? $item->total : Money::fromDecimal($item->total ?? 0);
 
@@ -90,7 +91,7 @@ class SalesReportService
             ->selectRaw('payment_status, COUNT(*) as count, SUM(total) as total')
             ->groupBy('payment_status')
             ->get()
-            ->mapWithKeys(function ($item) {
+            ->mapWithKeys(function (SalesOrder $item) {
                 $statusVal = $item->payment_status instanceof PaymentStatus ? $item->payment_status->value : (string) $item->payment_status;
                 $totMoney = $item->total instanceof Money ? $item->total : Money::fromDecimal($item->total ?? 0);
 
@@ -167,7 +168,7 @@ class SalesReportService
         }
 
         if (! empty($filters['category_id'])) {
-            $query->whereExists(function ($sub) use ($filters) {
+            $query->whereExists(function (QueryBuilder $sub) use ($filters) {
                 $sub->selectRaw(1)
                     ->from('product_categories')
                     ->whereColumn('product_categories.product_id', 'products.id')
