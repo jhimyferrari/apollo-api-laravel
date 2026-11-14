@@ -267,7 +267,14 @@ describe('ProductService', function () {
 
             expect($product->categories()->pluck('categories.id')->all())->toBe([$categoryB->id]);
         });
+        it('should detach all categories ', function () {
+            $categories = Category::factory()->for($this->user->organization)->count(10)->create();
+            $product = Product::factory()->withCategories($categories)->create(['organization_id' => $this->user->organization_id]);
 
+            $this->service->update($product, ['categories' => null]);
+
+            expect($product->categories()->exists())->toBeFalse();
+        });
         it('throws an error when pass an empty name', function () {
             $product = Product::factory()->create(['organization_id' => $this->user->organization_id]);
 

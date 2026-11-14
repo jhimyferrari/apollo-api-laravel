@@ -129,8 +129,7 @@ class ProductService extends BaseService
 
             if (\array_key_exists('categories', $data)) {
                 $product->categories()->sync(
-                    $this->treatment->for($this->treatCategory, $data['categories'], 'categories', $this->model)->handle()
-                );
+                    $this->treatment->for($this->treatCategory, $data['categories'], 'categories', $this->model)->handle() ?? []);
             }
         });
 

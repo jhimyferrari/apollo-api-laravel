@@ -37,7 +37,7 @@ class UpdateProductRequest extends BaseUpdateRequest
             'stock_quantity' => ['nullable', 'numeric', 'min:0', 'decimal:0,3'],
             'brand_id' => ['nullable', 'string'],
             'categories' => ['nullable', 'array'],
-            'categories.*.id' => ['required_with', 'string'],
+            'categories.*.id' => ['uuid'],
         ];
     }
 }

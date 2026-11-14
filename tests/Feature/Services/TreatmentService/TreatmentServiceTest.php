@@ -62,6 +62,19 @@ describe('TreatmentService', function () {
         expect($result)->toBeNull();
     });
 
+    it('returns null early when value is null, without calling the strategy', function () {
+        $this->strategy->shouldNotReceive('handle');
+
+        $result = $this->service->handle(
+            strategy: $this->strategy,
+            value: null,
+            field: 'tags',
+            model: $this->model,
+        );
+
+        expect($result)->toBeNull();
+    });
+
     it('calls ValidateFieldIsNotNull when mustBeNotNull is true, even for an empty value', function () {
         $this->validateFieldIsNotNull->shouldReceive('execute')
             ->once()
