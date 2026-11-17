@@ -8,6 +8,7 @@ use App\Interfaces\Models\HasStatus;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\HasSequencialNumber;
 use App\Traits\ProtectsOrganization;
+use App\ValueObjects\Money;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Collection;
@@ -29,8 +30,8 @@ use Illuminate\Support\Carbon;
  * @property string $unit
  * @property string|null $ncm
  * @property string|null $ean
- * @property numeric $cost_price
- * @property numeric $sale_price
+ * @property Money $cost_price
+ * @property Money $sale_price
  * @property numeric $stock_quantity
  * @property Carbon|null $deleted_at
  * @property Carbon|null $created_at

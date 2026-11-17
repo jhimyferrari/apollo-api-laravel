@@ -359,4 +359,6 @@ return [
     'admin_update' => 'Não é possivel alterar o atributo de administrador.',
     'resource_inactive' => 'O :resource selecionado está inativo.',
     'empty_update_payload' => 'Nenhum dado válido foi informado para atualização.',
+
+    'must_be_greater_than' => 'O campo :first deve ser maior que :second.',
 ];

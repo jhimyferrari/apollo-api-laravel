@@ -24,7 +24,7 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        $cost_price = fake()->randomNumber(4);
+        $cost_price = fake()->numberBetween(20, 9999);
 
         $ean = match (random_int(-1, 1)) {
             0 => fake()->ean8(),
@@ -39,7 +39,7 @@ class ProductFactory extends Factory
             'ncm_code_id' => NcmCode::factory(),
             'ean' => $ean,
             'cost_price' => Money::fromDecimal($cost_price),
-            'sale_price' => Money::fromDecimal(fake()->numberBetween($cost_price, '1000')),
+            'sale_price' => Money::fromDecimal(fake()->numberBetween($cost_price + 1, 100000)),
             'stock_quantity' => fake()->randomNumber(5),
             'organization_id' => Organization::factory(),
             'brand_id' => Brand::factory(),

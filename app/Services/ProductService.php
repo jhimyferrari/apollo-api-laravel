@@ -57,7 +57,7 @@ class ProductService extends BaseService
         }
 
         $data['cost_price'] = $this->treatment->for($this->treatMoney, $data['cost_price'], 'cost_price', $this->model)->handle();
-        $data['sale_price'] = $this->treatment->for($this->treatMoney, $data['sale_price'], 'sale_price', $this->model)->handle();
+        $data['sale_price'] = $this->treatment->for($this->treatMoney->mustBeGreaterThan($data['cost_price'], 'cost_price'), $data['sale_price'], 'sale_price', $this->model)->handle();
 
         $newProduct = new Product($data);
         $newProduct->status = ProductStatus::Active;
@@ -121,7 +121,9 @@ class ProductService extends BaseService
             $product->cost_price = $this->treatment->for($this->treatMoney, $data['cost_price'], 'cost_price', $this->model)->handle();
         }
         if (\array_key_exists('sale_price', $data)) {
-            $product->sale_price = $this->treatment->for($this->treatMoney, $data['sale_price'], 'sale_price', $this->model)->handle();
+            $product->sale_price = $this->treatment->for($this->treatMoney->mustBeGreaterThan($product->cost_price, 'cost_price'), $data['sale_price'], 'sale_price', $this->model)->handle();
+        } elseif (\array_key_exists('cost_price', $data)) {
+            $this->treatment->for($this->treatMoney->mustBeGreaterThan($product->cost_price, 'cost_price'), $product->sale_price->toStorageString(), 'sale_price', $this->model)->handle();
         }
 
         DB::transaction(function () use ($product, $data) {
