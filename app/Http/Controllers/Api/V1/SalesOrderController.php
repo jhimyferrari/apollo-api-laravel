@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Order\UpdateOrderPaymentStatusRequest;
 use App\Http\Requests\SalesOrder\StoreSalesOrderRequest;
 use App\Http\Requests\SalesOrder\UpdateSalesOrderRequest;
 use App\Http\Resources\SalesOrderResource;
@@ -27,7 +28,7 @@ class SalesOrderController extends Controller implements HasMiddleware
         return [
             new Middleware('abilities:'.PermissionType::SALES_ORDER_CREATE->value, only: ['store']),
             new Middleware('abilities:'.PermissionType::SALES_ORDER_READ->value, only: ['index', 'show']),
-            new Middleware('abilities:'.PermissionType::SALES_ORDER_UPDATE->value, only: ['update', 'cancel', 'confirm', 'reopen']),
+            new Middleware('abilities:'.PermissionType::SALES_ORDER_UPDATE->value, only: ['update', 'cancel', 'confirm', 'reopen', 'updatePaymentStatus']),
             new Middleware('abilities:'.PermissionType::SALES_ORDER_DELETE->value, only: ['destroy']),
 
         ];
@@ -109,5 +110,12 @@ class SalesOrderController extends Controller implements HasMiddleware
         $data = $this->service->recreateFrom($salesOrder, $validated['reason'] ?? null);
 
         return $this->success($data, __('messages.order_reopened_successfully'), 201);
+    }
+
+    public function updatePaymentStatus(UpdateOrderPaymentStatusRequest $request, SalesOrder $salesOrder): Response
+    {
+        $this->service->updatePaymentStatus($salesOrder, $request->validated('payment_status'));
+
+        return response()->noContent();
     }
 }

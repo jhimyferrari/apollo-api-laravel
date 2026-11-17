@@ -45,6 +45,8 @@ class PurchaseOrder extends Model implements HasStatus, MovesStock
             'status' => OrderStatus::class,
             'total' => AsMoney::class,
             'payment_status' => PaymentStatus::class,
+            'paid_at' => 'datetime',
+            'refunded_at' => 'datetime',
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];

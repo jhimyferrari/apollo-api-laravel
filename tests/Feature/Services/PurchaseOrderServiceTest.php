@@ -456,6 +456,29 @@ describe('PurchaseOrderService', function () {
 
             $this->assertDatabaseCount('stock_movements', 0);
         });
+
+        it('sets payment_status to Cancelled when cancelling a Pending order', function () {
+            $order = PurchaseOrder::factory()->for($this->organization)->create([
+                'status' => OrderStatus::Confirmed,
+                'payment_status' => PaymentStatus::Pending,
+            ]);
+
+            $this->service->cancel($order);
+
+            expect($order->fresh()->payment_status)->toBe(PaymentStatus::Cancelled);
+        });
+
+        it('keeps payment_status as Paid when cancelling a Paid order', function () {
+            $order = PurchaseOrder::factory()->for($this->organization)->paid()->create([
+                'status' => OrderStatus::Confirmed,
+            ]);
+
+            $this->service->cancel($order);
+
+            expect($order->fresh())
+                ->payment_status->toBe(PaymentStatus::Paid)
+                ->paid_at->not->toBeNull();
+        });
     });
     describe('recreateFrom', function () {
         describe('from a Confirmed order', function () {
@@ -741,6 +764,87 @@ describe('PurchaseOrderService', function () {
                 $this->assertDatabaseCount('purchase_orders', 1); // nenhum pedido novo foi criado
             });
         });
+        describe('payment status inheritance', function () {
+            it('transfers Paid status and paid_at to the new order and marks the replaced order as Cancelled', function () {
+                $paidAt = now()->subDay()->startOfSecond();
+                $product = Product::factory()->for($this->organization)->withStock(20)->create();
+                $order = PurchaseOrder::factory()->for($this->organization)->create([
+                    'status' => OrderStatus::Confirmed,
+                    'payment_status' => PaymentStatus::Paid,
+                    'paid_at' => $paidAt,
+                ]);
+                $order->items()->create([
+                    'organization_id' => $this->organization->id,
+                    'product_id' => $product->id,
+                    'number' => 1,
+                    'quantity' => 2,
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(2),
+                ]);
+
+                $result = $this->service->recreateFrom($order);
+
+                expect($order->fresh())
+                    ->status->toBe(OrderStatus::Cancelled)
+                    ->payment_status->toBe(PaymentStatus::Cancelled)
+                    ->paid_at->toBeNull();
+
+                expect($result['order'])
+                    ->payment_status->toBe(PaymentStatus::Paid)
+                    ->and($result['order']->paid_at?->equalTo($paidAt))->toBeTrue();
+            });
+
+            it('creates the new order as Pending and marks the replaced order as Cancelled when previous order was Pending', function () {
+                $product = Product::factory()->for($this->organization)->withStock(20)->create();
+                $order = PurchaseOrder::factory()->for($this->organization)->create([
+                    'status' => OrderStatus::Confirmed,
+                    'payment_status' => PaymentStatus::Pending,
+                ]);
+                $order->items()->create([
+                    'organization_id' => $this->organization->id,
+                    'product_id' => $product->id,
+                    'number' => 1,
+                    'quantity' => 2,
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(2),
+                ]);
+
+                $result = $this->service->recreateFrom($order);
+
+                expect($order->fresh())
+                    ->status->toBe(OrderStatus::Cancelled)
+                    ->payment_status->toBe(PaymentStatus::Cancelled);
+
+                expect($result['order'])
+                    ->payment_status->toBe(PaymentStatus::Pending)
+                    ->paid_at->toBeNull();
+            });
+
+            it('preserves Refunded status on a cancelled replaced order and creates the new order as Pending', function () {
+                $product = Product::factory()->for($this->organization)->withStock(20)->create();
+                $order = PurchaseOrder::factory()->for($this->organization)->refunded()->create([
+                    'status' => OrderStatus::Cancelled,
+                ]);
+                $order->items()->create([
+                    'organization_id' => $this->organization->id,
+                    'product_id' => $product->id,
+                    'number' => 1,
+                    'quantity' => 2,
+                    'unit_price' => $product->cost_price,
+                    'subtotal' => $product->cost_price->multiply(2),
+                ]);
+
+                $result = $this->service->recreateFrom($order);
+
+                expect($order->fresh())
+                    ->payment_status->toBe(PaymentStatus::Refunded)
+                    ->refunded_at->not->toBeNull();
+
+                expect($result['order'])
+                    ->payment_status->toBe(PaymentStatus::Pending)
+                    ->paid_at->toBeNull();
+            });
+        });
     });
     describe('update', function () {
         it('should update simple collumns successfully', function () {
@@ -760,20 +864,12 @@ describe('PurchaseOrderService', function () {
 
             $result = $this->service->update($purchaseOrder, [
                 'supplier_id' => $supplier->id,
-                'payment_status' => PaymentStatus::Paid->value,
             ]);
 
             expect($result)->toBeInstanceOf(PurchaseOrder::class)
-                ->supplier_id->toBe($supplier->id)
-                ->payment_status->toBe(PaymentStatus::Paid);
+                ->supplier_id->toBe($supplier->id);
 
             expect($result->items)->toHaveCount(1);
-        });
-
-        it('throw an exception when pass an invalid status', function () {
-            $purchaseOrder = PurchaseOrder::factory()->for($this->organization)->createOne();
-
-            expect(fn () => $this->service->update($purchaseOrder, ['payment_status' => 'invalid']))->toThrow(ValidationException::class);
         });
 
         it('throw an exception when supplier_id does not exist', function () {
@@ -1218,5 +1314,119 @@ describe('PurchaseOrderService', function () {
                 ]);
             });
         });
+    });
+    describe('updatePaymentStatus', function () {
+        it('updates payment status from Pending to Paid on a Draft order and sets paid_at', function () {
+            $this->travelTo('2026-11-16 12:00:00');
+            $order = PurchaseOrder::factory()->for($this->organization)->create([
+                'status' => OrderStatus::Draft,
+                'payment_status' => PaymentStatus::Pending,
+            ]);
+
+            $result = $this->service->updatePaymentStatus($order, PaymentStatus::Paid);
+
+            expect($result)
+                ->payment_status->toBe(PaymentStatus::Paid)
+                ->refunded_at->toBeNull()
+                ->and($result->paid_at?->toDateTimeString())->toBe('2026-11-16 12:00:00');
+        });
+
+        it('updates payment status from Paid to Pending on a Draft order and clears paid_at', function () {
+            $order = PurchaseOrder::factory()->for($this->organization)->paid()->create([
+                'status' => OrderStatus::Draft,
+            ]);
+
+            $result = $this->service->updatePaymentStatus($order, PaymentStatus::Pending);
+
+            expect($result)
+                ->payment_status->toBe(PaymentStatus::Pending)
+                ->paid_at->toBeNull()
+                ->refunded_at->toBeNull();
+        });
+
+        it('updates payment status from Pending to Paid on a Confirmed order and sets paid_at', function () {
+            $this->travelTo('2026-11-16 14:30:00');
+            $order = PurchaseOrder::factory()->for($this->organization)->create([
+                'status' => OrderStatus::Confirmed,
+                'payment_status' => PaymentStatus::Pending,
+            ]);
+
+            $result = $this->service->updatePaymentStatus($order, PaymentStatus::Paid->value);
+
+            expect($result)
+                ->payment_status->toBe(PaymentStatus::Paid)
+                ->refunded_at->toBeNull()
+                ->and($result->paid_at?->toDateTimeString())->toBe('2026-11-16 14:30:00');
+        });
+
+        it('updates payment status from Paid to Pending on a Confirmed order and clears paid_at', function () {
+            $order = PurchaseOrder::factory()->for($this->organization)->paid()->create([
+                'status' => OrderStatus::Confirmed,
+            ]);
+
+            $result = $this->service->updatePaymentStatus($order, PaymentStatus::Pending->value);
+
+            expect($result)
+                ->payment_status->toBe(PaymentStatus::Pending)
+                ->paid_at->toBeNull()
+                ->refunded_at->toBeNull();
+        });
+
+        it('updates payment status from Paid to Refunded on a Cancelled order and sets refunded_at while preserving paid_at', function () {
+            $paidAt = now()->subDays(2)->startOfSecond();
+            $this->travelTo('2026-11-16 18:00:00');
+            $order = PurchaseOrder::factory()->for($this->organization)->create([
+                'status' => OrderStatus::Cancelled,
+                'payment_status' => PaymentStatus::Paid,
+                'paid_at' => $paidAt,
+            ]);
+
+            $result = $this->service->updatePaymentStatus($order, PaymentStatus::Refunded);
+
+            expect($result)
+                ->payment_status->toBe(PaymentStatus::Refunded)
+                ->and($result->paid_at?->equalTo($paidAt))->toBeTrue()
+                ->and($result->refunded_at?->toDateTimeString())->toBe('2026-11-16 18:00:00');
+        });
+
+        it('throws ValidationException when payment status string is invalid', function () {
+            $order = PurchaseOrder::factory()->for($this->organization)->create();
+
+            expect(fn () => $this->service->updatePaymentStatus($order, 'invalid'))
+                ->toThrow(ValidationException::class);
+        });
+
+        it('throws InvalidStatusTransitionException for disallowed payment transitions', function (
+            OrderStatus $orderStatus,
+            PaymentStatus $fromPaymentStatus,
+            PaymentStatus $toPaymentStatus,
+        ) {
+            $order = PurchaseOrder::factory()->for($this->organization)->create([
+                'status' => $orderStatus,
+                'payment_status' => $fromPaymentStatus,
+            ]);
+
+            expect(fn () => $this->service->updatePaymentStatus($order, $toPaymentStatus))
+                ->toThrow(InvalidStatusTransitionException::class);
+
+            expect($order->fresh()->payment_status)->toBe($fromPaymentStatus);
+        })->with([
+            'draft paid to refunded' => [OrderStatus::Draft, PaymentStatus::Paid, PaymentStatus::Refunded],
+            'draft pending to refunded' => [OrderStatus::Draft, PaymentStatus::Pending, PaymentStatus::Refunded],
+            'draft pending to cancelled' => [OrderStatus::Draft, PaymentStatus::Pending, PaymentStatus::Cancelled],
+            'draft paid to cancelled' => [OrderStatus::Draft, PaymentStatus::Paid, PaymentStatus::Cancelled],
+            'draft pending to pending' => [OrderStatus::Draft, PaymentStatus::Pending, PaymentStatus::Pending],
+            'confirmed paid to refunded' => [OrderStatus::Confirmed, PaymentStatus::Paid, PaymentStatus::Refunded],
+            'confirmed pending to refunded' => [OrderStatus::Confirmed, PaymentStatus::Pending, PaymentStatus::Refunded],
+            'confirmed pending to cancelled' => [OrderStatus::Confirmed, PaymentStatus::Pending, PaymentStatus::Cancelled],
+            'confirmed paid to paid' => [OrderStatus::Confirmed, PaymentStatus::Paid, PaymentStatus::Paid],
+            'cancelled paid to pending' => [OrderStatus::Cancelled, PaymentStatus::Paid, PaymentStatus::Pending],
+            'cancelled paid to cancelled' => [OrderStatus::Cancelled, PaymentStatus::Paid, PaymentStatus::Cancelled],
+            'cancelled cancelled to paid' => [OrderStatus::Cancelled, PaymentStatus::Cancelled, PaymentStatus::Paid],
+            'cancelled cancelled to pending' => [OrderStatus::Cancelled, PaymentStatus::Cancelled, PaymentStatus::Pending],
+            'cancelled cancelled to refunded' => [OrderStatus::Cancelled, PaymentStatus::Cancelled, PaymentStatus::Refunded],
+            'cancelled refunded to paid' => [OrderStatus::Cancelled, PaymentStatus::Refunded, PaymentStatus::Paid],
+            'cancelled refunded to pending' => [OrderStatus::Cancelled, PaymentStatus::Refunded, PaymentStatus::Pending],
+        ]);
     });
 });

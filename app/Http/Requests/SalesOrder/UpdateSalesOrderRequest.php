@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests\SalesOrder;
 
-use App\Enum\Status\PaymentStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateSalesOrderRequest extends FormRequest
 {
@@ -27,7 +25,6 @@ class UpdateSalesOrderRequest extends FormRequest
         return [
             'client_id' => ['sometimes', 'uuid'],
             'seller_id' => ['sometimes', 'uuid'],
-            'payment_status' => ['sometimes', Rule::enum(PaymentStatus::class)],
 
             'items' => ['sometimes', 'array'],
 

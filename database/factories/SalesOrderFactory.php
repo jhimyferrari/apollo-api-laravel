@@ -45,7 +45,24 @@ class SalesOrderFactory extends Factory
     public function paid(): static
     {
         return $this->state(fn (array $attributes) => [
-            'pyment_status' => PaymentStatus::Paid,
+            'payment_status' => PaymentStatus::Paid,
+            'paid_at' => now(),
+        ]);
+    }
+
+    public function refunded(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'payment_status' => PaymentStatus::Refunded,
+            'paid_at' => now(),
+            'refunded_at' => now(),
+        ]);
+    }
+
+    public function paymentCancelled(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'payment_status' => PaymentStatus::Cancelled,
         ]);
     }
 

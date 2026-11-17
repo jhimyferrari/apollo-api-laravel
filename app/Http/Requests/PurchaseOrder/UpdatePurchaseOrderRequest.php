@@ -2,10 +2,8 @@
 
 namespace App\Http\Requests\PurchaseOrder;
 
-use App\Enum\Status\PaymentStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdatePurchaseOrderRequest extends FormRequest
 {
@@ -26,7 +24,6 @@ class UpdatePurchaseOrderRequest extends FormRequest
     {
         return [
             'supplier_id' => ['sometimes', 'uuid'],
-            'payment_status' => ['sometimes', Rule::enum(PaymentStatus::class)],
 
             'items' => ['sometimes', 'array'],
 

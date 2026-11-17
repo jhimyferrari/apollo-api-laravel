@@ -122,6 +122,7 @@ Route::prefix('v1')
                 Route::patch('/{salesOrder}/reopen', [SalesOrderControllerV1::class, 'reopen'])->name('reopen');
                 Route::patch('/{salesOrder}/confirm', [SalesOrderControllerV1::class, 'confirm'])->name('confirm');
                 Route::patch('/{salesOrder}/cancel', [SalesOrderControllerV1::class, 'cancel'])->name('cancel');
+                Route::patch('/{salesOrder}/payment-status', [SalesOrderControllerV1::class, 'updatePaymentStatus'])->name('payment-status');
             });
 
             Route::group(['as' => 'purchase-orders.', 'prefix' => '/purchase-orders'], function () {
@@ -133,6 +134,7 @@ Route::prefix('v1')
                 Route::patch('/{purchaseOrder}/reopen', [PurchaseOrderControllerV1::class, 'reopen'])->name('reopen');
                 Route::patch('/{purchaseOrder}/confirm', [PurchaseOrderControllerV1::class, 'confirm'])->name('confirm');
                 Route::patch('/{purchaseOrder}/cancel', [PurchaseOrderControllerV1::class, 'cancel'])->name('cancel');
+                Route::patch('/{purchaseOrder}/payment-status', [PurchaseOrderControllerV1::class, 'updatePaymentStatus'])->name('payment-status');
             });
 
             Route::group(['as' => 'reports.', 'prefix' => '/reports'], function () {
