@@ -3,6 +3,7 @@
 use App\Enum\PermissionType;
 use App\Enum\ProductUnit;
 use App\Enum\Status\ProductStatus;
+use App\Models\Category;
 use App\Models\NcmCode;
 use App\Models\Product;
 use App\Models\User;
@@ -115,5 +116,39 @@ describe('PATCH api/products/{product}', function () {
         $response = $this->patchJson(route('v1.products.update', $product), []);
 
         $response->assertUnauthorized();
+    });
+
+    test('Logged user fails with 422 when sending only stock_quantity', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->create([
+            'organization_id' => $user->organization_id,
+            'stock_quantity' => 10,
+        ]);
+        Sanctum::actingAs($user, [PermissionType::PRODUCT_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.products.update', $product), [
+            'stock_quantity' => 50,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('payload', 'error.fields');
+        expect((float) $product->fresh()->stock_quantity)->toBe(10.0);
+    });
+
+    test('Logged user fails with 422 when categories have missing id or duplicate uuid', function () {
+        $user = User::factory()->create();
+        $product = Product::factory()->create(['organization_id' => $user->organization_id]);
+        $category = Category::factory()->for($user->organization)->create();
+        Sanctum::actingAs($user, [PermissionType::PRODUCT_UPDATE->value]);
+
+        $this->patchJson(route('v1.products.update', $product), [
+            'categories' => [[]],
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('categories.0.id', 'error.fields');
+
+        $this->patchJson(route('v1.products.update', $product), [
+            'categories' => [['id' => $category->id], ['id' => $category->id]],
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('categories.0.id', 'error.fields');
     });
 });

@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
+use App\Enum\Status\ClientStatus;
+use App\Enum\Status\ProductStatus;
+use App\Enum\Status\SellerStatus;
+use App\Enum\Status\SupplierStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Lookup\LookupRequest;
 use App\Http\Resources\Lookup\BrandLookupResource;
@@ -21,6 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\ValidationException;
 
 class LookupController extends Controller implements HasMiddleware
 {
@@ -76,7 +81,7 @@ class LookupController extends Controller implements HasMiddleware
     {
         $query = Client::query();
 
-        $status = $request->query('status', 'active');
+        $status = $this->resolveStatusFilter($request, ClientStatus::allValues());
         if ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -101,7 +106,7 @@ class LookupController extends Controller implements HasMiddleware
     {
         $query = Seller::query();
 
-        $status = $request->query('status', 'active');
+        $status = $this->resolveStatusFilter($request, SellerStatus::allValues());
         if ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -125,7 +130,7 @@ class LookupController extends Controller implements HasMiddleware
     {
         $query = Product::query();
 
-        $status = $request->query('status', 'active');
+        $status = $this->resolveStatusFilter($request, ProductStatus::allValues());
         if ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -147,7 +152,7 @@ class LookupController extends Controller implements HasMiddleware
     {
         $query = Supplier::query();
 
-        $status = $request->query('status', 'active');
+        $status = $this->resolveStatusFilter($request, SupplierStatus::allValues());
         if ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -194,5 +199,22 @@ class LookupController extends Controller implements HasMiddleware
         $categories = $query->orderBy('name')->get(['id', 'number', 'name']);
 
         return CategoryLookupResource::collection($categories);
+    }
+
+    /**
+     * @param  array<int, string>  $allowedValues
+     */
+    private function resolveStatusFilter(LookupRequest $request, array $allowedValues): string
+    {
+        $status = $request->query('status', 'active');
+        $allowed = ['all', ...$allowedValues];
+
+        if (! \in_array($status, $allowed, true)) {
+            throw ValidationException::withMessages([
+                'status' => __('validation.enum', ['attribute' => 'status']),
+            ]);
+        }
+
+        return $status;
     }
 }

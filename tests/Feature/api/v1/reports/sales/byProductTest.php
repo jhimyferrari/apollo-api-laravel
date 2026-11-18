@@ -197,4 +197,48 @@ describe('GET api/v1/reports/sales/by-product', function () {
         expect($json['totals']['distinct_products_count'])->toBe(1)
             ->and($json['data'][0]['product_id'])->toBe($product2->id);
     });
+
+    test('Can filter sales by product report with status=all', function () {
+        $organization = Organization::factory()->create();
+        $user = User::factory()->for($organization)->create();
+        $product = Product::factory()->for($organization)->create();
+
+        $draftOrder = SalesOrder::factory()->for($organization)->create([
+            'status' => OrderStatus::Draft,
+            'total' => Money::fromDecimal('100.0000'),
+        ]);
+        $draftOrder->items()->create([
+            'organization_id' => $organization->id,
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 1,
+            'unit_price' => Money::fromDecimal('100.0000'),
+            'subtotal' => Money::fromDecimal('100.0000'),
+        ]);
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $response = $this->getJson(route('v1.reports.sales.by-product', ['status' => 'all']));
+
+        $response->assertOk();
+        expect($response->json('totals.distinct_products_count'))->toBe(1);
+    });
+
+    test('Fails with 422 when filtering by product_id, seller_id, category_id, or brand_id from another organization', function (string $field) {
+        $user = User::factory()->create();
+        $otherOrg = Organization::factory()->create();
+        $foreignId = match ($field) {
+            'product_id' => Product::factory()->for($otherOrg)->create()->id,
+            'seller_id' => Seller::factory()->for($otherOrg)->create()->id,
+            'category_id' => Category::factory()->for($otherOrg)->create()->id,
+            'brand_id' => Brand::factory()->for($otherOrg)->create()->id,
+        };
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $response = $this->getJson(route('v1.reports.sales.by-product', [$field => $foreignId]));
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors($field, 'error.fields');
+    })->with(['product_id', 'seller_id', 'category_id', 'brand_id']);
 });

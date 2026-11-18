@@ -4,13 +4,14 @@ namespace App\Services;
 
 use App\Actions\Order\CancelOrder;
 use App\Actions\Order\ConfirmOrder;
+use App\Actions\Order\UpdateOrderPaymentStatus;
+use App\Actions\Order\ValidateOrderActiveRelations;
 use App\Actions\Validation\ValidateStatusEnum;
 use App\Enum\Status\OrderStatus;
 use App\Enum\Status\PaymentStatus;
 use App\Enum\StockMovementType;
 use App\Exceptions\InvalidStatusException;
 use App\Exceptions\InvalidStatusTransitionException;
-use App\Exceptions\ModelIsDeletedException;
 use App\Exceptions\OrderCannotBeDeletedException;
 use App\Models\Product;
 use App\Models\SalesOrder;
@@ -38,7 +39,9 @@ class SalesOrderService extends BaseService
         private readonly TreatNumber $treatNumber,
         private readonly ConfirmOrder $confirmOrder,
         private readonly CancelOrder $cancelOrder,
+        private readonly UpdateOrderPaymentStatus $updateOrderPaymentStatus,
         private readonly TreatSalesOrderItem $treatSalesOrderItem,
+        private readonly ValidateOrderActiveRelations $validateOrderActiveRelations,
     ) {
         parent::__construct(new SalesOrder);
 
@@ -72,7 +75,7 @@ class SalesOrderService extends BaseService
     {
         if ($order->status !== OrderStatus::Draft) {
             $status = $order->status->value;
-            throw new InvalidStatusException(__('validation.order.status.update', ['model' => __('validation.resources.sales_order'), 'status' => __("valiation.attribute.order.status.$status")]));
+            throw new InvalidStatusException(__('validation.order.status.update', ['model' => __('validation.resources.sales_order'), 'status' => __("validation.attributes.order.status.$status")]));
         }
 
         if (\array_key_exists('client_id', $data)) {
@@ -81,15 +84,6 @@ class SalesOrderService extends BaseService
 
         if (\array_key_exists('seller_id', $data)) {
             $order->seller_id = $this->treatment->for($this->treatSeller, $data['seller_id'], 'seller_id', $this->model)->mustBeNotNull()->handle()->id;
-        }
-
-        if (\array_key_exists('payment_status', $data)) {
-            $status = PaymentStatus::tryFrom($data['payment_status']);
-            if ($status == null) {
-                report(new InvalidStatusException(__('errors.invalid_status', ['value' => $status, 'model' => __('validation.resources.sales_order')])));
-                throw ValidationException::withMessages(['payment_status' => __('validation.order.payment_status', ['model' => __('validation.resources.sales_order')])]);
-            }
-            $order->payment_status = $status;
         }
 
         return DB::transaction(function () use ($order, $data) {
@@ -134,25 +128,36 @@ class SalesOrderService extends BaseService
         }
 
         return DB::transaction(function () use ($previousOrder, $reason) {
+            $wasPaid = $previousOrder->payment_status === PaymentStatus::Paid;
+            $previousPaidAt = $previousOrder->paid_at;
+
             if ($previousOrder->status !== OrderStatus::Cancelled) {
                 $this->cancel($previousOrder, $reason);
             }
+
+            if ($previousOrder->payment_status !== PaymentStatus::Refunded && $previousOrder->payment_status !== PaymentStatus::Cancelled) {
+                $previousOrder->payment_status = PaymentStatus::Cancelled;
+                $previousOrder->paid_at = null;
+                $previousOrder->save();
+            }
+
             $newSalesOrder = new SalesOrder;
             $newSalesOrder->organization_id = $previousOrder->organization_id;
             $newSalesOrder->seller_id = $previousOrder->seller_id;
             $newSalesOrder->client_id = $previousOrder->client_id;
             $newSalesOrder->replaces_order_id = $previousOrder->id;
+            $newSalesOrder->status = OrderStatus::Draft;
+            $newSalesOrder->payment_status = $wasPaid ? PaymentStatus::Paid : PaymentStatus::Pending;
+            $newSalesOrder->paid_at = $wasPaid ? $previousPaidAt : null;
             $newSalesOrder->total = $previousOrder->total;
 
             $newSalesOrder->save();
 
             $previousOrder->loadMissing('items.product');
+            $this->validateOrderActiveRelations->execute($previousOrder, $previousOrder->items);
             $outdatedPrices = [];
 
             foreach ($previousOrder->items as $item) {
-                if ($item->product->deleted_at !== null) {
-                    throw ModelIsDeletedException::forProduct($item->product_id);
-                }
                 $newSalesOrder->items()->create(
                     [
                         'organization_id' => $item->organization_id,
@@ -211,6 +216,20 @@ class SalesOrderService extends BaseService
         } else {
             throw InvalidStatusTransitionException::make($order->status, OrderStatus::Confirmed);
         }
+    }
+
+    public function updatePaymentStatus(SalesOrder $order, PaymentStatus|string $paymentStatus): SalesOrder
+    {
+        $status = $paymentStatus instanceof PaymentStatus
+            ? $paymentStatus
+            : PaymentStatus::tryFrom($paymentStatus);
+
+        if ($status === null) {
+            report(new InvalidStatusException(__('errors.invalid_status', ['value' => $paymentStatus, 'model' => __('validation.resources.sales_order')])));
+            throw ValidationException::withMessages(['payment_status' => __('validation.order.payment_status', ['model' => __('validation.resources.sales_order')])]);
+        }
+
+        return $this->updateOrderPaymentStatus->execute($order, $status);
     }
 
     private function createItems(SalesOrder $order, array $items): void

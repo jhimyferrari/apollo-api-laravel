@@ -115,4 +115,55 @@ describe('POST api/organizations', function () {
         $this->assertDatabaseCount('organizations', 1);
     });
 
+    test('Fails with 422 when document is duplicated even with mask', function () {
+        $this->seed(PermissionSeeder::class);
+        $cnpjRaw = '11222333000181';
+        $cnpjMasked = '11.222.333/0001-81';
+        Organization::factory()->create(['document' => $cnpjRaw]);
+
+        $response = $this->postJson(route('v1.organizations.store'), [
+            'name' => fake()->company,
+            'document' => $cnpjMasked,
+            'email' => fake()->email,
+            'password' => $this->validPassword(),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('document', 'error.fields');
+        $this->assertDatabaseCount('organizations', 1);
+    });
+
+    test('Fails with 422 when password does not meet complexity rules or has invalid type', function (mixed $password) {
+        $this->seed(PermissionSeeder::class);
+
+        $response = $this->postJson(route('v1.organizations.store'), [
+            'name' => fake()->company,
+            'document' => fake()->cnpj(false),
+            'email' => fake()->email,
+            'password' => $password,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('password', 'error.fields');
+        $this->assertDatabaseCount('organizations', 0);
+    })->with([
+        'weak password' => ['abcdefgh'],
+        'array password' => [array_fill(0, 8, 'a')],
+    ]);
+
+    test('Fails with 422 when document is not a string', function () {
+        $this->seed(PermissionSeeder::class);
+
+        $response = $this->postJson(route('v1.organizations.store'), [
+            'name' => fake()->company,
+            'document' => ['11222333000181'],
+            'email' => fake()->email,
+            'password' => $this->validPassword(),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('document', 'error.fields');
+        $this->assertDatabaseCount('organizations', 0);
+    });
+
 });

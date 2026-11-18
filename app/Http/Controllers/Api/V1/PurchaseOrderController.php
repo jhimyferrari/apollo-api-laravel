@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Order\UpdateOrderPaymentStatusRequest;
 use App\Http\Requests\PurchaseOrder\StorePurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\UpdatePurchaseOrderRequest;
 use App\Http\Resources\PurchaseOrderResource;
@@ -28,7 +29,7 @@ class PurchaseOrderController extends Controller implements HasMiddleware
         return [
             new Middleware('abilities:'.PermissionType::PURCHASE_ORDER_CREATE->value, only: ['store']),
             new Middleware('abilities:'.PermissionType::PURCHASE_ORDER_READ->value, only: ['index', 'show']),
-            new Middleware('abilities:'.PermissionType::PURCHASE_ORDER_UPDATE->value, only: ['update', 'cancel', 'confirm', 'reopen']),
+            new Middleware('abilities:'.PermissionType::PURCHASE_ORDER_UPDATE->value, only: ['update', 'cancel', 'confirm', 'reopen', 'updatePaymentStatus']),
             new Middleware('abilities:'.PermissionType::PURCHASE_ORDER_DELETE->value, only: ['destroy']),
 
         ];
@@ -92,9 +93,12 @@ class PurchaseOrderController extends Controller implements HasMiddleware
         return response()->noContent();
     }
 
-    public function cancel(PurchaseOrder $purchaseOrder): Response
+    public function cancel(Request $request, PurchaseOrder $purchaseOrder): Response
     {
-        $this->service->cancel($purchaseOrder);
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+        $this->service->cancel($purchaseOrder, $validated['reason'] ?? null);
 
         return response()->noContent();
     }
@@ -102,10 +106,17 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     public function reopen(Request $request, PurchaseOrder $purchaseOrder): JsonResponse
     {
         $validated = $request->validate([
-            'reason' => ['nullable', 'string'],
+            'reason' => ['nullable', 'string', 'max:255'],
         ]);
         $data = $this->service->recreateFrom($purchaseOrder, $validated['reason'] ?? null);
 
         return $this->success($data, 'PurchaseOrder reopened sucessfully', 201);
+    }
+
+    public function updatePaymentStatus(UpdateOrderPaymentStatusRequest $request, PurchaseOrder $purchaseOrder): Response
+    {
+        $this->service->updatePaymentStatus($purchaseOrder, $request->validated('payment_status'));
+
+        return response()->noContent();
     }
 }

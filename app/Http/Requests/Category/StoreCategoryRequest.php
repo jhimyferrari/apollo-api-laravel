@@ -26,6 +26,7 @@ class StoreCategoryRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
+                'max:45',
             ],
             'description' => [
                 'nullable',

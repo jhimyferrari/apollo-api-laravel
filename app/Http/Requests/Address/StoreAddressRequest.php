@@ -24,13 +24,13 @@ class StoreAddressRequest extends FormRequest
     {
         return [
 
-            'street' => ['required'],
-            'number' => ['required'],
-            'neighborhood' => ['required'],
-            'city_ibge_code' => ['required'],
-            'cep' => ['required'],
+            'street' => ['required', 'string', 'max:45'],
+            'number' => ['required', 'string', 'max:10'],
+            'neighborhood' => ['required', 'string', 'max:45'],
+            'city_ibge_code' => ['required', 'string', 'max:7'],
+            'cep' => ['required', 'string', 'max:9'],
             'is_default' => ['nullable', 'boolean'],
-            'complement' => ['nullable', 'string'],
+            'complement' => ['nullable', 'string', 'max:45'],
         ];
     }
 }

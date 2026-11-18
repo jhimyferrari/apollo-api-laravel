@@ -404,3 +404,20 @@ describe('GET api/v1/lookups/categories', function () {
         $response->assertForbidden();
     });
 });
+
+describe('GET api/v1/lookups status validation', function () {
+    test('Lookup fails with 422 when an invalid status filter is provided', function (string $routeName, string $permission) {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, [$permission]);
+
+        $response = $this->getJson(route($routeName, ['status' => 'invalid_status']));
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('status', 'error.fields');
+    })->with([
+        'clients' => ['v1.lookups.clients', PermissionType::CLIENT_READ->value],
+        'sellers' => ['v1.lookups.sellers', PermissionType::SELLER_READ->value],
+        'products' => ['v1.lookups.products', PermissionType::PRODUCT_READ->value],
+        'suppliers' => ['v1.lookups.suppliers', PermissionType::SUPPLIER_READ->value],
+    ]);
+});

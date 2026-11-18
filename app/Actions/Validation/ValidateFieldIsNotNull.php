@@ -14,11 +14,11 @@ class ValidateFieldIsNotNull
     {
         if (\is_array($value)) {
             if (empty($value)) {
-                throw ValidationException::withMessages([__('validation.required', ['attribute' => __("validation.attributes.$fieldName")])]);
+                throw ValidationException::withMessages([$fieldName => __('validation.required', ['attribute' => __("validation.attributes.$fieldName")])]);
             }
         } else {
-            if ($value === null || $value === '' || preg_match('/^[\p{Z}\s]*$/u', $value)) {
-                throw ValidationException::withMessages([__('validation.required', ['attribute' => __("validation.attributes.$fieldName")])]);
+            if ($value === null || $value === '' || (is_string($value) && preg_match('/^[\p{Z}\s]*$/u', $value))) {
+                throw ValidationException::withMessages([$fieldName => __('validation.required', ['attribute' => __("validation.attributes.$fieldName")])]);
             }
         }
     }

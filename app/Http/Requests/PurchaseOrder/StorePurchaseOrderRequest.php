@@ -25,9 +25,9 @@ class StorePurchaseOrderRequest extends FormRequest
         return [
             'supplier_id' => ['required', 'uuid'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'uuid'],
-            'items.*.number' => ['required', 'integer', 'min:1'],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'items.*.product_id' => ['required', 'uuid', 'distinct'],
+            'items.*.number' => ['required', 'integer', 'min:1', 'distinct'],
+            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'decimal:0,3', 'max:9999999.999'],
         ];
     }
 }

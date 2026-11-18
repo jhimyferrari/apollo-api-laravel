@@ -110,4 +110,34 @@ describe('POST api/users', function () {
         $response = $this->postJson(route('v1.users.store'));
         $response->assertForbidden();
     });
+
+    test('Logged user cannot create user with duplicate permissions', function () {
+        $this->seed(PermissionSeeder::class);
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.users.store'), [
+            'name' => fake()->name(),
+            'email' => fake()->email(),
+            'password' => $this->validPassword(),
+            'permissions' => [PermissionType::CLIENT_READ->value, PermissionType::CLIENT_READ->value],
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('permissions.0', 'error.fields');
+    });
+
+    test('Logged user fails with 422 when password is an array', function () {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, [PermissionType::USER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.users.store'), [
+            'name' => fake()->name(),
+            'email' => fake()->email(),
+            'password' => array_fill(0, 8, 'a'),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('password', 'error.fields');
+    });
 });

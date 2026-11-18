@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Helpers\DocumentHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Organization;
@@ -14,9 +15,10 @@ class LoginController extends Controller
 {
     public function login(LoginRequest $request): JsonResponse
     {
-        $request->validated();
+        $validated = $request->validated();
 
-        $organization = Organization::where('document', $request['organization_document'])->get()->first();
+        $document = DocumentHelper::remove_pontuation($validated['organization_document']);
+        $organization = Organization::where('document', $document)->first();
         if (! $organization) {
             return response()->json(['message' => __('auth.failed')], 404);
         }

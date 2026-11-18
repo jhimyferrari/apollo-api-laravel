@@ -146,4 +146,37 @@ describe('POST api/purchase-orders', function () {
         $response->assertUnprocessable();
         expect($response->json('error.fields.product_id'))->not->toBeNull();
     });
+
+    test('Logged user fails with 422 for duplicate item number, duplicate product_id, or invalid quantity precision', function (string $scenario) {
+        $user = User::factory()->create();
+        $product1 = Product::factory()->for($user->organization)->withStock(10)->create();
+        $product2 = Product::factory()->for($user->organization)->withStock(10)->create();
+        $supplier = Supplier::factory()->for($user->organization)->create();
+
+        Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_CREATE->value]);
+
+        $items = match ($scenario) {
+            'duplicate_number' => [
+                ['product_id' => $product1->id, 'number' => 1, 'quantity' => 1],
+                ['product_id' => $product2->id, 'number' => 1, 'quantity' => 1],
+            ],
+            'duplicate_product' => [
+                ['product_id' => $product1->id, 'number' => 1, 'quantity' => 1],
+                ['product_id' => $product1->id, 'number' => 2, 'quantity' => 1],
+            ],
+            'too_many_decimals' => [
+                ['product_id' => $product1->id, 'number' => 1, 'quantity' => 1.1234],
+            ],
+            'quantity_overflow' => [
+                ['product_id' => $product1->id, 'number' => 1, 'quantity' => 10000000],
+            ],
+        };
+
+        $response = $this->postJson(route('v1.purchase-orders.store'), [
+            'supplier_id' => $supplier->id,
+            'items' => $items,
+        ]);
+
+        $response->assertUnprocessable();
+    })->with(['duplicate_number', 'duplicate_product', 'too_many_decimals', 'quantity_overflow']);
 });

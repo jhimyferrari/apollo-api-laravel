@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\User;
 
+use App\Http\Requests\BaseUpdateRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends BaseUpdateRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,20 +24,24 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => [
-                'required_without_all:email,permissions',
+                'sometimes',
                 'string',
+                'max:255',
             ],
             'email' => [
-                'required_without_all:name,permissions',
+                'sometimes',
+                'string',
                 'email',
+                'max:255',
             ],
             'permissions' => [
-                'required_without_all:name,email',
+                'sometimes',
                 'array',
             ],
             'permissions.*' => [
-                'required_with:permissions',
+                'required',
                 'string',
+                'distinct',
                 'exists:permissions,name',
             ],
         ];

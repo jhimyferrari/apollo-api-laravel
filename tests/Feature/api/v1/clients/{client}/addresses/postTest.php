@@ -113,4 +113,31 @@ describe('POST api/clients/{client}/address', function () {
 
         $response->assertNotFound();
     });
+
+    test('Logged user fails with 422 when fields exceed max length or have invalid types', function (array $override, string $errorField) {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, [PermissionType::CLIENT_UPDATE->value]);
+        $client = Client::factory()->create(['organization_id' => $user->organization_id]);
+        $cityIbgeCode = City::first()->ibge_code;
+
+        $payload = array_merge([
+            'street' => 'Rua A',
+            'number' => '123',
+            'neighborhood' => 'Centro',
+            'cep' => '87500000',
+            'city_ibge_code' => $cityIbgeCode,
+        ], $override);
+
+        $response = $this->postJson(route('v1.clients.addresses.store', $client), $payload);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors($errorField, 'error.fields');
+    })->with([
+        'street exceeds max 45' => [['street' => str_repeat('a', 46)], 'street'],
+        'neighborhood exceeds max 45' => [['neighborhood' => str_repeat('a', 46)], 'neighborhood'],
+        'complement exceeds max 45' => [['complement' => str_repeat('a', 46)], 'complement'],
+        'number exceeds max 10' => [['number' => str_repeat('1', 11)], 'number'],
+        'cep as array' => [['cep' => ['87500000']], 'cep'],
+        'city_ibge_code as array' => [['city_ibge_code' => ['4128104']], 'city_ibge_code'],
+    ]);
 });

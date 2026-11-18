@@ -106,4 +106,55 @@ describe('PATCH api/users/{user}', function () {
         $response->assertNotFound();
     });
 
+    test('Logged user can remove all permissions by sending empty array', function () {
+        $this->seed(PermissionSeeder::class);
+        $user = User::factory()->create();
+        $targetUser = User::factory()->for($user->organization)->create();
+        $permission = Permission::where('name', PermissionType::CLIENT_READ->value)->firstOrFail();
+        $targetUser->permissions()->sync([$permission->id]);
+
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.users.update', $targetUser), [
+            'permissions' => [],
+        ]);
+
+        $response->assertNoContent();
+        expect($targetUser->fresh()->permissions)->toHaveCount(0);
+    });
+
+    test('Logged user cannot update user with duplicate permissions', function () {
+        $this->seed(PermissionSeeder::class);
+        $user = User::factory()->create();
+        $targetUser = User::factory()->for($user->organization)->create();
+
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.users.update', $targetUser), [
+            'permissions' => [PermissionType::CLIENT_READ->value, PermissionType::CLIENT_READ->value],
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('permissions.0', 'error.fields');
+    });
+
+    test('Non-admin user cannot modify administrator name or email', function () {
+        $user = User::factory()->create();
+        $admin = User::factory()->admin()->for($user->organization)->create([
+            'name' => 'Administrador',
+            'email' => 'admin@org.test',
+        ]);
+
+        Sanctum::actingAs($user, [PermissionType::USER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.users.update', $admin), [
+            'name' => 'Hacked Name',
+            'email' => 'hacked@org.test',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('user', 'error.fields');
+        expect($admin->fresh()->email)->toBe('admin@org.test');
+    });
+
 });

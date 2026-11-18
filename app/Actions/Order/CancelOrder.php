@@ -3,6 +3,7 @@
 namespace App\Actions\Order;
 
 use App\Enum\Status\OrderStatus;
+use App\Enum\Status\PaymentStatus;
 use App\Enum\StockMovementType;
 use App\Interfaces\Models\MovesStock;
 use App\Services\StockMovementService;
@@ -33,6 +34,9 @@ class CancelOrder
                 }
             }
             $order->status = OrderStatus::Cancelled;
+            if ($order->payment_status === PaymentStatus::Pending) {
+                $order->payment_status = PaymentStatus::Cancelled;
+            }
             $order->cancelled_at = now();
             $order->cancellation_reason = $reason;
             $order->save();

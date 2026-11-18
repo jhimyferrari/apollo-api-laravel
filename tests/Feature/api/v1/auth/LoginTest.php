@@ -44,4 +44,47 @@ describe('Create Organization and Login flow', function () {
         $permissionsAdminMustHave = Permission::all()->pluck('name')->toArray();
         expect($accessToken['abilities'])->toEqualCanonicalizing($permissionsAdminMustHave);
     });
+
+    test('Login succeeds when organization_document is sent with mask', function () {
+        $this->seed(PermissionSeeder::class);
+        $cnpjMasked = fake()->cnpj(true);
+        $email = fake()->email();
+        $password = $this->validPassword();
+
+        $this->postJson(route('v1.organizations.store'), [
+            'name' => fake()->company(),
+            'document' => $cnpjMasked,
+            'email' => $email,
+            'password' => $password,
+        ])->assertCreated();
+
+        $response = $this->postJson(route('v1.login'), [
+            'email' => $email,
+            'password' => $password,
+            'organization_document' => $cnpjMasked,
+        ]);
+
+        $response->assertOk();
+        expect($response->json('data.token'))->not->toBeEmpty();
+    });
+
+    test('Login fails with 422 when organization_document or password has invalid format or type', function (array $payload, string $errorField) {
+        $response = $this->postJson(route('v1.login'), $payload);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors($errorField, 'error.fields');
+    })->with([
+        'invalid document' => [
+            ['email' => 'admin@test.com', 'password' => 'Str0ng!Pass', 'organization_document' => '11.111.111/1111-11'],
+            'organization_document',
+        ],
+        'array document' => [
+            ['email' => 'admin@test.com', 'password' => 'Str0ng!Pass', 'organization_document' => ['123']],
+            'organization_document',
+        ],
+        'array password' => [
+            ['email' => 'admin@test.com', 'password' => array_fill(0, 8, 'a'), 'organization_document' => '11222333000181'],
+            'password',
+        ],
+    ]);
 });

@@ -28,8 +28,14 @@ class SalesReportBySellerRequest extends FormRequest
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'date_field' => ['nullable', 'string', 'in:confirmed_at,created_at'],
-            'status' => ['nullable', 'string', Rule::enum(OrderStatus::class)],
-            'seller_id' => ['nullable', 'uuid', 'exists:sellers,id'],
+            'status' => ['nullable', 'string', Rule::in([...OrderStatus::allValues(), 'all'])],
+            'seller_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('sellers', 'id')
+                    ->where('organization_id', $this->user()?->organization_id)
+                    ->whereNull('deleted_at'),
+            ],
             'order_by' => ['nullable', 'string', 'in:total_amount,orders_count'],
             'order_direction' => ['nullable', 'string', 'in:asc,desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],

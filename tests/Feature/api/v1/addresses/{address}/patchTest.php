@@ -95,4 +95,23 @@ describe('PATCH api/addresses/{address}', function () {
 
         $response->assertUnauthorized();
     });
+
+    test('Logged user fails with 422 when update fields exceed max length or have invalid types', function (array $payload, string $errorField) {
+        $user = User::factory()->create();
+        $client = Client::factory()->for($user->organization)->create();
+        $address = Address::factory()->for($client, 'addressable')->for($user->organization)->create();
+        Sanctum::actingAs($user, [PermissionType::CLIENT_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.addresses.update', $address), $payload);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors($errorField, 'error.fields');
+    })->with([
+        'street exceeds max 45' => [['street' => str_repeat('a', 46)], 'street'],
+        'neighborhood exceeds max 45' => [['neighborhood' => str_repeat('a', 46)], 'neighborhood'],
+        'complement exceeds max 45' => [['complement' => str_repeat('a', 46)], 'complement'],
+        'number exceeds max 10' => [['number' => str_repeat('1', 11)], 'number'],
+        'cep as array' => [['cep' => ['87500000']], 'cep'],
+        'city_ibge_code as array' => [['city_ibge_code' => ['4128104']], 'city_ibge_code'],
+    ]);
 });

@@ -1,9 +1,14 @@
 <?php
 
 use App\Enum\PermissionType;
+use App\Enum\Status\ClientStatus;
 use App\Enum\Status\OrderStatus;
+use App\Enum\Status\ProductStatus;
+use App\Enum\Status\SellerStatus;
+use App\Models\Client;
 use App\Models\Product;
 use App\Models\SalesOrder;
+use App\Models\Seller;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -87,4 +92,52 @@ describe('POST api/sales-orders/{salesOrder}/confirm', function () {
 
         expect($order->fresh()->status)->toBe(OrderStatus::Draft);
     });
+
+    test('Logged user cannot confirm an order without items', function () {
+        $user = User::factory()->create();
+        $order = SalesOrder::factory()->for($user->organization)->create(['status' => OrderStatus::Draft]);
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.sales-orders.confirm', $order));
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('items', 'error.fields');
+        expect($order->fresh()->status)->toBe(OrderStatus::Draft);
+    });
+
+    test('Logged user cannot confirm an order when client, seller, or product became inactive', function (string $target) {
+        $user = User::factory()->create();
+        $client = Client::factory()->for($user->organization)->create();
+        $seller = Seller::factory()->for($user->organization)->create();
+        $product = Product::factory()->for($user->organization)->withStock(20)->create();
+
+        $order = SalesOrder::factory()->for($user->organization)->create([
+            'status' => OrderStatus::Draft,
+            'client_id' => $client->id,
+            'seller_id' => $seller->id,
+        ]);
+        $order->items()->create([
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 5,
+            'unit_price' => $product->sale_price,
+            'subtotal' => $product->sale_price->multiply(5),
+            'organization_id' => $user->organization_id,
+        ]);
+
+        match ($target) {
+            'client' => $client->forceFill(['status' => ClientStatus::Inactive])->save(),
+            'seller' => $seller->forceFill(['status' => SellerStatus::Inactive])->save(),
+            'product' => $product->forceFill(['status' => ProductStatus::Inactive])->save(),
+        };
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.sales-orders.confirm', $order));
+
+        $response->assertUnprocessable();
+        expect($order->fresh()->status)->toBe(OrderStatus::Draft);
+        expect($product->fresh()->stock_quantity)->toEqual(20.000);
+    })->with(['client', 'seller', 'product']);
 });

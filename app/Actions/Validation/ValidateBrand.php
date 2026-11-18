@@ -19,7 +19,7 @@ class ValidateBrand
             $brand = Brand::findOrFail($value);
         } catch (ModelNotFoundException|QueryException) {
             report(new ResourceNotFoundException(__('errors.not_found', ['value' => $value, 'attribute' => $field])));
-            throw ValidationException::withMessages([$field => __('validation.city', ['attribute' => __('validation.attributes.brand_id')])]);
+            throw ValidationException::withMessages([$field => __('validation.brand', ['attribute' => __('validation.attributes.brand_id')])]);
         } catch (Exception $e) {
             report($e);
             throw new RuntimeException(__('errors.internal_error'));

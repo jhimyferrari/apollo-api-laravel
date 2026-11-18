@@ -16,6 +16,12 @@ class CpfAndCnpj implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        if (! is_string($value)) {
+            $fail(__('validation.document', ['attribute' => $attribute]));
+
+            return;
+        }
+
         $value = DocumentHelper::remove_pontuation($value);
 
         match (\strlen($value)) {

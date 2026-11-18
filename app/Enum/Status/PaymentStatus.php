@@ -9,5 +9,6 @@ enum PaymentStatus: string
     use HasEnumValues;
     case Pending = 'pending';
     case Paid = 'paid';
-
+    case Refunded = 'refunded';
+    case Cancelled = 'cancelled';
 }

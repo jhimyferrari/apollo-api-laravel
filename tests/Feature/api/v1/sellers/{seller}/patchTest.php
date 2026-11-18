@@ -102,4 +102,52 @@ describe('PATCH api/sellers/{seller}', function () {
 
         $response->assertUnauthorized();
     });
+
+    test('Logged user fails with 422 when started_at is null or document is null', function (array $payload, string $errorField) {
+        $user = User::factory()->create();
+        $seller = Seller::factory()->create(['organization_id' => $user->organization_id]);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.sellers.update', $seller), $payload);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors($errorField, 'error.fields');
+    })->with([
+        'null started_at' => [['started_at' => null], 'started_at'],
+        'null document' => [['document' => null], 'document'],
+        'array document' => [['document' => ['123']], 'document'],
+    ]);
+
+    test('Logged user fails with 422 when ended_at is before persisted started_at', function () {
+        $user = User::factory()->create();
+        $seller = Seller::factory()->create([
+            'organization_id' => $user->organization_id,
+            'started_at' => '2026-10-10',
+        ]);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.sellers.update', $seller), [
+            'ended_at' => '2026-10-01',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('ended_at', 'error.fields');
+    });
+
+    test('Logged user fails with 422 when started_at is after persisted ended_at', function () {
+        $user = User::factory()->create();
+        $seller = Seller::factory()->create([
+            'organization_id' => $user->organization_id,
+            'started_at' => '2026-10-01',
+            'ended_at' => '2026-10-10',
+        ]);
+        Sanctum::actingAs($user, [PermissionType::SELLER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.sellers.update', $seller), [
+            'started_at' => '2026-10-20',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('ended_at', 'error.fields');
+    });
 });

@@ -167,6 +167,25 @@ describe('ProductService', function () {
                 'stock_quantity' => null,
             ], $this->user))->not->toThrow(QueryException::class);
         });
+
+        it('throws an error when sale_price is less than or equal to cost_price', function () {
+            $expectedMessage = __('validation.must_be_greater_than', [
+                'first' => __('validation.attributes.sale_price'),
+                'second' => __('validation.attributes.cost_price'),
+            ]);
+
+            expect(fn () => $this->service->create([
+                'name' => 'productName',
+                'cost_price' => '20.0000',
+                'sale_price' => '10.0000',
+            ], $this->user))->toThrow(ValidationException::class, $expectedMessage);
+
+            expect(fn () => $this->service->create([
+                'name' => 'productName',
+                'cost_price' => '20.0000',
+                'sale_price' => '20.0000',
+            ], $this->user))->toThrow(ValidationException::class, $expectedMessage);
+        });
     });
 
     describe('update', function () {
@@ -321,6 +340,44 @@ describe('ProductService', function () {
 
             $updatedAgain = $this->service->update($product, ['description' => null]);
             expect($updatedAgain->description)->toBeNull();
+        });
+
+        it('throws an error when updating sale_price to less than or equal to cost_price', function () {
+            $product = Product::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'cost_price' => Money::fromDecimal('50.0000'),
+                'sale_price' => Money::fromDecimal('100.0000'),
+            ]);
+
+            $expectedMessage = __('validation.must_be_greater_than', [
+                'first' => __('validation.attributes.sale_price'),
+                'second' => __('validation.attributes.cost_price'),
+            ]);
+
+            expect(fn () => $this->service->update($product, ['sale_price' => '40.0000']))
+                ->toThrow(ValidationException::class, $expectedMessage);
+
+            expect(fn () => $this->service->update($product, ['sale_price' => '50.0000']))
+                ->toThrow(ValidationException::class, $expectedMessage);
+        });
+
+        it('throws an error when updating only cost_price to greater than or equal to current sale_price', function () {
+            $product = Product::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'cost_price' => Money::fromDecimal('50.0000'),
+                'sale_price' => Money::fromDecimal('100.0000'),
+            ]);
+
+            $expectedMessage = __('validation.must_be_greater_than', [
+                'first' => __('validation.attributes.sale_price'),
+                'second' => __('validation.attributes.cost_price'),
+            ]);
+
+            expect(fn () => $this->service->update($product, ['cost_price' => '120.0000']))
+                ->toThrow(ValidationException::class, $expectedMessage);
+
+            expect(fn () => $this->service->update($product, ['cost_price' => '100.0000']))
+                ->toThrow(ValidationException::class, $expectedMessage);
         });
     });
 

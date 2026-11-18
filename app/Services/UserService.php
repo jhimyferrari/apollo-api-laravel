@@ -50,6 +50,12 @@ class UserService extends BaseService
      */
     public function update(Model $user, array $data): User
     {
+        if ($user->isAdministrator() && auth()->check() && auth()->id() !== $user->id) {
+            if (array_key_exists('name', $data) || array_key_exists('email', $data)) {
+                throw ValidationException::withMessages(['user' => __('validation.admin_update')]);
+            }
+        }
+
         if (isset($data['name'])) {
             $user->name = $this->treatment->for($this->stringTreat, $data['name'], 'name', $this->model)->mustBeNotNull()->handle();
         }

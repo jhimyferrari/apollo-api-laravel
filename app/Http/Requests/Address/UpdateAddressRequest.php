@@ -32,13 +32,13 @@ class UpdateAddressRequest extends BaseUpdateRequest
     {
         return [
 
-            'street' => ['sometimes'],
-            'number' => ['sometimes'],
-            'neighborhood' => ['sometimes'],
-            'city_ibge_code' => ['sometimes'],
-            'cep' => ['sometimes'],
+            'street' => ['sometimes', 'string', 'max:45'],
+            'number' => ['sometimes', 'string', 'max:10'],
+            'neighborhood' => ['sometimes', 'string', 'max:45'],
+            'city_ibge_code' => ['sometimes', 'string', 'max:7'],
+            'cep' => ['sometimes', 'string', 'max:9'],
             'is_default' => ['nullable', 'boolean'],
-            'complement' => ['nullable', 'string'],
+            'complement' => ['nullable', 'string', 'max:45'],
         ];
     }
 }
