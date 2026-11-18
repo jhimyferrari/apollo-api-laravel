@@ -33,4 +33,15 @@ describe('POST api/brands', function () {
         $response = $this->postJson(route('v1.brands.store'), []);
         $response->assertUnauthorized();
     });
+
+    test('Logged user fails with 422 when name exceeds 45 characters', function () {
+        Sanctum::actingAs(User::factory()->create(), [PermissionType::BRAND_CREATE->value]);
+
+        $response = $this->postJson(route('v1.brands.store'), [
+            'name' => str_repeat('a', 46),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('name', 'error.fields');
+    });
 });

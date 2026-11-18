@@ -14,6 +14,7 @@ use App\Services\TreatmentService\Strategies\TreatStateRegistration;
 use App\Services\TreatmentService\TreatmentService;
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class SellerService extends BaseService
 {
@@ -104,6 +105,12 @@ class SellerService extends BaseService
         }
 
         if (\array_key_exists('started_at', $data)) {
+            if ($data['started_at'] === null) {
+                throw ValidationException::withMessages([
+                    'started_at' => __('validation.required', ['attribute' => __('validation.attributes.started_at')]),
+                ]);
+            }
+
             $seller->started_at = $data['started_at'];
         }
 

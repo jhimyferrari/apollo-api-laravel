@@ -5,13 +5,13 @@ namespace App\Services;
 use App\Actions\Order\CancelOrder;
 use App\Actions\Order\ConfirmOrder;
 use App\Actions\Order\UpdateOrderPaymentStatus;
+use App\Actions\Order\ValidateOrderActiveRelations;
 use App\Actions\Validation\ValidateStatusEnum;
 use App\Enum\Status\OrderStatus;
 use App\Enum\Status\PaymentStatus;
 use App\Enum\StockMovementType;
 use App\Exceptions\InvalidStatusException;
 use App\Exceptions\InvalidStatusTransitionException;
-use App\Exceptions\ModelIsDeletedException;
 use App\Exceptions\OrderCannotBeDeletedException;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
@@ -39,6 +39,7 @@ class PurchaseOrderService extends BaseService
         private readonly CancelOrder $cancelOrder,
         private readonly UpdateOrderPaymentStatus $updateOrderPaymentStatus,
         private readonly TreatPurchaseOrderItem $treatPurchaseOrderItem,
+        private readonly ValidateOrderActiveRelations $validateOrderActiveRelations,
     ) {
         parent::__construct(new PurchaseOrder);
 
@@ -71,7 +72,7 @@ class PurchaseOrderService extends BaseService
     {
         if ($order->status !== OrderStatus::Draft) {
             $status = $order->status->value;
-            throw new InvalidStatusException(__('validation.order.status.update', ['model' => __('validation.resources.purchase_order'), 'status' => __("valiation.attribute.order.status.$status")]));
+            throw new InvalidStatusException(__('validation.order.status.update', ['model' => __('validation.resources.purchase_order'), 'status' => __("validation.attributes.order.status.$status")]));
         }
 
         if (\array_key_exists('supplier_id', $data)) {
@@ -147,12 +148,10 @@ class PurchaseOrderService extends BaseService
             $newPurchaseOrder->save();
 
             $previousOrder->loadMissing('items.product');
+            $this->validateOrderActiveRelations->execute($previousOrder, $previousOrder->items);
             $outdatedPrices = [];
 
             foreach ($previousOrder->items as $item) {
-                if ($item->product->deleted_at !== null) {
-                    throw ModelIsDeletedException::forProduct($item->product_id);
-                }
                 $newPurchaseOrder->items()->create(
                     [
                         'organization_id' => $item->organization_id,

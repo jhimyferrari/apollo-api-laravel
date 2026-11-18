@@ -32,12 +32,11 @@ class UpdateProductRequest extends BaseUpdateRequest
             'unit' => ['sometimes', 'string', Rule::in(ProductUnit::allValues())],
             'ncm' => ['nullable', 'string', 'size:8'],
             'ean' => ['nullable', 'string', 'size:13'],
-            'cost_price' => ['sometimes', 'numeric', 'min:0', 'decimal:0,4'],
-            'sale_price' => ['sometimes', 'numeric', 'min:0', 'decimal:0,4'],
-            'stock_quantity' => ['nullable', 'numeric', 'min:0', 'decimal:0,3'],
-            'brand_id' => ['nullable', 'string'],
+            'cost_price' => ['sometimes', 'numeric', 'min:0', 'max:99999999999.9999', 'decimal:0,4'],
+            'sale_price' => ['sometimes', 'numeric', 'min:0', 'max:99999999999.9999', 'decimal:0,4'],
+            'brand_id' => ['nullable', 'string', 'uuid'],
             'categories' => ['nullable', 'array'],
-            'categories.*.id' => ['uuid'],
+            'categories.*.id' => ['required', 'string', 'uuid', 'distinct'],
         ];
     }
 }

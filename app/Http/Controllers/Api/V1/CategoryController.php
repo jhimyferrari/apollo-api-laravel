@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Brand\StoreBrandRequest;
+use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
@@ -42,7 +42,7 @@ class CategoryController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBrandRequest $request): JsonResponse
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
         $newCategory = $this->categoryService->create($request->validated(), Auth()->user());
 

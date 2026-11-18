@@ -331,6 +331,8 @@ return [
     'product' => 'O campo :attribute não contém um id de produto válido',
     'brand' => 'O campo :attribute não contém um id de marca válido',
     'client' => 'O campo :attribute não contém um id de cliente válido',
+    'seller' => 'O campo :attribute não contém um id de vendedor válido',
+    'supplier' => 'O campo :attribute não contém um id de fornecedor válido',
     'order_item' => 'O campo :attribute não contém um id de Item de Ordem de Serviço válido',
     'purchase_order' => 'O campo :attribute não contém um id de compra válido.',
     'money' => 'O campo :attribute não contém um valor monetário válido.',
@@ -352,6 +354,7 @@ return [
     'order.already_open' => 'A :model já está aberta',
     'order.payment_status' => 'O status de pagamento não é válido para a :model',
     'order.status.update' => 'Não é possível atualizar uma :model de status :status',
+    'order.items_conflict' => 'Não é possível atualizar e remover o mesmo item simultaneamente.',
 
     'product.wasDelete' => 'O produto de id :product deve ter sido deletado e não foi encontrado para uso na',
 

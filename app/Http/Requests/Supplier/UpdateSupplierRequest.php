@@ -33,27 +33,33 @@ class UpdateSupplierRequest extends BaseUpdateRequest
             ],
             'document' => [
                 'sometimes',
+                'string',
                 new CpfAndCnpj,
             ],
             'legal_name' => [
                 'sometimes',
                 'string',
+                'max:255',
             ],
             'trade_name' => [
                 'sometimes',
                 'string',
+                'max:255',
             ],
             'state_registration' => [
                 'nullable',
                 'string',
+                'max:255',
             ],
             'email' => [
                 'nullable',
                 'email',
+                'max:255',
             ],
             'phone' => [
                 'nullable',
                 'string',
+                'max:255',
             ],
 
         ];

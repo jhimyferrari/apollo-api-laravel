@@ -26,6 +26,7 @@ class UpdateBrandRequest extends BaseUpdateRequest
             'name' => [
                 'sometimes',
                 'string',
+                'max:45',
             ],
             'description' => [
                 'nullable',

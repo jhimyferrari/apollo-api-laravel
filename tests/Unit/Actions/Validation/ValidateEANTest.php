@@ -40,4 +40,16 @@ describe('ValidateEan', function () {
             fn () => app(ValidateEAN::class)->execute('1234566799909', 'ean')
         )->toThrow(ValidationException::class);
     });
+
+    it('throw an error when pass non-digit 13 characters string', function () {
+        expect(
+            fn () => app(ValidateEAN::class)->execute('abcdefghijklm', 'ean')
+        )->toThrow(ValidationException::class);
+    });
+
+    it('throw an error when pass an invalid 8-digit EAN', function () {
+        expect(
+            fn () => app(ValidateEAN::class)->execute('12345671', 'ean')
+        )->toThrow(ValidationException::class);
+    });
 });

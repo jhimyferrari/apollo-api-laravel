@@ -95,9 +95,12 @@ class SalesOrderController extends Controller implements HasMiddleware
         return response()->noContent();
     }
 
-    public function cancel(SalesOrder $salesOrder): Response
+    public function cancel(Request $request, SalesOrder $salesOrder): Response
     {
-        $this->service->cancel($salesOrder);
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+        $this->service->cancel($salesOrder, $validated['reason'] ?? null);
 
         return response()->noContent();
     }
@@ -105,7 +108,7 @@ class SalesOrderController extends Controller implements HasMiddleware
     public function reopen(Request $request, SalesOrder $salesOrder): JsonResponse
     {
         $validated = $request->validate([
-            'reason' => ['nullable', 'string'],
+            'reason' => ['nullable', 'string', 'max:255'],
         ]);
         $data = $this->service->recreateFrom($salesOrder, $validated['reason'] ?? null);
 

@@ -9,12 +9,15 @@ class ValidateEAN
     /**
      * @throws ValidationException
      */
-    public function execute(string $value, string $field): string
+    public function execute(mixed $value, string $field): string
     {
         if (! \is_string($value)) {
             throw ValidationException::withMessages([$field => __('validation.ean', ['attribute' => 'ean'])]);
         }
         $value = trim($value);
+        if (! ctype_digit($value)) {
+            throw ValidationException::withMessages([$field => __('validation.ean', ['attribute' => 'ean'])]);
+        }
         $isValid = match (\strlen($value)) {
             13 => $this->validateEan13($value),
             8 => $this->validateEan8($value),
@@ -27,7 +30,7 @@ class ValidateEAN
         return $value;
     }
 
-    private function validateEan8(string $ean): string
+    private function validateEan8(string $ean): bool
     {
         $digits = array_map('intval', str_split($ean));
         $checkDigit = array_pop($digits);
@@ -37,9 +40,7 @@ class ValidateEAN
             $sum += $digit * ($index % 2 === 0 ? 3 : 1);
         }
 
-        if ((10 - ($sum % 10)) % 10 === $checkDigit) {
-            return (10 - ($sum % 10)) % 10 === $checkDigit;
-        }
+        return (10 - ($sum % 10)) % 10 === $checkDigit;
     }
 
     private function validateEan13(string $ean): bool

@@ -27,13 +27,19 @@ class StoreUserRequest extends FormRequest
         return [
             'name' => [
                 'required',
-                'string'],
+                'string',
+                'max:255',
+            ],
             'password' => [
                 'required',
-                'min:8'],
+                'string',
+                'min:8',
+            ],
             'email' => [
                 'required',
+                'string',
                 'email',
+                'max:255',
             ],
             'permissions' => [
                 'nullable',
@@ -42,6 +48,7 @@ class StoreUserRequest extends FormRequest
             'permissions.*' => [
                 'required_with:permissions',
                 'string',
+                'distinct',
                 'exists:permissions,name',
             ],
 

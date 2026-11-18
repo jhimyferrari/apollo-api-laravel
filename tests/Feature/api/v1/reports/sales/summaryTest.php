@@ -190,4 +190,42 @@ describe('GET api/v1/reports/sales/summary', function () {
             ->and($json['totals']['total_amount'])->toBe('80.0000')
             ->and($json['data'][0]['id'])->toBe($draftOrder->id);
     });
+
+    test('Can filter sales summary report with status=all', function () {
+        $organization = Organization::factory()->create();
+        $user = User::factory()->for($organization)->create();
+
+        SalesOrder::factory()->for($organization)->create([
+            'status' => OrderStatus::Draft,
+            'total' => Money::fromDecimal('50.0000'),
+        ]);
+        SalesOrder::factory()->for($organization)->create([
+            'status' => OrderStatus::Confirmed,
+            'confirmed_at' => now(),
+            'total' => Money::fromDecimal('150.0000'),
+        ]);
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $response = $this->getJson(route('v1.reports.sales.summary', ['status' => 'all']));
+
+        $response->assertOk();
+        expect($response->json('totals.orders_count'))->toBe(2)
+            ->and($response->json('totals.total_amount'))->toBe('200.0000');
+    });
+
+    test('Fails with 422 when filtering by client_id or seller_id from another organization', function (string $field) {
+        $user = User::factory()->create();
+        $otherOrg = Organization::factory()->create();
+        $foreignId = $field === 'client_id'
+            ? Client::factory()->for($otherOrg)->create()->id
+            : Seller::factory()->for($otherOrg)->create()->id;
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $response = $this->getJson(route('v1.reports.sales.summary', [$field => $foreignId]));
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors($field, 'error.fields');
+    })->with(['client_id', 'seller_id']);
 });

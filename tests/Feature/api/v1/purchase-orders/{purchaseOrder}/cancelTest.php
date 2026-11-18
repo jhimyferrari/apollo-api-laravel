@@ -21,6 +21,11 @@ describe('PATCH api/purchase-orders/{purchaseOrder}/cancel', function () {
         ]);
 
         $response->assertNoContent();
+        $this->assertDatabaseHas('purchase_orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::Cancelled->value,
+            'cancellation_reason' => 'Cliente desistiu',
+        ]);
     });
 
     test('Logged user cancelling a confirmed order reverses stock', function () {
@@ -77,5 +82,20 @@ describe('PATCH api/purchase-orders/{purchaseOrder}/cancel', function () {
 
         $response = $this->patchJson(route('v1.purchase-orders.cancel', $order));
         $response->assertUnprocessable();
+    });
+
+    test('Logged user fails with 422 when cancellation reason exceeds 255 characters', function () {
+        $user = User::factory()->create();
+        $order = PurchaseOrder::factory()->for($user->organization)->create(['status' => OrderStatus::Draft]);
+
+        Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.purchase-orders.cancel', $order), [
+            'reason' => str_repeat('a', 256),
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('reason', 'error.fields');
+        expect($order->fresh()->status)->toBe(OrderStatus::Draft);
     });
 });

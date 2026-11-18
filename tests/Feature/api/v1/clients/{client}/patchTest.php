@@ -96,4 +96,20 @@ describe('PATCH api/clients/{client}', function () {
 
         $response->assertUnauthorized();
     });
+
+    test('Logged user fails with 422 when document is null or array', function (mixed $document) {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['organization_id' => $user->organization_id]);
+        Sanctum::actingAs($user, [PermissionType::CLIENT_UPDATE->value]);
+
+        $response = $this->patchJson(route('v1.clients.update', $client), [
+            'document' => $document,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('document', 'error.fields');
+    })->with([
+        'null' => [null],
+        'array' => [['123']],
+    ]);
 });

@@ -150,4 +150,37 @@ describe('GET api/v1/reports/sales/by-seller', function () {
             ->and(count($json['data']))->toBe(1)
             ->and($json['data'][0]['seller_id'])->toBe($seller1->id);
     });
+
+    test('Can filter sales by seller report with status=all', function () {
+        $organization = Organization::factory()->create();
+        $user = User::factory()->for($organization)->create();
+        $seller = Seller::factory()->for($organization)->create();
+
+        SalesOrder::factory()->for($organization)->create([
+            'seller_id' => $seller->id,
+            'status' => OrderStatus::Draft,
+            'total' => Money::fromDecimal('100.0000'),
+        ]);
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $response = $this->getJson(route('v1.reports.sales.by-seller', ['status' => 'all']));
+
+        $response->assertOk();
+        expect($response->json('totals.orders_count'))->toBe(1);
+    });
+
+    test('Fails with 422 when filtering by seller_id from another organization', function () {
+        $user = User::factory()->create();
+        $otherSeller = Seller::factory()->create();
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $response = $this->getJson(route('v1.reports.sales.by-seller', [
+            'seller_id' => $otherSeller->id,
+        ]));
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('seller_id', 'error.fields');
+    });
 });

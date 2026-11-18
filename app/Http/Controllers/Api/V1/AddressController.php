@@ -69,8 +69,12 @@ class AddressController extends Controller
         return response()->noContent();
     }
 
-    public static function verifyPermission(Addressable $addressable, string $operation): void
+    public static function verifyPermission(?Addressable $addressable, string $operation): void
     {
+        if ($addressable === null) {
+            abort(404);
+        }
+
         $permissionMap = [
             Client::class => [
                 'update' => PermissionType::CLIENT_UPDATE,

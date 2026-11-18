@@ -214,4 +214,36 @@ describe('PATCH api/purchase-orders/{purchaseOrder}', function () {
             'quantity' => 9,
         ]);
     });
+
+    test('Logged user fails with 422 when sending empty payload, empty items, empty to_update item, conflicting update/remove, or removing all items', function (string $scenario) {
+        $user = User::factory()->create();
+        $order = draftOrderFor($user, new PurchaseOrder);
+        $item = $order->items->first();
+
+        Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_UPDATE->value]);
+
+        $payload = match ($scenario) {
+            'empty_payload' => [],
+            'empty_items' => ['items' => []],
+            'empty_to_update_entry' => ['items' => ['to_update' => [['id' => $item->id]]]],
+            'conflict_update_and_remove' => [
+                'items' => [
+                    'to_update' => [['id' => $item->id, 'quantity' => 2]],
+                    'to_remove' => [$item->id],
+                ],
+            ],
+            'remove_all_items' => ['items' => ['to_remove' => [$item->id]]],
+        };
+
+        $response = $this->patchJson(route('v1.purchase-orders.update', $order), $payload);
+
+        $response->assertUnprocessable();
+        $this->assertNotSoftDeleted($item);
+    })->with([
+        'empty_payload',
+        'empty_items',
+        'empty_to_update_entry',
+        'conflict_update_and_remove',
+        'remove_all_items',
+    ]);
 });
