@@ -2,6 +2,7 @@
 
 use App\Enum\PermissionType;
 use App\Enum\Status\OrderStatus;
+use App\Enum\Status\PaymentStatus;
 use App\Models\Client;
 use App\Models\Organization;
 use App\Models\SalesOrder;
@@ -182,5 +183,66 @@ describe('GET api/v1/reports/sales/by-seller', function () {
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors('seller_id', 'error.fields');
+    });
+
+    test('Can filter sales by seller report by payment_status and paid_at date_field', function () {
+        $organization = Organization::factory()->create();
+        $user = User::factory()->for($organization)->create();
+
+        $seller1 = Seller::factory()->for($organization)->create();
+        $seller2 = Seller::factory()->for($organization)->create();
+
+        SalesOrder::factory()->for($organization)->create([
+            'seller_id' => $seller1->id,
+            'status' => OrderStatus::Confirmed,
+            'payment_status' => PaymentStatus::Paid,
+            'confirmed_at' => now()->subDays(10),
+            'paid_at' => now()->subDay(),
+            'total' => Money::fromDecimal('150.0000'),
+        ]);
+
+        SalesOrder::factory()->for($organization)->create([
+            'seller_id' => $seller2->id,
+            'status' => OrderStatus::Confirmed,
+            'payment_status' => PaymentStatus::Pending,
+            'confirmed_at' => now(),
+            'total' => Money::fromDecimal('250.0000'),
+        ]);
+
+        SalesOrder::factory()->for($organization)->cancelled()->refunded()->create([
+            'seller_id' => $seller1->id,
+            'total' => Money::fromDecimal('75.0000'),
+        ]);
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $paidRes = $this->getJson(route('v1.reports.sales.by-seller', [
+            'payment_status' => PaymentStatus::Paid->value,
+            'date_field' => 'paid_at',
+            'start_date' => now()->subDays(3)->toDateString(),
+            'end_date' => now()->toDateString(),
+        ]));
+
+        $paidRes->assertOk();
+        expect($paidRes->json('totals.active_sellers_count'))->toBe(1)
+            ->and($paidRes->json('totals.total_amount'))->toBe('150.0000')
+            ->and($paidRes->json('data.0.seller_id'))->toBe($seller1->id);
+
+        $pendingRes = $this->getJson(route('v1.reports.sales.by-seller', [
+            'payment_status' => PaymentStatus::Pending->value,
+        ]));
+
+        $pendingRes->assertOk();
+        expect($pendingRes->json('totals.active_sellers_count'))->toBe(1)
+            ->and($pendingRes->json('totals.total_amount'))->toBe('250.0000')
+            ->and($pendingRes->json('data.0.seller_id'))->toBe($seller2->id);
+
+        $refundedRes = $this->getJson(route('v1.reports.sales.by-seller', [
+            'payment_status' => PaymentStatus::Refunded->value,
+        ]));
+
+        $refundedRes->assertOk();
+        expect($refundedRes->json('totals.orders_count'))->toBe(1)
+            ->and($refundedRes->json('totals.total_amount'))->toBe('75.0000');
     });
 });

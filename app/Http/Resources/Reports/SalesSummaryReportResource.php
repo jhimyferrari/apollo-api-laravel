@@ -48,6 +48,11 @@ class SalesSummaryReportResource extends JsonResource
                         'total_formatted' => (string) $s['total_formatted'],
                     ];
                 })->all(),
+                'pending_refund' => [
+                    'count' => (int) $totals['pending_refund']['count'],
+                    'total' => (string) $totals['pending_refund']['total'],
+                    'total_formatted' => (string) $totals['pending_refund']['total_formatted'],
+                ],
             ],
             'data' => collect($paginator->items())->map(function (SalesOrder $order) {
                 return [
@@ -59,6 +64,9 @@ class SalesSummaryReportResource extends JsonResource
                     'total_formatted' => $order->total instanceof Money ? $order->total->formatted() : Money::fromDecimal($order->total ?? 0)->formatted(),
                     'items_count' => (int) ($order->items_count ?? 0),
                     'confirmed_at' => $order->confirmed_at?->toIso8601String(),
+                    'paid_at' => $order->paid_at?->toIso8601String(),
+                    'refunded_at' => $order->refunded_at?->toIso8601String(),
+                    'cancelled_at' => $order->cancelled_at?->toIso8601String(),
                     'created_at' => $order->created_at?->toIso8601String(),
                     'client' => $order->client ? [
                         'id' => (string) $order->client->id,

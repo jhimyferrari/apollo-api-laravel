@@ -2,6 +2,7 @@
 
 use App\Enum\PermissionType;
 use App\Enum\Status\OrderStatus;
+use App\Enum\Status\PaymentStatus;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Client;
@@ -241,4 +242,82 @@ describe('GET api/v1/reports/sales/by-product', function () {
         $response->assertUnprocessable()
             ->assertJsonValidationErrors($field, 'error.fields');
     })->with(['product_id', 'seller_id', 'category_id', 'brand_id']);
+
+    test('Can filter sales by product report by payment_status and paid_at date_field', function () {
+        $organization = Organization::factory()->create();
+        $user = User::factory()->for($organization)->create();
+        $product = Product::factory()->for($organization)->create();
+
+        $paidOrder = SalesOrder::factory()->for($organization)->create([
+            'status' => OrderStatus::Confirmed,
+            'payment_status' => PaymentStatus::Paid,
+            'confirmed_at' => now()->subDays(10),
+            'paid_at' => now()->subDay(),
+            'total' => Money::fromDecimal('100.0000'),
+        ]);
+        $paidOrder->items()->create([
+            'organization_id' => $organization->id,
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 2,
+            'unit_price' => Money::fromDecimal('50.0000'),
+            'subtotal' => Money::fromDecimal('100.0000'),
+        ]);
+
+        $pendingOrder = SalesOrder::factory()->for($organization)->create([
+            'status' => OrderStatus::Confirmed,
+            'payment_status' => PaymentStatus::Pending,
+            'confirmed_at' => now(),
+            'total' => Money::fromDecimal('200.0000'),
+        ]);
+        $pendingOrder->items()->create([
+            'organization_id' => $organization->id,
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 4,
+            'unit_price' => Money::fromDecimal('50.0000'),
+            'subtotal' => Money::fromDecimal('200.0000'),
+        ]);
+
+        $refundedOrder = SalesOrder::factory()->for($organization)->cancelled()->refunded()->create([
+            'total' => Money::fromDecimal('50.0000'),
+        ]);
+        $refundedOrder->items()->create([
+            'organization_id' => $organization->id,
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 1,
+            'unit_price' => Money::fromDecimal('50.0000'),
+            'subtotal' => Money::fromDecimal('50.0000'),
+        ]);
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
+
+        $paidRes = $this->getJson(route('v1.reports.sales.by-product', [
+            'payment_status' => PaymentStatus::Paid->value,
+            'date_field' => 'paid_at',
+            'start_date' => now()->subDays(3)->toDateString(),
+            'end_date' => now()->toDateString(),
+        ]));
+
+        $paidRes->assertOk();
+        expect($paidRes->json('totals.total_quantity'))->toBe('2')
+            ->and($paidRes->json('totals.total_amount'))->toBe('100.0000');
+
+        $pendingRes = $this->getJson(route('v1.reports.sales.by-product', [
+            'payment_status' => PaymentStatus::Pending->value,
+        ]));
+
+        $pendingRes->assertOk();
+        expect($pendingRes->json('totals.total_quantity'))->toBe('4')
+            ->and($pendingRes->json('totals.total_amount'))->toBe('200.0000');
+
+        $refundedRes = $this->getJson(route('v1.reports.sales.by-product', [
+            'payment_status' => PaymentStatus::Refunded->value,
+        ]));
+
+        $refundedRes->assertOk();
+        expect($refundedRes->json('totals.total_quantity'))->toBe('1')
+            ->and($refundedRes->json('totals.total_amount'))->toBe('50.0000');
+    });
 });

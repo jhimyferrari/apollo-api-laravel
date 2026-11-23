@@ -28,7 +28,7 @@ class PurchaseReportSummaryRequest extends FormRequest
         return [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'date_field' => ['nullable', 'string', 'in:confirmed_at,created_at'],
+            'date_field' => ['nullable', 'string', 'in:confirmed_at,created_at,paid_at,refunded_at,cancelled_at'],
             'status' => ['nullable', 'string', Rule::in([...OrderStatus::allValues(), 'all'])],
             'payment_status' => ['nullable', 'string', Rule::enum(PaymentStatus::class)],
             'supplier_id' => [
