@@ -5,6 +5,7 @@ use App\Enum\Status\OrderStatus;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\User;
+use App\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
@@ -32,6 +33,61 @@ describe('POST api/purchase-orders', function () {
         $this->assertDatabaseHas('purchase_orders', [
             'supplier_id' => $supplier->id,
             'organization_id' => $user->organization_id,
+        ]);
+    });
+
+    test('Logged user creates purchase order with fractional quantities and receives serialized Money totals', function () {
+        $user = User::factory()->create();
+        $productA = Product::factory()->for($user->organization)->withStock(10)->create([
+            'cost_price' => Money::fromDecimal('10.50'),
+            'sale_price' => Money::fromDecimal('25.00'),
+        ]);
+        $productB = Product::factory()->for($user->organization)->withStock(10)->create([
+            'cost_price' => Money::fromDecimal('10.50'),
+            'sale_price' => Money::fromDecimal('25.00'),
+        ]);
+        $supplier = Supplier::factory()->for($user->organization)->create();
+
+        Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.purchase-orders.store'), [
+            'supplier_id' => $supplier->id,
+            'items' => [
+                ['product_id' => $productA->id, 'number' => 1, 'quantity' => 0.5],
+                ['product_id' => $productB->id, 'number' => 2, 'quantity' => 1.5],
+            ],
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonStructure([
+                'data' => [
+                    'total' => ['amount', 'currency', 'formatted'],
+                    'items' => [
+                        '*' => [
+                            'unit_price' => ['amount', 'currency', 'formatted'],
+                            'subtotal' => ['amount', 'currency', 'formatted'],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.total.amount', '21.0000')
+            ->assertJsonPath('data.total.currency', 'BRL')
+            ->assertJsonPath('data.items.0.subtotal.amount', '5.2500')
+            ->assertJsonPath('data.items.1.subtotal.amount', '15.7500');
+
+        $this->assertDatabaseHas('purchase_orders', [
+            'id' => $response->json('data.id'),
+            'total' => '21.0000',
+        ]);
+        $this->assertDatabaseHas('purchase_order_items', [
+            'purchase_order_id' => $response->json('data.id'),
+            'product_id' => $productA->id,
+            'subtotal' => '5.2500',
+        ]);
+        $this->assertDatabaseHas('purchase_order_items', [
+            'purchase_order_id' => $response->json('data.id'),
+            'product_id' => $productB->id,
+            'subtotal' => '15.7500',
         ]);
     });
 

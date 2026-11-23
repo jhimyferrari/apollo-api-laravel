@@ -105,24 +105,33 @@ describe('GET api/v1/reports/sales/summary', function () {
         $response->assertJsonStructure([
             'totals' => [
                 'orders_count',
-                'total_amount',
-                'total_amount_formatted',
-                'average_ticket',
-                'average_ticket_formatted',
+                'total_amount' => ['amount', 'currency', 'formatted'],
+                'average_ticket' => ['amount', 'currency', 'formatted'],
                 'total_items_quantity',
-                'by_status',
-                'by_payment_status',
-                'pending_refund' => ['count', 'total', 'total_formatted'],
+                'by_status' => [
+                    '*' => ['count', 'total' => ['amount', 'currency', 'formatted']],
+                ],
+                'by_payment_status' => [
+                    '*' => ['count', 'total' => ['amount', 'currency', 'formatted']],
+                ],
+                'pending_refund' => [
+                    'count',
+                    'total' => ['amount', 'currency', 'formatted'],
+                ],
             ],
-            'data',
+            'data' => [
+                '*' => [
+                    'total' => ['amount', 'currency', 'formatted'],
+                ],
+            ],
             'meta',
             'links',
         ]);
 
         $json = $response->json();
         expect($json['totals']['orders_count'])->toBe(2)
-            ->and($json['totals']['total_amount'])->toBe('300.0000')
-            ->and($json['totals']['average_ticket'])->toBe('150.0000')
+            ->and($json['totals']['total_amount']['amount'])->toBe('300.0000')
+            ->and($json['totals']['average_ticket']['amount'])->toBe('150.0000')
             ->and($json['totals']['total_items_quantity'])->toBe('6')
             ->and(count($json['data']))->toBe(2);
 
@@ -159,7 +168,7 @@ describe('GET api/v1/reports/sales/summary', function () {
         $response->assertOk();
         $json = $response->json();
         expect($json['totals']['orders_count'])->toBe(1)
-            ->and($json['totals']['total_amount'])->toBe('200.0000')
+            ->and($json['totals']['total_amount']['amount'])->toBe('200.0000')
             ->and($json['data'][0]['id'])->toBe($recentOrder->id);
     });
 
@@ -189,7 +198,7 @@ describe('GET api/v1/reports/sales/summary', function () {
         $response->assertOk();
         $json = $response->json();
         expect($json['totals']['orders_count'])->toBe(1)
-            ->and($json['totals']['total_amount'])->toBe('80.0000')
+            ->and($json['totals']['total_amount']['amount'])->toBe('80.0000')
             ->and($json['data'][0]['id'])->toBe($draftOrder->id);
     });
 
@@ -213,7 +222,7 @@ describe('GET api/v1/reports/sales/summary', function () {
 
         $response->assertOk();
         expect($response->json('totals.orders_count'))->toBe(2)
-            ->and($response->json('totals.total_amount'))->toBe('200.0000');
+            ->and($response->json('totals.total_amount.amount'))->toBe('200.0000');
     });
 
     test('Fails with 422 when filtering by client_id or seller_id from another organization', function (string $field) {
@@ -260,7 +269,7 @@ describe('GET api/v1/reports/sales/summary', function () {
         $refundedResponse->assertOk();
         $refundedJson = $refundedResponse->json();
         expect($refundedJson['totals']['orders_count'])->toBe(1)
-            ->and($refundedJson['totals']['total_amount'])->toBe('120.0000')
+            ->and($refundedJson['totals']['total_amount']['amount'])->toBe('120.0000')
             ->and($refundedJson['data'][0]['id'])->toBe($refundedOrder->id)
             ->and($refundedJson['data'][0]['paid_at'])->not->toBeNull()
             ->and($refundedJson['data'][0]['refunded_at'])->not->toBeNull()
@@ -388,7 +397,7 @@ describe('GET api/v1/reports/sales/summary', function () {
 
         expect($json['totals']['orders_count'])->toBe(1)
             ->and($json['totals']['pending_refund']['count'])->toBe(2)
-            ->and($json['totals']['pending_refund']['total'])->toBe('150.0000');
+            ->and($json['totals']['pending_refund']['total']['amount'])->toBe('150.0000');
     });
 
     test('Maintains breakdown symmetry for by_status and by_payment_status', function () {
@@ -423,9 +432,9 @@ describe('GET api/v1/reports/sales/summary', function () {
 
         // by_status respects payment_status=paid
         expect($json['totals']['by_status']['confirmed']['count'])->toBe(1)
-            ->and($json['totals']['by_status']['confirmed']['total'])->toBe('100.0000')
+            ->and($json['totals']['by_status']['confirmed']['total']['amount'])->toBe('100.0000')
             ->and($json['totals']['by_status']['draf']['count'])->toBe(1)
-            ->and($json['totals']['by_status']['draf']['total'])->toBe('50.0000')
+            ->and($json['totals']['by_status']['draf']['total']['amount'])->toBe('50.0000')
             // by_payment_status keeps comparison across payment statuses for status=all
             ->and($json['totals']['by_payment_status']['paid']['count'])->toBe(2)
             ->and($json['totals']['by_payment_status']['pending']['count'])->toBe(1);
@@ -465,7 +474,7 @@ describe('GET api/v1/reports/sales/summary', function () {
         $json = $response->json();
 
         expect($json['totals']['orders_count'])->toBe(1)
-            ->and($json['totals']['total_amount'])->toBe('100.0000')
+            ->and($json['totals']['total_amount']['amount'])->toBe('100.0000')
             ->and($json['data'][0]['id'])->toBe($reopened['order']->id)
             ->and($json['totals']['pending_refund']['count'])->toBe(0);
     });

@@ -22,46 +22,52 @@ class PurchaseSummaryReportResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var LengthAwarePaginator $paginator */
+        /** @var LengthAwarePaginator<int, PurchaseOrder> $paginator */
         $paginator = $this->resource['orders'];
+
+        /**
+         * @var array{
+         *     orders_count: int,
+         *     total_amount: Money,
+         *     average_ticket: Money,
+         *     total_items_quantity: string,
+         *     by_status: array<string, array{count: int, total: Money}>,
+         *     by_payment_status: array<string, array{count: int, total: Money}>,
+         *     pending_refund: array{count: int, total: Money}
+         * } $totals
+         */
         $totals = $this->resource['totals'];
 
         return [
             'totals' => [
                 'orders_count' => (int) $totals['orders_count'],
-                'total_amount' => (string) $totals['total_amount'],
-                'total_amount_formatted' => (string) $totals['total_amount_formatted'],
-                'average_ticket' => (string) $totals['average_ticket'],
-                'average_ticket_formatted' => (string) $totals['average_ticket_formatted'],
+                'total_amount' => $this->resolveMoney($totals['total_amount']),
+                'average_ticket' => $this->resolveMoney($totals['average_ticket']),
                 'total_items_quantity' => (string) $totals['total_items_quantity'],
-                'by_status' => collect($totals['by_status'])->map(function (array $s) {
+                'by_status' => collect($totals['by_status'])->map(function (array $s): array {
                     return [
                         'count' => (int) $s['count'],
-                        'total' => (string) $s['total'],
-                        'total_formatted' => (string) $s['total_formatted'],
+                        'total' => $this->resolveMoney($s['total']),
                     ];
                 })->all(),
-                'by_payment_status' => collect($totals['by_payment_status'])->map(function (array $s) {
+                'by_payment_status' => collect($totals['by_payment_status'])->map(function (array $s): array {
                     return [
                         'count' => (int) $s['count'],
-                        'total' => (string) $s['total'],
-                        'total_formatted' => (string) $s['total_formatted'],
+                        'total' => $this->resolveMoney($s['total']),
                     ];
                 })->all(),
                 'pending_refund' => [
                     'count' => (int) $totals['pending_refund']['count'],
-                    'total' => (string) $totals['pending_refund']['total'],
-                    'total_formatted' => (string) $totals['pending_refund']['total_formatted'],
+                    'total' => $this->resolveMoney($totals['pending_refund']['total']),
                 ],
             ],
-            'data' => collect($paginator->items())->map(function (PurchaseOrder $order) {
+            'data' => collect($paginator->items())->map(function (PurchaseOrder $order): array {
                 return [
                     'id' => (string) $order->id,
                     'number' => (int) $order->number,
                     'status' => $order->status instanceof OrderStatus ? $order->status->value : (string) $order->status,
                     'payment_status' => $order->payment_status instanceof PaymentStatus ? $order->payment_status->value : (string) $order->payment_status,
-                    'total' => $order->total instanceof Money ? $order->total->toStorageString() : Money::fromDecimal($order->total ?? 0)->toStorageString(),
-                    'total_formatted' => $order->total instanceof Money ? $order->total->formatted() : Money::fromDecimal($order->total ?? 0)->formatted(),
+                    'total' => $this->resolveMoney($order->total),
                     'items_count' => (int) ($order->items_count ?? 0),
                     'confirmed_at' => $order->confirmed_at?->toIso8601String(),
                     'paid_at' => $order->paid_at?->toIso8601String(),
@@ -91,5 +97,12 @@ class PurchaseSummaryReportResource extends JsonResource
                 'next' => $paginator->nextPageUrl() ? (string) $paginator->nextPageUrl() : null,
             ],
         ];
+    }
+
+    private function resolveMoney(mixed $value): Money
+    {
+        return $value instanceof Money
+            ? $value
+            : Money::fromStorage($value !== null ? (string) $value : null);
     }
 }

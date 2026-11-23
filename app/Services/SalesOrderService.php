@@ -15,6 +15,7 @@ use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\OrderCannotBeDeletedException;
 use App\Models\Product;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatArray;
 use App\Services\TreatmentService\Strategies\TreatClient;
@@ -23,6 +24,7 @@ use App\Services\TreatmentService\Strategies\TreatProduct;
 use App\Services\TreatmentService\Strategies\TreatSalesOrderItem;
 use App\Services\TreatmentService\Strategies\TreatSeller;
 use App\Services\TreatmentService\TreatmentService;
+use App\ValueObjects\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -118,6 +120,27 @@ class SalesOrderService extends BaseService
 
     }
 
+    /**
+     * @return array{
+     *     order: SalesOrder,
+     *     outdated_prices: array<int, array{
+     *         product_id: string,
+     *         product_name: string,
+     *         negotiated_price: Money,
+     *         current_price: Money
+     *     }>
+     * }
+     *
+     * @scramble-return array{
+     *     order: \App\Models\SalesOrder,
+     *     outdated_prices: array<int, array{
+     *         product_id: string,
+     *         product_name: string,
+     *         negotiated_price: \App\ValueObjects\Money,
+     *         current_price: \App\ValueObjects\Money
+     *     }>
+     * }
+     */
     public function recreateFrom(SalesOrder $previousOrder, ?string $reason = null): array
     {
         if ($previousOrder->replacedBy()->exists()) {
@@ -158,6 +181,7 @@ class SalesOrderService extends BaseService
             $outdatedPrices = [];
 
             foreach ($previousOrder->items as $item) {
+                /** @var SalesOrderItem $item */
                 $newSalesOrder->items()->create(
                     [
                         'organization_id' => $item->organization_id,
@@ -173,8 +197,8 @@ class SalesOrderService extends BaseService
                     $outdatedPrices[] = [
                         'product_id' => $item->product_id,
                         'product_name' => $item->product->name,
-                        'negotiated_price' => $item->unit_price->toStorageString(),
-                        'current_price' => $item->product->sale_price->toStorageString(),
+                        'negotiated_price' => $item->unit_price,
+                        'current_price' => $item->product->sale_price,
                     ];
                 }
             }

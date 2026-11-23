@@ -20,23 +20,31 @@ class SalesBySellerReportResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var LengthAwarePaginator $paginator */
+        /** @var LengthAwarePaginator<int, object> $paginator */
         $paginator = $this->resource['sellers'];
+
+        /**
+         * @var array{
+         *     active_sellers_count: int,
+         *     orders_count: int,
+         *     total_amount: Money
+         * } $totals
+         */
         $totals = $this->resource['totals'];
-        $globalTotal = (float) ($totals['total_amount'] ?? 0);
+        $globalTotalMoney = $this->resolveMoney($totals['total_amount'] ?? null);
+        $globalTotal = (float) $globalTotalMoney->toStorageString();
 
         return [
             'totals' => [
                 'active_sellers_count' => (int) $totals['active_sellers_count'],
                 'orders_count' => (int) $totals['orders_count'],
-                'total_amount' => (string) $totals['total_amount'],
-                'total_amount_formatted' => (string) $totals['total_amount_formatted'],
+                'total_amount' => $globalTotalMoney,
             ],
-            'data' => collect($paginator->items())->map(function (object $item) use ($globalTotal) {
+            'data' => collect($paginator->items())->map(function (object $item) use ($globalTotal): array {
                 $ordersCount = (int) $item->orders_count;
-                $totalAmt = (float) ($item->total_amount instanceof Money ? $item->total_amount->toStorageString() : ($item->total_amount ?? 0));
-                $avgTicket = $ordersCount > 0 ? $totalAmt / $ordersCount : 0;
-                $percentage = $globalTotal > 0 ? round(($totalAmt / $globalTotal) * 100, 2) : 0.0;
+                $totalAmount = $this->resolveMoney($item->total_amount ?? null);
+                $averageTicket = $ordersCount > 0 ? $totalAmount->divide($ordersCount) : Money::zero();
+                $percentage = $globalTotal > 0 ? round(((float) $totalAmount->toStorageString() / $globalTotal) * 100, 2) : 0.0;
 
                 return [
                     'seller_id' => (string) $item->seller_id,
@@ -45,10 +53,8 @@ class SalesBySellerReportResource extends JsonResource
                     'legal_name' => (string) $item->seller_legal_name,
                     'document' => (string) $item->seller_document,
                     'orders_count' => $ordersCount,
-                    'total_amount' => Money::fromDecimal($totalAmt)->toStorageString(),
-                    'total_amount_formatted' => Money::fromDecimal($totalAmt)->formatted(),
-                    'average_ticket' => Money::fromDecimal($avgTicket)->toStorageString(),
-                    'average_ticket_formatted' => Money::fromDecimal($avgTicket)->formatted(),
+                    'total_amount' => $totalAmount,
+                    'average_ticket' => $averageTicket,
                     'percentage_of_total' => $percentage,
                 ];
             }),
@@ -67,5 +73,12 @@ class SalesBySellerReportResource extends JsonResource
                 'next' => $paginator->nextPageUrl() ? (string) $paginator->nextPageUrl() : null,
             ],
         ];
+    }
+
+    private function resolveMoney(mixed $value): Money
+    {
+        return $value instanceof Money
+            ? $value
+            : Money::fromStorage($value !== null ? (string) $value : null);
     }
 }

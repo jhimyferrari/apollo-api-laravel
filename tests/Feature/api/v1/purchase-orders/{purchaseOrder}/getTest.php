@@ -5,6 +5,7 @@ use App\Http\Resources\PurchaseOrderResource;
 use App\Models\Organization;
 use App\Models\PurchaseOrder;
 use App\Models\User;
+use App\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
@@ -13,7 +14,9 @@ describe('GET api/purchase-orders/{purchaseOrder}', function () {
     test('Logged user with valid data', function () {
         $organization = Organization::factory()->create();
         $user = User::factory()->for($organization)->create();
-        $purchaseOrder = PurchaseOrder::factory()->for($organization)->create();
+        $purchaseOrder = PurchaseOrder::factory()->for($organization)->create([
+            'total' => Money::fromDecimal('45.50'),
+        ]);
 
         Sanctum::actingAs($user, [PermissionType::PURCHASE_ORDER_READ->value]);
 
@@ -22,7 +25,13 @@ describe('GET api/purchase-orders/{purchaseOrder}', function () {
         );
 
         $response->assertOk()
-            ->assertJson(PurchaseOrderResource::make($purchaseOrder)->response()->getData(true));
+            ->assertJson(PurchaseOrderResource::make($purchaseOrder)->response()->getData(true))
+            ->assertJsonStructure([
+                'data' => [
+                    'total' => ['amount', 'currency', 'formatted'],
+                ],
+            ])
+            ->assertJsonPath('data.total.amount', '45.5000');
     });
 
     test('Purchase order from another organization', function () {

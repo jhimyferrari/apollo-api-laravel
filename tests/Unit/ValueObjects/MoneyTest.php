@@ -146,6 +146,60 @@ describe('Money', function () {
 
             expect($money->multiply('0.123456')->toStorageString())->toBe('1.2346');
         });
+
+        it('should multiply accurately by float factors without losing decimal precision', function (float $factor, string $base, string $expected) {
+            $money = Money::fromDecimal($base);
+
+            expect($money->multiply($factor)->toStorageString())->toBe($expected);
+        })->with([
+            'half (0.5)' => [0.5, '10.50', '5.2500'],
+            'one and half (1.5)' => [1.5, '10.50', '15.7500'],
+            'quarter (0.25)' => [0.25, '10.00', '2.5000'],
+            'thousandth (0.005)' => [0.005, '100.00', '0.5000'],
+        ]);
+    });
+
+    describe('Money::divide', function () {
+        it('should divide by an integer divisor', function () {
+            $money = Money::fromDecimal('100.00');
+
+            expect($money->divide(4)->toStorageString())->toBe('25.0000');
+        });
+
+        it('should divide by a decimal string divisor', function () {
+            $money = Money::fromDecimal('10.50');
+
+            expect($money->divide('0.5')->toStorageString())->toBe('21.0000');
+        });
+
+        it('should divide by a float divisor without losing decimal precision', function () {
+            $money = Money::fromDecimal('10.50');
+
+            expect($money->divide(0.5)->toStorageString())->toBe('21.0000');
+        });
+
+        it('should round on half_up mode when division is non-terminating', function () {
+            $money = Money::fromDecimal('100.00');
+
+            expect($money->divide(3)->toStorageString())->toBe('33.3333');
+        });
+    });
+
+    describe('Money::jsonSerialize', function () {
+        it('serializes to amount, currency and formatted array structure', function () {
+            $money = Money::fromDecimal('19.90');
+            $decoded = json_decode(json_encode($money, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+
+            expect($money->jsonSerialize())->toBe([
+                'amount' => '19.9000',
+                'currency' => 'BRL',
+                'formatted' => $money->formatted(),
+            ])->and($decoded)->toBe([
+                'amount' => '19.9000',
+                'currency' => 'BRL',
+                'formatted' => $money->formatted(),
+            ]);
+        });
     });
 
     describe('Money::allocate', function () {

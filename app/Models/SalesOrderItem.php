@@ -5,12 +5,19 @@ namespace App\Models;
 use App\Casts\AsMoney;
 use App\Models\Scopes\OrganizationScope;
 use App\Traits\ProtectsOrganization;
+use App\ValueObjects\Money;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property string $product_id
+ * @property Money $unit_price
+ * @property Money $subtotal
+ * @property-read Product $product
+ */
 #[ScopedBy(OrganizationScope::class)]
 class SalesOrderItem extends Model
 {

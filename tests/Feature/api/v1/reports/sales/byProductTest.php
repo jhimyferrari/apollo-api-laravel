@@ -116,10 +116,14 @@ describe('GET api/v1/reports/sales/by-product', function () {
             'totals' => [
                 'distinct_products_count',
                 'total_quantity',
-                'total_amount',
-                'total_amount_formatted',
+                'total_amount' => ['amount', 'currency', 'formatted'],
             ],
-            'data',
+            'data' => [
+                '*' => [
+                    'total_amount' => ['amount', 'currency', 'formatted'],
+                    'average_unit_price' => ['amount', 'currency', 'formatted'],
+                ],
+            ],
             'meta',
             'links',
         ]);
@@ -127,14 +131,14 @@ describe('GET api/v1/reports/sales/by-product', function () {
         $json = $response->json();
         expect($json['totals']['distinct_products_count'])->toBe(2)
             ->and($json['totals']['total_quantity'])->toBe('7')
-            ->and($json['totals']['total_amount'])->toBe('200.0000')
+            ->and($json['totals']['total_amount']['amount'])->toBe('200.0000')
             ->and(count($json['data']))->toBe(2);
 
         $prod1Data = collect($json['data'])->firstWhere('product_id', $product1->id);
         expect($prod1Data)->not->toBeNull()
             ->and($prod1Data['quantity_sold'])->toBe('5')
-            ->and($prod1Data['total_amount'])->toBe('100.0000')
-            ->and($prod1Data['average_unit_price'])->toBe('20.0000')
+            ->and($prod1Data['total_amount']['amount'])->toBe('100.0000')
+            ->and($prod1Data['average_unit_price']['amount'])->toBe('20.0000')
             ->and($prod1Data['orders_count'])->toBe(2)
             ->and($prod1Data['brand']['id'])->toBe($brandA->id);
 
@@ -302,7 +306,7 @@ describe('GET api/v1/reports/sales/by-product', function () {
 
         $paidRes->assertOk();
         expect($paidRes->json('totals.total_quantity'))->toBe('2')
-            ->and($paidRes->json('totals.total_amount'))->toBe('100.0000');
+            ->and($paidRes->json('totals.total_amount.amount'))->toBe('100.0000');
 
         $pendingRes = $this->getJson(route('v1.reports.sales.by-product', [
             'payment_status' => PaymentStatus::Pending->value,
@@ -310,7 +314,7 @@ describe('GET api/v1/reports/sales/by-product', function () {
 
         $pendingRes->assertOk();
         expect($pendingRes->json('totals.total_quantity'))->toBe('4')
-            ->and($pendingRes->json('totals.total_amount'))->toBe('200.0000');
+            ->and($pendingRes->json('totals.total_amount.amount'))->toBe('200.0000');
 
         $refundedRes = $this->getJson(route('v1.reports.sales.by-product', [
             'payment_status' => PaymentStatus::Refunded->value,
@@ -318,6 +322,6 @@ describe('GET api/v1/reports/sales/by-product', function () {
 
         $refundedRes->assertOk();
         expect($refundedRes->json('totals.total_quantity'))->toBe('1')
-            ->and($refundedRes->json('totals.total_amount'))->toBe('50.0000');
+            ->and($refundedRes->json('totals.total_amount.amount'))->toBe('50.0000');
     });
 });

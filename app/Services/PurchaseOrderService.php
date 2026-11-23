@@ -15,6 +15,7 @@ use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\OrderCannotBeDeletedException;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
 use App\Models\User;
 use App\Services\TreatmentService\Strategies\TreatArray;
 use App\Services\TreatmentService\Strategies\TreatNumber;
@@ -22,6 +23,7 @@ use App\Services\TreatmentService\Strategies\TreatProduct;
 use App\Services\TreatmentService\Strategies\TreatPurchaseOrderItem;
 use App\Services\TreatmentService\Strategies\TreatSupplier;
 use App\Services\TreatmentService\TreatmentService;
+use App\ValueObjects\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -111,6 +113,27 @@ class PurchaseOrderService extends BaseService
 
     }
 
+    /**
+     * @return array{
+     *     order: PurchaseOrder,
+     *     outdated_prices: array<int, array{
+     *         product_id: string,
+     *         product_name: string,
+     *         negotiated_price: Money,
+     *         current_price: Money
+     *     }>
+     * }
+     *
+     * @scramble-return array{
+     *     order: \App\Models\PurchaseOrder,
+     *     outdated_prices: array<int, array{
+     *         product_id: string,
+     *         product_name: string,
+     *         negotiated_price: \App\ValueObjects\Money,
+     *         current_price: \App\ValueObjects\Money
+     *     }>
+     * }
+     */
     public function recreateFrom(PurchaseOrder $previousOrder, ?string $reason = null): array
     {
         if ($previousOrder->replacedBy()->exists()) {
@@ -152,6 +175,7 @@ class PurchaseOrderService extends BaseService
             $outdatedPrices = [];
 
             foreach ($previousOrder->items as $item) {
+                /** @var PurchaseOrderItem $item */
                 $newPurchaseOrder->items()->create(
                     [
                         'organization_id' => $item->organization_id,
@@ -167,8 +191,8 @@ class PurchaseOrderService extends BaseService
                     $outdatedPrices[] = [
                         'product_id' => $item->product_id,
                         'product_name' => $item->product->name,
-                        'negotiated_price' => $item->unit_price->toStorageString(),
-                        'current_price' => $item->product->cost_price->toStorageString(),
+                        'negotiated_price' => $item->unit_price,
+                        'current_price' => $item->product->cost_price,
                     ];
                 }
             }
