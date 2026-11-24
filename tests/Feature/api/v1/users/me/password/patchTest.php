@@ -106,25 +106,26 @@ describe('PATCH /v1/users/me/password', function () {
             ->assertJsonPath('error.code', 'UNAUTHENTICATED');
     });
 
-    it('returns 403 when user does not have user.update permission', function () {
+    it('allows an authenticated user without user.update permission to change own password', function () {
         $oldPassword = $this->validPassword();
+        $newPassword = $this->validPassword();
         $user = User::factory()->create([
             'password' => $oldPassword,
+            'is_administrator' => false,
         ]);
-        $user->createToken('device-1');
+        $currentToken = $user->createToken('device-1', [PermissionType::PRODUCT_READ->value]);
+        $otherDeviceToken = $user->createToken('device-2', [PermissionType::PRODUCT_READ->value]);
 
-        Sanctum::actingAs($user, [PermissionType::USER_READ->value]);
-
-        $this->patchJson(route('v1.users.me.password.update'), [
-            'current_password' => $oldPassword,
-            'password' => $this->validPassword(),
-        ])
-            ->assertForbidden()
-            ->assertJsonPath('error.message', __('errors.forbidden'));
+        $this->withToken($currentToken->plainTextToken)
+            ->patchJson(route('v1.users.me.password.update'), [
+                'current_password' => $oldPassword,
+                'password' => $newPassword,
+            ])->assertNoContent();
 
         $user->refresh();
-        expect(Hash::check($oldPassword, $user->password))->toBeTrue()
-            ->and($user->tokens()->count())->toBe(1);
+        expect(Hash::check($newPassword, $user->password))->toBeTrue()
+            ->and(PersonalAccessToken::findToken($currentToken->plainTextToken))->not->toBeNull()
+            ->and(PersonalAccessToken::findToken($otherDeviceToken->plainTextToken))->toBeNull();
     });
 
     it('returns 422 when current_password is incorrect', function () {

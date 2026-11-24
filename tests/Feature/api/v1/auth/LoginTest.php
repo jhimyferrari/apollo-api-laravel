@@ -2,6 +2,7 @@
 
 use App\Models\Organization;
 use App\Models\Permission;
+use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -36,11 +37,16 @@ describe('Create Organization and Login flow', function () {
         $response = $this->postJson(route('v1.login'),
             $data,
         );
-        $response->assertStatus(200);
+        $response->assertStatus(200)
+            ->assertJsonPath('data.user.is_administrator', true)
+            ->assertJsonMissingPath('data.user.organization_id')
+            ->assertJsonMissingPath('data.user.deleted_at');
         $token = $response->json()['data']['token'];
+        expect($response->json('data.expires_at'))->not->toBeEmpty();
 
         $accessToken = PersonalAccessToken::findToken($token);
-        expect($accessToken)->not->toBeNull();
+        expect($accessToken)->not->toBeNull()
+            ->and($accessToken->expires_at)->not->toBeNull();
         $permissionsAdminMustHave = Permission::all()->pluck('name')->toArray();
         expect($accessToken['abilities'])->toEqualCanonicalizing($permissionsAdminMustHave);
     });
@@ -87,4 +93,75 @@ describe('Create Organization and Login flow', function () {
             'password',
         ],
     ]);
+
+    test('Login matches email case-insensitively', function () {
+        $this->seed(PermissionSeeder::class);
+        $cnpj = fake()->cnpj(false);
+        $password = $this->validPassword();
+
+        $this->postJson(route('v1.organizations.store'), [
+            'name' => fake()->company(),
+            'document' => $cnpj,
+            'email' => 'admin@empresa.com',
+            'password' => $password,
+        ])->assertCreated();
+
+        $this->postJson(route('v1.login'), [
+            'email' => 'Admin@EMPRESA.COM',
+            'password' => $password,
+            'organization_document' => $cnpj,
+        ])->assertOk()
+            ->assertJsonPath('data.user.email', 'admin@empresa.com');
+    });
+
+    test('Login returns standardized 401 for nonexistent organization, nonexistent user, or wrong password', function () {
+        $organization = Organization::factory()->create([
+            'document' => '11222333000181',
+        ]);
+        User::factory()->create([
+            'organization_id' => $organization->id,
+            'email' => 'user@apollo.test',
+            'password' => $this->validPassword(),
+        ]);
+
+        // Organização inexistente
+        $this->postJson(route('v1.login'), [
+            'email' => 'user@apollo.test',
+            'password' => $this->validPassword(),
+            'organization_document' => fake()->cnpj(false),
+        ])->assertUnauthorized()
+            ->assertJsonPath('error.code', 'UNAUTHENTICATED');
+
+        // E-mail inexistente na organização
+        $this->postJson(route('v1.login'), [
+            'email' => 'other@apollo.test',
+            'password' => $this->validPassword(),
+            'organization_document' => '11222333000181',
+        ])->assertUnauthorized()
+            ->assertJsonPath('error.code', 'UNAUTHENTICATED');
+
+        // Senha incorreta
+        $this->postJson(route('v1.login'), [
+            'email' => 'user@apollo.test',
+            'password' => 'WrongPass123!',
+            'organization_document' => '11222333000181',
+        ])->assertUnauthorized()
+            ->assertJsonPath('error.code', 'UNAUTHENTICATED');
+    });
+
+    test('Login returns 429 TOO_MANY_REQUESTS when rate limit is exceeded', function () {
+        $payload = [
+            'email' => 'ratelimit@apollo.test',
+            'password' => 'WrongPass123!',
+            'organization_document' => '11222333000181',
+        ];
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->postJson(route('v1.login'), $payload)->assertUnauthorized();
+        }
+
+        $this->postJson(route('v1.login'), $payload)
+            ->assertTooManyRequests()
+            ->assertJsonPath('error.code', 'TOO_MANY_REQUESTS');
+    });
 });

@@ -27,7 +27,6 @@ class UserController extends Controller implements HasMiddleware
             new Middleware('abilities:'.PermissionType::USER_CREATE->value, only: ['store']),
             new Middleware('abilities:'.PermissionType::USER_READ->value, only: ['index', 'show']),
             new Middleware(['abilities:'.PermissionType::USER_UPDATE->value, 'can:update,user'], only: ['update']),
-            new Middleware('abilities:'.PermissionType::USER_UPDATE->value, only: ['updateOwnPassword']),
             new Middleware(['abilities:'.PermissionType::USER_DELETE->value, 'can:delete,user'], only: ['destroy']),
         ];
     }
@@ -56,6 +55,8 @@ class UserController extends Controller implements HasMiddleware
      */
     public function show(User $user): UserResource
     {
+        $user->load('permissions');
+
         return UserResource::make($user);
     }
 

@@ -27,15 +27,20 @@ Route::prefix('v1')
 
         // Non authenticated routes
         Route::group(['as' => 'organizations.', 'prefix' => '/organizations'], function () {
-            Route::post('/', [OrganizationControllerV1::class, 'store'])->name('store');
+            Route::post('/', [OrganizationControllerV1::class, 'store'])
+                ->middleware('throttle:register-organization')
+                ->name('store');
         });
 
-        Route::post('/login', [LoginControllerV1::class, 'login'])->name('login');
+        Route::post('/login', [LoginControllerV1::class, 'login'])
+            ->middleware('throttle:login')
+            ->name('login');
 
         // Authenticated routes
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
             Route::post('/logout', [LoginControllerV1::class, 'logout'])->name('logout');
+            Route::get('/me', [LoginControllerV1::class, 'me'])->name('me');
 
             Route::group(['as' => 'addresses.', 'prefix' => '/addresses'], function () {
                 Route::patch('/{address}', [AddressControllerV1::class, 'update'])->name('update');

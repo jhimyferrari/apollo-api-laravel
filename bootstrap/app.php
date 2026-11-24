@@ -15,6 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $trustedProxies = array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('TRUSTED_PROXIES', '127.0.0.1,::1'))
+        )));
+
+        $middleware->trustProxies(at: $trustedProxies);
+
         $middleware->alias([
             // Using personal Middleware to return 403
             'abilities' => CheckAbilities::class,
