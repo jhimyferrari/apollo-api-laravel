@@ -47,6 +47,7 @@ Route::prefix('v1')
             Route::group(['as' => 'users.', 'prefix' => '/users'], function () {
                 Route::post('/', [UserControllerV1::class, 'store'])->name('store');
                 Route::get('/', [UserControllerV1::class, 'index'])->name('index');
+                Route::patch('/me/password', [UserControllerV1::class, 'updateOwnPassword'])->name('me.password.update');
                 Route::get('/{user}', [UserControllerV1::class, 'show'])->name('show');
                 Route::delete('/{user}', [UserControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{user}', [UserControllerV1::class, 'update'])->name('update');

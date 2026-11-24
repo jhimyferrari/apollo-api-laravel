@@ -17,4 +17,5 @@ return [
     'resource_inactive' => 'O recurso :resource de ID :id está inativo.',
 
     'sequence_number_not_found' => 'Numero de sequência da tabela :table não encontrado para a organização :org.',
+    'user_cannot_update_self' => 'Você não pode atualizar a si mesmo.',
 ];

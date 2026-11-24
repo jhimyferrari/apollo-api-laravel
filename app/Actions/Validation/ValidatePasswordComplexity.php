@@ -11,7 +11,7 @@ class ValidatePasswordComplexity
     {
         Validator::make(
             ['password' => $password],
-            ['password' => new StrongPassword]
+            ['password' => ['required', new StrongPassword]]
         )->validate();
 
     }
