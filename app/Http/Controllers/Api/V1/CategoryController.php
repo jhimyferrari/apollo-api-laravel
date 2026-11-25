@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Category\IndexCategoryRequest;
 use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
@@ -34,9 +35,12 @@ class CategoryController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexCategoryRequest $request): AnonymousResourceCollection
     {
-        return CategoryResource::collection(Category::paginate(15));
+        $query = Category::query();
+        $request->applyNamedResourceIndex($query);
+
+        return CategoryResource::collection($query->paginate($request->perPage()));
     }
 
     /**

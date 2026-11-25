@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\StoreAddressRequest;
+use App\Http\Requests\Client\IndexClientRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
 use App\Http\Resources\AddressResource;
@@ -40,10 +41,12 @@ class ClientController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexClientRequest $request): AnonymousResourceCollection
     {
+        $query = Client::query()->with('addresses');
+        $request->applyPartnerIndex($query);
 
-        return ClientResource::collection(Client::with('addresses')->paginate(15));
+        return ClientResource::collection($query->paginate($request->perPage()));
     }
 
     /**

@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\IndexUserRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateOwnPasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\UserService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -34,10 +36,42 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexUserRequest $request): AnonymousResourceCollection
     {
-        return UserResource::collection(User::with('permissions')->paginate(15));
+        $query = User::query()->with('permissions');
 
+        $profile = $request->query('profile');
+        if ($profile === 'admin') {
+            $query->where(function (Builder $q): void {
+                $q->where('is_administrator', true)
+                    ->orWhereHas('permissions', fn (Builder $pq) => $pq->where('name', 'like', 'user.%'));
+            });
+        } elseif ($profile === 'operator') {
+            $query->where('is_administrator', false)
+                ->whereDoesntHave('permissions', fn (Builder $pq) => $pq->where('name', 'like', 'user.%'));
+        }
+
+        $term = $request->searchTerm();
+        if ($term !== null) {
+            $pattern = $request->likePattern($term);
+            $query->where(function (Builder $q) use ($pattern): void {
+                $q->where('name', 'ilike', $pattern)
+                    ->orWhere('email', 'ilike', $pattern);
+            });
+        }
+
+        $sortBy = $request->sortBy();
+        $dir = $request->sortDirection();
+        if ($sortBy === 'permissions') {
+            $query->withCount('permissions')
+                ->orderBy('is_administrator', $dir)
+                ->orderBy('permissions_count', $dir)
+                ->orderBy('id');
+        } else {
+            $request->applyOrderBy($query);
+        }
+
+        return UserResource::collection($query->paginate($request->perPage()));
     }
 
     /**

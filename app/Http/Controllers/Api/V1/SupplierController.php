@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\StoreAddressRequest;
+use App\Http\Requests\Supplier\IndexSupplierRequest;
 use App\Http\Requests\Supplier\StoreSupplierRequest;
 use App\Http\Requests\Supplier\UpdateSupplierRequest;
 use App\Http\Resources\AddressResource;
@@ -40,10 +41,12 @@ class SupplierController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexSupplierRequest $request): AnonymousResourceCollection
     {
-        return SupplierResource::collection(Supplier::with('addresses')->paginate(15));
+        $query = Supplier::query()->with('addresses');
+        $request->applyPartnerIndex($query);
 
+        return SupplierResource::collection($query->paginate($request->perPage()));
     }
 
     /**

@@ -157,11 +157,34 @@ Route::prefix('v1')
 
             Route::group(['as' => 'lookups.', 'prefix' => '/lookups'], function () {
                 Route::get('/clients', [LookupControllerV1::class, 'clients'])->name('clients');
+                Route::get('/clients/{number}', [LookupControllerV1::class, 'clientByNumber'])
+                    ->whereNumber('number')
+                    ->name('clients.by-number');
+
                 Route::get('/sellers', [LookupControllerV1::class, 'sellers'])->name('sellers');
+                Route::get('/sellers/{number}', [LookupControllerV1::class, 'sellerByNumber'])
+                    ->whereNumber('number')
+                    ->name('sellers.by-number');
+
                 Route::get('/products', [LookupControllerV1::class, 'products'])->name('products');
+                Route::get('/products/{number}', [LookupControllerV1::class, 'productByNumber'])
+                    ->whereNumber('number')
+                    ->name('products.by-number');
+
                 Route::get('/suppliers', [LookupControllerV1::class, 'suppliers'])->name('suppliers');
+                Route::get('/suppliers/{number}', [LookupControllerV1::class, 'supplierByNumber'])
+                    ->whereNumber('number')
+                    ->name('suppliers.by-number');
+
                 Route::get('/brands', [LookupControllerV1::class, 'brands'])->name('brands');
+                Route::get('/brands/{number}', [LookupControllerV1::class, 'brandByNumber'])
+                    ->whereNumber('number')
+                    ->name('brands.by-number');
+
                 Route::get('/categories', [LookupControllerV1::class, 'categories'])->name('categories');
+                Route::get('/categories/{number}', [LookupControllerV1::class, 'categoryByNumber'])
+                    ->whereNumber('number')
+                    ->name('categories.by-number');
             });
 
         });
