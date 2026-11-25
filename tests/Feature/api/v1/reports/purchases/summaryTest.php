@@ -404,8 +404,8 @@ describe('GET api/v1/reports/purchases/summary', function () {
 
         expect($json['totals']['by_status']['confirmed']['count'])->toBe(1)
             ->and($json['totals']['by_status']['confirmed']['total']['amount'])->toBe('100.0000')
-            ->and($json['totals']['by_status']['draf']['count'])->toBe(1)
-            ->and($json['totals']['by_status']['draf']['total']['amount'])->toBe('50.0000')
+            ->and($json['totals']['by_status']['draft']['count'])->toBe(1)
+            ->and($json['totals']['by_status']['draft']['total']['amount'])->toBe('50.0000')
             ->and($json['totals']['by_payment_status']['paid']['count'])->toBe(2)
             ->and($json['totals']['by_payment_status']['pending']['count'])->toBe(1);
     });

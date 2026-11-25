@@ -21,4 +21,3 @@ class IndexSellerRequest extends IndexQueryRequest
         ];
     }
 }
-

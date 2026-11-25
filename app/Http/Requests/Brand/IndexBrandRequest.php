@@ -11,4 +11,3 @@ class IndexBrandRequest extends IndexQueryRequest
         return ['number', 'name', 'created_at'];
     }
 }
-

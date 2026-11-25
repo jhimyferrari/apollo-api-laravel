@@ -11,4 +11,3 @@ class IndexCategoryRequest extends IndexQueryRequest
         return ['number', 'name', 'created_at'];
     }
 }
-

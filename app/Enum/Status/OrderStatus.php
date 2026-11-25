@@ -7,7 +7,7 @@ use App\Traits\Enum\HasEnumValues;
 enum OrderStatus: string
 {
     use HasEnumValues;
-    case Draft = 'draf';
+    case Draft = 'draft';
     case Confirmed = 'confirmed';
     case Cancelled = 'cancelled';
 

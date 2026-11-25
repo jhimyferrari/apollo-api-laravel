@@ -21,4 +21,3 @@ class IndexSupplierRequest extends IndexQueryRequest
         ];
     }
 }
-

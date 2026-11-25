@@ -433,8 +433,8 @@ describe('GET api/v1/reports/sales/summary', function () {
         // by_status respects payment_status=paid
         expect($json['totals']['by_status']['confirmed']['count'])->toBe(1)
             ->and($json['totals']['by_status']['confirmed']['total']['amount'])->toBe('100.0000')
-            ->and($json['totals']['by_status']['draf']['count'])->toBe(1)
-            ->and($json['totals']['by_status']['draf']['total']['amount'])->toBe('50.0000')
+            ->and($json['totals']['by_status']['draft']['count'])->toBe(1)
+            ->and($json['totals']['by_status']['draft']['total']['amount'])->toBe('50.0000')
             // by_payment_status keeps comparison across payment statuses for status=all
             ->and($json['totals']['by_payment_status']['paid']['count'])->toBe(2)
             ->and($json['totals']['by_payment_status']['pending']['count'])->toBe(1);

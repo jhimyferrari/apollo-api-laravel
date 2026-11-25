@@ -21,4 +21,3 @@ class IndexClientRequest extends IndexQueryRequest
         ];
     }
 }
-

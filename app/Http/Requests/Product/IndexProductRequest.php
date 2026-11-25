@@ -41,4 +41,3 @@ class IndexProductRequest extends IndexQueryRequest
         ];
     }
 }
-
