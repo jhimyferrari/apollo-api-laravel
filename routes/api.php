@@ -27,15 +27,20 @@ Route::prefix('v1')
 
         // Non authenticated routes
         Route::group(['as' => 'organizations.', 'prefix' => '/organizations'], function () {
-            Route::post('/', [OrganizationControllerV1::class, 'store'])->name('store');
+            Route::post('/', [OrganizationControllerV1::class, 'store'])
+                ->middleware('throttle:register-organization')
+                ->name('store');
         });
 
-        Route::post('/login', [LoginControllerV1::class, 'login'])->name('login');
+        Route::post('/login', [LoginControllerV1::class, 'login'])
+            ->middleware('throttle:login')
+            ->name('login');
 
         // Authenticated routes
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
             Route::post('/logout', [LoginControllerV1::class, 'logout'])->name('logout');
+            Route::get('/me', [LoginControllerV1::class, 'me'])->name('me');
 
             Route::group(['as' => 'addresses.', 'prefix' => '/addresses'], function () {
                 Route::patch('/{address}', [AddressControllerV1::class, 'update'])->name('update');
@@ -47,6 +52,7 @@ Route::prefix('v1')
             Route::group(['as' => 'users.', 'prefix' => '/users'], function () {
                 Route::post('/', [UserControllerV1::class, 'store'])->name('store');
                 Route::get('/', [UserControllerV1::class, 'index'])->name('index');
+                Route::patch('/me/password', [UserControllerV1::class, 'updateOwnPassword'])->name('me.password.update');
                 Route::get('/{user}', [UserControllerV1::class, 'show'])->name('show');
                 Route::delete('/{user}', [UserControllerV1::class, 'destroy'])->name('destroy');
                 Route::patch('/{user}', [UserControllerV1::class, 'update'])->name('update');
@@ -151,11 +157,34 @@ Route::prefix('v1')
 
             Route::group(['as' => 'lookups.', 'prefix' => '/lookups'], function () {
                 Route::get('/clients', [LookupControllerV1::class, 'clients'])->name('clients');
+                Route::get('/clients/{number}', [LookupControllerV1::class, 'clientByNumber'])
+                    ->whereNumber('number')
+                    ->name('clients.by-number');
+
                 Route::get('/sellers', [LookupControllerV1::class, 'sellers'])->name('sellers');
+                Route::get('/sellers/{number}', [LookupControllerV1::class, 'sellerByNumber'])
+                    ->whereNumber('number')
+                    ->name('sellers.by-number');
+
                 Route::get('/products', [LookupControllerV1::class, 'products'])->name('products');
+                Route::get('/products/{number}', [LookupControllerV1::class, 'productByNumber'])
+                    ->whereNumber('number')
+                    ->name('products.by-number');
+
                 Route::get('/suppliers', [LookupControllerV1::class, 'suppliers'])->name('suppliers');
+                Route::get('/suppliers/{number}', [LookupControllerV1::class, 'supplierByNumber'])
+                    ->whereNumber('number')
+                    ->name('suppliers.by-number');
+
                 Route::get('/brands', [LookupControllerV1::class, 'brands'])->name('brands');
+                Route::get('/brands/{number}', [LookupControllerV1::class, 'brandByNumber'])
+                    ->whereNumber('number')
+                    ->name('brands.by-number');
+
                 Route::get('/categories', [LookupControllerV1::class, 'categories'])->name('categories');
+                Route::get('/categories/{number}', [LookupControllerV1::class, 'categoryByNumber'])
+                    ->whereNumber('number')
+                    ->name('categories.by-number');
             });
 
         });

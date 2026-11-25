@@ -1,12 +1,14 @@
 <?php
 
 use App\Enum\PermissionType;
+use App\Exceptions\Auth\ForbiddenException;
 use App\Exceptions\CannotDeleteAdminException;
 use App\Models\Permission;
 use App\Models\User;
 use App\Services\UserService;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
 
@@ -210,6 +212,140 @@ describe('UserService', function () {
                     'permission_id' => $permissionId,
                 ]);
             }
+        });
+
+        it('should update another user password and revoke all their tokens', function () {
+            $oldPassword = $this->validPassword();
+            $newPassword = $this->validPassword();
+            $user = User::factory()->create([
+                'organization_id' => $this->user->organization_id,
+                'password' => $oldPassword,
+            ]);
+            $user->createToken('device-1');
+            $this->user->createToken('actor-device');
+
+            $updatedUser = $this->service->update($user, [
+                'password' => $newPassword,
+            ]);
+
+            expect(Hash::check($newPassword, $updatedUser->password))->toBeTrue()
+                ->and(Hash::check($oldPassword, $updatedUser->password))->toBeFalse()
+                ->and($user->tokens()->count())->toBe(0)
+                ->and($this->user->tokens()->count())->toBe(1);
+        });
+
+        it('should throw an exception when updating with weak or empty password', function (string $invalidPassword) {
+            $user = User::factory()->create(['organization_id' => $this->user->organization_id]);
+
+            expect(fn () => $this->service->update($user, [
+                'password' => $invalidPassword,
+            ]))->toThrow(ValidationException::class);
+        })->with([
+            'empty' => [''],
+            'weak' => ['weakpassword'],
+        ]);
+
+        it('should throw ForbiddenException when updating the authenticated user themselves', function () {
+            expect(fn () => $this->service->update($this->user, [
+                'name' => 'Self Update',
+            ]))->toThrow(ForbiddenException::class, __('errors.user_cannot_update_self'));
+        });
+
+        it('should throw ValidationException when non-admin tries to update an administrator password', function () {
+            $admin = User::factory()->admin()->create(['organization_id' => $this->user->organization_id]);
+
+            expect(fn () => $this->service->update($admin, [
+                'password' => $this->validPassword(),
+            ]))->toThrow(ValidationException::class, __('validation.admin_update'));
+        });
+
+        it('should selectively revoke tokens only when email, password, or permissions change', function () {
+            $this->seed(PermissionSeeder::class);
+            $user = User::factory()->create(['organization_id' => $this->user->organization_id]);
+            $brandView = Permission::where('name', PermissionType::BRAND_READ->value)->firstOrFail();
+            $user->permissions()->sync([$brandView->id]);
+            $user->createToken('device-1');
+
+            $this->service->update($user, ['name' => 'Only Name']);
+            expect($user->tokens()->count())->toBe(1);
+
+            $this->service->update($user, ['permissions' => [PermissionType::BRAND_READ->value]]);
+            expect($user->tokens()->count())->toBe(1);
+
+            $this->service->update($user, ['permissions' => [PermissionType::BRAND_CREATE->value]]);
+            expect($user->tokens()->count())->toBe(0);
+
+            $user->createToken('device-2');
+            $this->service->update($user, ['email' => 'changed@test.com']);
+            expect($user->tokens()->count())->toBe(0);
+        });
+    });
+
+    describe('updateOwnPassword', function () {
+        it('should update own password, keep current PersonalAccessToken, and revoke other tokens', function () {
+            $oldPassword = $this->validPassword();
+            $newPassword = $this->validPassword();
+            $user = User::factory()->create([
+                'password' => $oldPassword,
+            ]);
+            $otherUser = User::factory()->create();
+
+            $currentToken = $user->createToken('current-device');
+            $otherToken = $user->createToken('other-device');
+            $otherUserToken = $otherUser->createToken('other-user-device');
+
+            $user->withAccessToken($currentToken->accessToken);
+
+            $updatedUser = $this->service->updateOwnPassword($user, $oldPassword, $newPassword);
+
+            expect(Hash::check($newPassword, $updatedUser->password))->toBeTrue();
+            $this->assertDatabaseHas('personal_access_tokens', ['id' => $currentToken->accessToken->id]);
+            $this->assertDatabaseMissing('personal_access_tokens', ['id' => $otherToken->accessToken->id]);
+            $this->assertDatabaseHas('personal_access_tokens', ['id' => $otherUserToken->accessToken->id]);
+        });
+
+        it('should revoke all tokens when currentAccessToken is not a PersonalAccessToken', function () {
+            $oldPassword = $this->validPassword();
+            $newPassword = $this->validPassword();
+            $user = User::factory()->create([
+                'password' => $oldPassword,
+            ]);
+            $user->createToken('device-1');
+            Sanctum::actingAs($user);
+
+            $this->service->updateOwnPassword($user, $oldPassword, $newPassword);
+
+            expect(Hash::check($newPassword, $user->fresh()->password))->toBeTrue()
+                ->and($user->tokens()->count())->toBe(0);
+        });
+
+        it('should throw ValidationException when current_password is incorrect', function () {
+            $user = User::factory()->create([
+                'password' => $this->validPassword(),
+            ]);
+
+            expect(fn () => $this->service->updateOwnPassword($user, $this->validPassword(), $this->validPassword()))
+                ->toThrow(ValidationException::class, __('validation.current_password'));
+        });
+
+        it('should throw ValidationException when new password matches current password', function () {
+            $currentPassword = $this->validPassword();
+            $user = User::factory()->create([
+                'password' => $currentPassword,
+            ]);
+
+            expect(fn () => $this->service->updateOwnPassword($user, $currentPassword, $currentPassword))
+                ->toThrow(ValidationException::class);
+        });
+
+        it('should throw ValidationException when new password fails complexity', function () {
+            $currentPassword = $this->validPassword();
+            $user = User::factory()->create([
+                'password' => $currentPassword,
+            ]);
+
+            expect(fn () => $this->service->updateOwnPassword($user, $currentPassword, 'weak'))
+                ->toThrow(ValidationException::class);
         });
     });
     describe('delete', function () {

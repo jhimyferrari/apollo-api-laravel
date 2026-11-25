@@ -15,7 +15,7 @@ class AsMoney implements CastsAttributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): mixed
     {
-        return ($value == null) ? null : Money::fromStorage($value);
+        return ($value === null) ? null : Money::fromStorage($value);
     }
 
     /**
@@ -26,7 +26,7 @@ class AsMoney implements CastsAttributes
     public function set(Model $model, string $key, mixed $value, array $attributes): mixed
     {
 
-        if ($value == null) {
+        if ($value === null) {
             return null;
         }
         throw_unless(

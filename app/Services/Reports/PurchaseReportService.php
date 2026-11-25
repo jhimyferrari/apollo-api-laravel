@@ -20,81 +20,92 @@ class PurchaseReportService
      */
     public function summary(array $filters): array
     {
-        $status = $filters['status'] ?? OrderStatus::Confirmed->value;
+        $status = $this->resolveStatus($filters);
         $defaultDateField = ($status === OrderStatus::Confirmed->value) ? 'confirmed_at' : 'created_at';
         $dateField = $filters['date_field'] ?? $defaultDateField;
 
         $query = PurchaseOrder::query();
 
-        $this->applyDateFilters($query, $filters, $dateField);
+        $this->applyDateFilters($query, $filters, "purchase_orders.{$dateField}");
+        $this->applySummaryPartnerFilters($query, $filters);
 
-        if (! empty($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('purchase_orders.status', $filters['status']);
-        } elseif (empty($filters['status'])) {
-            $query->where('purchase_orders.status', OrderStatus::Confirmed->value);
+        if ($status !== 'all') {
+            $query->where('purchase_orders.status', $status);
         }
 
         if (! empty($filters['payment_status'])) {
             $query->where('purchase_orders.payment_status', $filters['payment_status']);
         }
 
-        if (! empty($filters['supplier_id'])) {
-            $query->where('purchase_orders.supplier_id', $filters['supplier_id']);
-        }
-
         // Totals calculation
         $ordersCount = (int) (clone $query)->count();
-        $totalAmountFloat = (float) ((clone $query)->sum('total') ?? 0);
-        $totalAmountMoney = Money::fromDecimal($totalAmountFloat);
-        $avgTicketFloat = $ordersCount > 0 ? $totalAmountFloat / $ordersCount : 0;
-        $avgTicketMoney = Money::fromDecimal($avgTicketFloat);
+        $totalAmountRaw = (clone $query)->sum('total');
+        $totalAmountMoney = Money::fromStorage($totalAmountRaw !== null ? (string) $totalAmountRaw : null);
+        $avgTicketMoney = $ordersCount > 0 ? $totalAmountMoney->divide($ordersCount) : Money::zero();
 
         // Total items quantity
         $orderIds = (clone $query)->select('purchase_orders.id');
         $totalItemsQuantity = (float) (PurchaseOrderItem::whereIn('purchase_order_id', $orderIds)->sum('quantity') ?? 0);
 
-        // Status breakdown
+        // Status breakdown (applied with same filters except status)
         $statusBreakdownQuery = PurchaseOrder::query();
-        $this->applyDateFilters($statusBreakdownQuery, $filters, $dateField);
-        if (! empty($filters['supplier_id'])) {
-            $statusBreakdownQuery->where('purchase_orders.supplier_id', $filters['supplier_id']);
+        $this->applyDateFilters($statusBreakdownQuery, $filters, "purchase_orders.{$dateField}");
+        $this->applySummaryPartnerFilters($statusBreakdownQuery, $filters);
+        if (! empty($filters['payment_status'])) {
+            $statusBreakdownQuery->where('purchase_orders.payment_status', $filters['payment_status']);
         }
         $byStatus = $statusBreakdownQuery
             ->selectRaw('status, COUNT(*) as count, SUM(total) as total')
             ->groupBy('status')
             ->get()
-            ->mapWithKeys(function (PurchaseOrder $item) {
+            ->mapWithKeys(function (PurchaseOrder $item): array {
                 $statusVal = $item->status instanceof OrderStatus ? $item->status->value : (string) $item->status;
-                $totMoney = $item->total instanceof Money ? $item->total : Money::fromDecimal($item->total ?? 0);
+                $totMoney = $item->total instanceof Money ? $item->total : Money::fromStorage($item->total !== null ? (string) $item->total : null);
 
                 return [
                     $statusVal => [
                         'count' => (int) $item->count,
-                        'total' => $totMoney->toStorageString(),
-                        'total_formatted' => $totMoney->formatted(),
+                        'total' => $totMoney,
                     ],
                 ];
             })
             ->toArray();
 
-        // Payment status breakdown
-        $byPaymentStatus = (clone $query)
+        // Payment status breakdown (symmetric to by_status: keeps status filter, ignores payment_status)
+        $paymentBreakdownQuery = PurchaseOrder::query();
+        $this->applyDateFilters($paymentBreakdownQuery, $filters, "purchase_orders.{$dateField}");
+        $this->applySummaryPartnerFilters($paymentBreakdownQuery, $filters);
+        if ($status !== 'all') {
+            $paymentBreakdownQuery->where('purchase_orders.status', $status);
+        }
+        $byPaymentStatus = $paymentBreakdownQuery
             ->selectRaw('payment_status, COUNT(*) as count, SUM(total) as total')
             ->groupBy('payment_status')
             ->get()
-            ->mapWithKeys(function (PurchaseOrder $item) {
+            ->mapWithKeys(function (PurchaseOrder $item): array {
                 $statusVal = $item->payment_status instanceof PaymentStatus ? $item->payment_status->value : (string) $item->payment_status;
-                $totMoney = $item->total instanceof Money ? $item->total : Money::fromDecimal($item->total ?? 0);
+                $totMoney = $item->total instanceof Money ? $item->total : Money::fromStorage($item->total !== null ? (string) $item->total : null);
 
                 return [
                     $statusVal => [
                         'count' => (int) $item->count,
-                        'total' => $totMoney->toStorageString(),
-                        'total_formatted' => $totMoney->formatted(),
+                        'total' => $totMoney,
                     ],
                 ];
             })
             ->toArray();
+
+        // Pending refund alerts (cancelled orders that are still paid)
+        $pendingRefundDateField = $filters['date_field'] ?? 'cancelled_at';
+        $pendingRefundQuery = PurchaseOrder::query()
+            ->where('purchase_orders.status', OrderStatus::Cancelled->value)
+            ->where('purchase_orders.payment_status', PaymentStatus::Paid->value);
+        $this->applyDateFilters($pendingRefundQuery, $filters, "purchase_orders.{$pendingRefundDateField}");
+        $this->applySummaryPartnerFilters($pendingRefundQuery, $filters);
+
+        $pendingRefundCount = (int) (clone $pendingRefundQuery)->count();
+        $pendingRefundRaw = (clone $pendingRefundQuery)->sum('total');
+        $pendingRefundMoney = Money::fromStorage($pendingRefundRaw !== null ? (string) $pendingRefundRaw : null);
 
         // Paginated orders
         $perPage = (int) ($filters['per_page'] ?? 15);
@@ -102,21 +113,56 @@ class PurchaseReportService
             ->with('supplier')
             ->withCount('items')
             ->orderBy("purchase_orders.{$dateField}", 'desc')
+            ->orderBy('purchase_orders.created_at', 'desc')
             ->paginate($perPage);
 
         return [
             'totals' => [
                 'orders_count' => $ordersCount,
-                'total_amount' => $totalAmountMoney->toStorageString(),
-                'total_amount_formatted' => $totalAmountMoney->formatted(),
-                'average_ticket' => $avgTicketMoney->toStorageString(),
-                'average_ticket_formatted' => $avgTicketMoney->formatted(),
+                'total_amount' => $totalAmountMoney,
+                'average_ticket' => $avgTicketMoney,
                 'total_items_quantity' => (string) $totalItemsQuantity,
                 'by_status' => $byStatus,
                 'by_payment_status' => $byPaymentStatus,
+                'pending_refund' => [
+                    'count' => $pendingRefundCount,
+                    'total' => $pendingRefundMoney,
+                ],
             ],
             'orders' => $orders,
         ];
+    }
+
+    /**
+     * Resolve effective order status filter, inferring Cancelled when filtering
+     * by terminal payment statuses without an explicit order status.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function resolveStatus(array $filters): string
+    {
+        if (! empty($filters['status'])) {
+            return $filters['status'];
+        }
+
+        $paymentStatus = $filters['payment_status'] ?? null;
+        if (\in_array($paymentStatus, [PaymentStatus::Refunded->value, PaymentStatus::Cancelled->value], true)) {
+            return OrderStatus::Cancelled->value;
+        }
+
+        return OrderStatus::Confirmed->value;
+    }
+
+    /**
+     * Apply supplier filter to a summary query builder.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function applySummaryPartnerFilters(Builder $query, array $filters): void
+    {
+        if (! empty($filters['supplier_id'])) {
+            $query->where('purchase_orders.supplier_id', $filters['supplier_id']);
+        }
     }
 
     /**

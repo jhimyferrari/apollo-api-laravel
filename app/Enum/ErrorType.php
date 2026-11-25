@@ -9,6 +9,7 @@ enum ErrorType: string
     case Forbidden = 'FORBIDDEN';
     case NotFound = 'NOT_FOUND';
     case MethodNotAllowed = 'METHOD_NOT_ALLOWED';
+    case TooManyRequests = 'TOO_MANY_REQUESTS';
     case ValidationError = 'VALIDATION_ERROR';
 
     case ResourceNotFound = 'RESOURCE_NOT_FOUND';

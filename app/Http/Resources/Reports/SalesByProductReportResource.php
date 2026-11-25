@@ -20,21 +20,28 @@ class SalesByProductReportResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var LengthAwarePaginator $paginator */
+        /** @var LengthAwarePaginator<int, object> $paginator */
         $paginator = $this->resource['products'];
+
+        /**
+         * @var array{
+         *     distinct_products_count: int,
+         *     total_quantity: string,
+         *     total_amount: Money
+         * } $totals
+         */
         $totals = $this->resource['totals'];
 
         return [
             'totals' => [
                 'distinct_products_count' => (int) $totals['distinct_products_count'],
                 'total_quantity' => (string) $totals['total_quantity'],
-                'total_amount' => (string) $totals['total_amount'],
-                'total_amount_formatted' => (string) $totals['total_amount_formatted'],
+                'total_amount' => $this->resolveMoney($totals['total_amount']),
             ],
-            'data' => collect($paginator->items())->map(function (object $item) {
+            'data' => collect($paginator->items())->map(function (object $item): array {
                 $qty = (float) $item->quantity_sold;
-                $totalAmt = (float) ($item->total_amount instanceof Money ? $item->total_amount->toStorageString() : ($item->total_amount ?? 0));
-                $avgPrice = $qty > 0 ? $totalAmt / $qty : 0;
+                $totalAmount = $this->resolveMoney($item->total_amount ?? null);
+                $averageUnitPrice = $qty > 0 ? $totalAmount->divide((string) $item->quantity_sold) : Money::zero();
 
                 return [
                     'product_id' => (string) $item->product_id,
@@ -46,10 +53,8 @@ class SalesByProductReportResource extends JsonResource
                         'name' => (string) $item->brand_name,
                     ] : null,
                     'quantity_sold' => (string) $qty,
-                    'total_amount' => Money::fromDecimal($totalAmt)->toStorageString(),
-                    'total_amount_formatted' => Money::fromDecimal($totalAmt)->formatted(),
-                    'average_unit_price' => Money::fromDecimal($avgPrice)->toStorageString(),
-                    'average_unit_price_formatted' => Money::fromDecimal($avgPrice)->formatted(),
+                    'total_amount' => $totalAmount,
+                    'average_unit_price' => $averageUnitPrice,
                     'orders_count' => (int) $item->orders_count,
                 ];
             }),
@@ -68,5 +73,12 @@ class SalesByProductReportResource extends JsonResource
                 'next' => $paginator->nextPageUrl() ? (string) $paginator->nextPageUrl() : null,
             ],
         ];
+    }
+
+    private function resolveMoney(mixed $value): Money
+    {
+        return $value instanceof Money
+            ? $value
+            : Money::fromStorage($value !== null ? (string) $value : null);
     }
 }

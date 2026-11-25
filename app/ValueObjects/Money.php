@@ -13,6 +13,9 @@ final readonly class Money implements \JsonSerializable
         private BrickMoney $money
     ) {}
 
+    /**
+     * @return array{amount: string, currency: string, formatted: string}
+     */
     public function jsonSerialize(): array
     {
         return [
@@ -24,8 +27,8 @@ final readonly class Money implements \JsonSerializable
 
     public static function fromDecimal(string|int|float $amount, string $currency = 'BRL'): self
     {
-        if (is_float($amount)) {
-            $amount = (strval($amount));
+        if (\is_float($amount)) {
+            $amount = (string) $amount;
         }
 
         return new self(BrickMoney::of(
@@ -57,7 +60,20 @@ final readonly class Money implements \JsonSerializable
 
     public function multiply(string|int|float $factor): self
     {
+        if (\is_float($factor)) {
+            $factor = (string) $factor;
+        }
+
         return new self($this->money->multipliedBy($factor, RoundingMode::HalfUp));
+    }
+
+    public function divide(string|int|float $divisor): self
+    {
+        if (\is_float($divisor)) {
+            $divisor = (string) $divisor;
+        }
+
+        return new self($this->money->dividedBy($divisor, RoundingMode::HalfUp));
     }
 
     public function allocate(array $ratios): array

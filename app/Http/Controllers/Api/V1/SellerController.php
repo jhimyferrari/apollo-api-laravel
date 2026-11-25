@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\StoreAddressRequest;
+use App\Http\Requests\Seller\IndexSellerRequest;
 use App\Http\Requests\Seller\StoreSellerRequest;
 use App\Http\Requests\Seller\UpdateSellerRequest;
 use App\Http\Resources\AddressResource;
@@ -40,9 +41,12 @@ class SellerController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexSellerRequest $request): AnonymousResourceCollection
     {
-        return SellerResource::collection(Seller::paginate(15));
+        $query = Seller::query();
+        $request->applyPartnerIndex($query);
+
+        return SellerResource::collection($query->paginate($request->perPage()));
     }
 
     /**

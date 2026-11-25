@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\UpdateOrderPaymentStatusRequest;
+use App\Http\Requests\SalesOrder\IndexSalesOrderRequest;
 use App\Http\Requests\SalesOrder\StoreSalesOrderRequest;
 use App\Http\Requests\SalesOrder\UpdateSalesOrderRequest;
 use App\Http\Resources\SalesOrderResource;
+use App\Models\Client;
 use App\Models\SalesOrder;
+use App\Models\Seller;
 use App\Services\SalesOrderService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -37,15 +41,61 @@ class SalesOrderController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexSalesOrderRequest $request): AnonymousResourceCollection
     {
-
-        return SalesOrderResource::collection(SalesOrder::with([
+        $query = SalesOrder::query()->with([
             'client',
             'seller',
             'items',
             'items.product',
-        ])->paginate(15));
+        ]);
+
+        $status = $request->query('status');
+        if (is_string($status) && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        $paymentStatus = $request->query('payment_status');
+        if (is_string($paymentStatus) && $paymentStatus !== '') {
+            $query->where('payment_status', $paymentStatus);
+        }
+
+        $term = $request->searchTerm();
+        if ($term !== null) {
+            $number = $request->searchPositiveInt();
+            if (str_starts_with($term, '#') && $number !== null) {
+                $query->where('number', $number);
+            } else {
+                $pattern = $request->likePattern($term);
+
+                $query->where(function (Builder $q) use ($pattern, $number): void {
+                    $q->whereHas('client', fn (Builder $cq) => $cq->where('legal_name', 'ilike', $pattern)->orWhere('trade_name', 'ilike', $pattern))
+                        ->orWhereHas('seller', fn (Builder $sq) => $sq->where('legal_name', 'ilike', $pattern)->orWhere('trade_name', 'ilike', $pattern));
+
+                    if ($number !== null) {
+                        $q->orWhere('number', $number);
+                    }
+                });
+            }
+        }
+
+        $sortBy = $request->sortBy();
+        $dir = $request->sortDirection();
+        if ($sortBy === 'client') {
+            $query->orderBy(
+                Client::select('legal_name')->whereColumn('clients.id', 'sales_orders.client_id')->limit(1),
+                $dir
+            )->orderBy('id');
+        } elseif ($sortBy === 'seller') {
+            $query->orderBy(
+                Seller::selectRaw("COALESCE(NULLIF(trade_name, ''), legal_name)")->whereColumn('sellers.id', 'sales_orders.seller_id')->limit(1),
+                $dir
+            )->orderBy('id');
+        } else {
+            $request->applyOrderBy($query);
+        }
+
+        return SalesOrderResource::collection($query->paginate($request->perPage()));
     }
 
     /**

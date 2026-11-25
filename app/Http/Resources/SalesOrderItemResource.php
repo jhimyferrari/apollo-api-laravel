@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\SalesOrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin SalesOrderItem
+ */
 class SalesOrderItemResource extends JsonResource
 {
     /**
@@ -20,8 +24,8 @@ class SalesOrderItemResource extends JsonResource
             'number' => $this->number,
             'product_id' => $this->product_id,
             'quantity' => $this->quantity,
-            'unit_price' => $this->unit_price->toStorageString(),
-            'subtotal' => $this->subtotal->toStorageString(),
+            'unit_price' => $this->unit_price,
+            'subtotal' => $this->subtotal,
 
             'product' => new ProductResource($this->whenLoaded('product')),
         ];

@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Seller;
 use App\Models\User;
+use App\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
@@ -36,6 +37,63 @@ describe('POST api/sales-orders', function () {
         $this->assertDatabaseHas('sales_orders', [
             'client_id' => $client->id,
             'organization_id' => $user->organization_id,
+        ]);
+    });
+
+    test('Logged user creates sales order with fractional quantities and receives serialized Money totals', function () {
+        $user = User::factory()->create();
+        $productA = Product::factory()->for($user->organization)->withStock(10)->create([
+            'cost_price' => Money::fromDecimal('5.00'),
+            'sale_price' => Money::fromDecimal('10.50'),
+        ]);
+        $productB = Product::factory()->for($user->organization)->withStock(10)->create([
+            'cost_price' => Money::fromDecimal('5.00'),
+            'sale_price' => Money::fromDecimal('10.50'),
+        ]);
+        $client = Client::factory()->for($user->organization)->create();
+        $seller = Seller::factory()->for($user->organization)->create();
+
+        Sanctum::actingAs($user, [PermissionType::SALES_ORDER_CREATE->value]);
+
+        $response = $this->postJson(route('v1.sales-orders.store'), [
+            'client_id' => $client->id,
+            'seller_id' => $seller->id,
+            'items' => [
+                ['product_id' => $productA->id, 'number' => 1, 'quantity' => 0.5],
+                ['product_id' => $productB->id, 'number' => 2, 'quantity' => 1.5],
+            ],
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonStructure([
+                'data' => [
+                    'total' => ['amount', 'currency', 'formatted'],
+                    'items' => [
+                        '*' => [
+                            'unit_price' => ['amount', 'currency', 'formatted'],
+                            'subtotal' => ['amount', 'currency', 'formatted'],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.total.amount', '21.0000')
+            ->assertJsonPath('data.total.currency', 'BRL')
+            ->assertJsonPath('data.items.0.subtotal.amount', '5.2500')
+            ->assertJsonPath('data.items.1.subtotal.amount', '15.7500');
+
+        $this->assertDatabaseHas('sales_orders', [
+            'id' => $response->json('data.id'),
+            'total' => '21.0000',
+        ]);
+        $this->assertDatabaseHas('sales_order_items', [
+            'sales_order_id' => $response->json('data.id'),
+            'product_id' => $productA->id,
+            'subtotal' => '5.2500',
+        ]);
+        $this->assertDatabaseHas('sales_order_items', [
+            'sales_order_id' => $response->json('data.id'),
+            'product_id' => $productB->id,
+            'subtotal' => '15.7500',
         ]);
     });
 

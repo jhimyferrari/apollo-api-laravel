@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\UpdateOrderPaymentStatusRequest;
+use App\Http\Requests\PurchaseOrder\IndexPurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\StorePurchaseOrderRequest;
 use App\Http\Requests\PurchaseOrder\UpdatePurchaseOrderRequest;
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use App\Services\PurchaseOrderService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -38,14 +41,54 @@ class PurchaseOrderController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexPurchaseOrderRequest $request): AnonymousResourceCollection
     {
-        return PurchaseOrderResource::collection(PurchaseOrder::with([
+        $query = PurchaseOrder::query()->with([
             'supplier',
             'items',
             'items.product',
-        ])->paginate(15));
+        ]);
 
+        $status = $request->query('status');
+        if (is_string($status) && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        $paymentStatus = $request->query('payment_status');
+        if (is_string($paymentStatus) && $paymentStatus !== '') {
+            $query->where('payment_status', $paymentStatus);
+        }
+
+        $term = $request->searchTerm();
+        if ($term !== null) {
+            $number = $request->searchPositiveInt();
+            if (str_starts_with($term, '#') && $number !== null) {
+                $query->where('number', $number);
+            } else {
+                $pattern = $request->likePattern($term);
+
+                $query->where(function (Builder $q) use ($pattern, $number): void {
+                    $q->whereHas('supplier', fn (Builder $sq) => $sq->where('legal_name', 'ilike', $pattern)->orWhere('trade_name', 'ilike', $pattern));
+
+                    if ($number !== null) {
+                        $q->orWhere('number', $number);
+                    }
+                });
+            }
+        }
+
+        $sortBy = $request->sortBy();
+        $dir = $request->sortDirection();
+        if ($sortBy === 'supplier') {
+            $query->orderBy(
+                Supplier::select('legal_name')->whereColumn('suppliers.id', 'purchase_orders.supplier_id')->limit(1),
+                $dir
+            )->orderBy('id');
+        } else {
+            $request->applyOrderBy($query);
+        }
+
+        return PurchaseOrderResource::collection($query->paginate($request->perPage()));
     }
 
     /**

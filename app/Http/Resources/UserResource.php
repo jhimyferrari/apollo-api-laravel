@@ -18,7 +18,8 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'permissions' => PermissionResource::collection($this->permissions),
+            'is_administrator' => (bool) $this->is_administrator,
+            'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

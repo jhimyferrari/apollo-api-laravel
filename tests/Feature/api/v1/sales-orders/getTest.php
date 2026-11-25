@@ -2,8 +2,10 @@
 
 use App\Enum\PermissionType;
 use App\Models\Organization;
+use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\User;
+use App\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 
@@ -12,11 +14,25 @@ describe('GET api/sales-orders', function () {
     test('Logged user with valid data', function () {
         $organization = Organization::factory()->create();
         $user = User::factory()->for($organization)->create();
+        $product = Product::factory()->for($organization)->create([
+            'cost_price' => Money::fromDecimal('10.00'),
+            'sale_price' => Money::fromDecimal('25.50'),
+        ]);
 
         $otherOrganization = Organization::factory()->create();
         SalesOrder::factory()->count(5)->for($otherOrganization)->create();
 
-        SalesOrder::factory()->count(20)->for($organization)->create();
+        $orders = SalesOrder::factory()->count(20)->for($organization)->create([
+            'total' => Money::fromDecimal('51.00'),
+        ]);
+        $orders->first()->items()->create([
+            'organization_id' => $organization->id,
+            'product_id' => $product->id,
+            'number' => 1,
+            'quantity' => 2,
+            'unit_price' => Money::fromDecimal('25.50'),
+            'subtotal' => Money::fromDecimal('51.00'),
+        ]);
 
         Sanctum::actingAs($user, [PermissionType::SALES_ORDER_READ->value]);
 
@@ -24,6 +40,19 @@ describe('GET api/sales-orders', function () {
 
         $response->assertOk();
         $response->assertJsonCount(15, 'data');
+        $response->assertJsonStructure([
+            'data' => [
+                '*' => [
+                    'total' => ['amount', 'currency', 'formatted'],
+                    'items' => [
+                        '*' => [
+                            'unit_price' => ['amount', 'currency', 'formatted'],
+                            'subtotal' => ['amount', 'currency', 'formatted'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
 
         $firstRequestData = collect($response->json('data'));
         $ids = $firstRequestData->pluck('organization_id');

@@ -6,6 +6,8 @@ return [
     'unauthenticated' => 'Você precisa estar autenticado.',
     'forbidden' => 'Você não tem permissão para realizar essa ação.',
     'method_not_allowed' => 'Método não permitido.',
+    'too_many_requests' => 'Muitas requisições. Tente novamente em instantes.',
+    'resource_not_found' => 'Recurso não encontrado.',
     'internal_error' => 'Erro interno do servidor, contate o suporte.',
     'insufficient_stock' => 'Produto fora de estoque.',
     'order_not_deletable' => 'Só é possível excluir pedidos em rascunho.',
@@ -17,4 +19,5 @@ return [
     'resource_inactive' => 'O recurso :resource de ID :id está inativo.',
 
     'sequence_number_not_found' => 'Numero de sequência da tabela :table não encontrado para a organização :org.',
+    'user_cannot_update_self' => 'Você não pode atualizar a si mesmo.',
 ];

@@ -34,9 +34,13 @@ class UserPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $user, User $model): Response
     {
-        return true;
+        if ($user->id === $model->id) {
+            return Response::deny(__('errors.user_cannot_update_self'));
+        }
+
+        return Response::allow();
     }
 
     /**

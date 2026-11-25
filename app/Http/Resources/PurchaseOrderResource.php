@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin PurchaseOrder
+ */
 class PurchaseOrderResource extends JsonResource
 {
     /**
@@ -22,7 +26,7 @@ class PurchaseOrderResource extends JsonResource
 
             'supplier_id' => $this->supplier_id,
 
-            'total' => $this->total->toStorageString(),
+            'total' => $this->total,
 
             'replaces_order_id' => $this->replaces_order_id,
 

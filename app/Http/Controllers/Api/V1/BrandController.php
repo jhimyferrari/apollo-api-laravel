@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Brand\IndexBrandRequest;
 use App\Http\Requests\Brand\StoreBrandRequest;
 use App\Http\Requests\Brand\UpdateBrandRequest;
 use App\Http\Resources\BrandResource;
@@ -35,10 +36,12 @@ class BrandController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexBrandRequest $request): AnonymousResourceCollection
     {
+        $query = Brand::query();
+        $request->applyNamedResourceIndex($query);
 
-        return BrandResource::collection(Brand::paginate(15));
+        return BrandResource::collection($query->paginate($request->perPage()));
     }
 
     /**

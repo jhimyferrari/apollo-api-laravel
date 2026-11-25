@@ -111,6 +111,40 @@ describe('SalesOrderService', function () {
                 ->and($order->total->toStorageString())->toBe($expectedTotal->toStorageString());
         });
 
+        it('should calculate exact item subtotals and order total for fractional quantities', function () {
+            $productA = Product::factory()->for($this->organization)->withStock(100)->create([
+                'cost_price' => Money::fromDecimal('5.00'),
+                'sale_price' => Money::fromDecimal('10.50'),
+            ]);
+            $productB = Product::factory()->for($this->organization)->withStock(100)->create([
+                'cost_price' => Money::fromDecimal('5.00'),
+                'sale_price' => Money::fromDecimal('20.00'),
+            ]);
+            $productC = Product::factory()->for($this->organization)->withStock(100)->create([
+                'cost_price' => Money::fromDecimal('5.00'),
+                'sale_price' => Money::fromDecimal('100.00'),
+            ]);
+            $client = Client::factory()->for($this->organization)->create();
+            $seller = Seller::factory()->for($this->organization)->create();
+
+            $order = $this->service->create([
+                'client_id' => $client->id,
+                'seller_id' => $seller->id,
+                'items' => [
+                    ['product_id' => $productA->id, 'quantity' => 0.5, 'number' => 1],
+                    ['product_id' => $productB->id, 'quantity' => 1.5, 'number' => 2],
+                    ['product_id' => $productC->id, 'quantity' => 0.25, 'number' => 3],
+                ],
+            ], $this->user);
+
+            $itemsByNumber = $order->items->keyBy('number');
+
+            expect($itemsByNumber[1]->subtotal->toStorageString())->toBe('5.2500')
+                ->and($itemsByNumber[2]->subtotal->toStorageString())->toBe('30.0000')
+                ->and($itemsByNumber[3]->subtotal->toStorageString())->toBe('25.0000')
+                ->and($order->total->toStorageString())->toBe('60.2500');
+        });
+
         it('should persist the order and its items in the database', function () {
 
             $products = Product::factory()->for($this->organization)->withStock(100)->count(2)->create();
@@ -777,8 +811,10 @@ describe('SalesOrderService', function () {
                 expect($result['outdated_prices'])->toHaveCount(1)
                     ->and($result['outdated_prices'][0]['product_id'])->toBe($product->id)
                     ->and($result['outdated_prices'][0]['product_name'])->toBe('Cadeira Gamer X')
-                    ->and($result['outdated_prices'][0]['negotiated_price'])->toBe('150.0000')
-                    ->and($result['outdated_prices'][0]['current_price'])->toBe('180.0000');
+                    ->and($result['outdated_prices'][0]['negotiated_price'])->toBeInstanceOf(Money::class)
+                    ->and($result['outdated_prices'][0]['negotiated_price']->toStorageString())->toBe('150.0000')
+                    ->and($result['outdated_prices'][0]['current_price'])->toBeInstanceOf(Money::class)
+                    ->and($result['outdated_prices'][0]['current_price']->toStorageString())->toBe('180.0000');
             });
 
             it('does not flag an item whose price matches the current product price', function () {
@@ -1422,6 +1458,49 @@ describe('SalesOrderService', function () {
                     'number' => 1,
                     'quantity' => 5,
                 ]);
+            });
+
+            it('recalculates order total accurately with fractional quantities even when items relation was already loaded', function () {
+                $productA = Product::factory()->for($this->organization)->withStock(20)->create([
+                    'cost_price' => Money::fromDecimal('5.00'),
+                    'sale_price' => Money::fromDecimal('10.50'),
+                ]);
+                $productB = Product::factory()->for($this->organization)->withStock(20)->create([
+                    'cost_price' => Money::fromDecimal('5.00'),
+                    'sale_price' => Money::fromDecimal('20.00'),
+                ]);
+                $salesOrder = SalesOrder::factory()->for($this->organization)->createOne([
+                    'total' => Money::fromDecimal('10.50'),
+                ]);
+
+                $item = $salesOrder->items()->create([
+                    'product_id' => $productA->id,
+                    'number' => 1,
+                    'quantity' => 1,
+                    'unit_price' => $productA->sale_price,
+                    'subtotal' => $productA->sale_price,
+                    'organization_id' => $this->organization->id,
+                ]);
+
+                // Pre-load items relation before calling update to verify stale cache is bypassed
+                $salesOrder->load('items');
+
+                $result = $this->service->update($salesOrder, [
+                    'items' => [
+                        'to_update' => [
+                            ['id' => $item->id, 'quantity' => 1.5],
+                        ],
+                        'to_add' => [
+                            ['product_id' => $productB->id, 'number' => 2, 'quantity' => 0.5],
+                        ],
+                    ],
+                ]);
+
+                $itemsByNumber = $result->items->keyBy('number');
+
+                expect($itemsByNumber[1]->subtotal->toStorageString())->toBe('15.7500')
+                    ->and($itemsByNumber[2]->subtotal->toStorageString())->toBe('10.0000')
+                    ->and($result->total->toStorageString())->toBe('25.7500');
             });
         });
     });

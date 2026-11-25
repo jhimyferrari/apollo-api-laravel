@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enum\PermissionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Product\IndexProductRequest;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -34,9 +36,61 @@ class ProductController extends Controller implements HasMiddleware
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(IndexProductRequest $request): AnonymousResourceCollection
     {
-        return ProductResource::collection(Product::with(['brand', 'categories'])->paginate(15));
+        $query = Product::query()->with(['brand', 'categories', 'ncm_code']);
+
+        $status = $request->query('status');
+        if (is_string($status) && $status !== '') {
+            $query->where('status', $status);
+        }
+
+        $brandId = $request->query('brand_id');
+        if (is_string($brandId) && $brandId !== '') {
+            if ($brandId === 'none') {
+                $query->whereNull('brand_id');
+            } else {
+                $query->where('brand_id', $brandId);
+            }
+        }
+
+        $categoryId = $request->query('category_id');
+        if (is_string($categoryId) && $categoryId !== '') {
+            $query->whereHas('categories', fn (Builder $q) => $q->where('categories.id', $categoryId));
+        }
+
+        $term = $request->searchTerm();
+        if ($term !== null) {
+            $number = $request->searchPositiveInt();
+            if (str_starts_with($term, '#') && $number !== null) {
+                $query->where('number', $number);
+            } else {
+                $pattern = $request->likePattern($term);
+                $digitsOnly = preg_replace('/\D/', '', $term) ?? '';
+                $digitsPattern = $digitsOnly !== '' ? $request->likePattern($digitsOnly) : null;
+
+                $query->where(function (Builder $q) use ($pattern, $digitsPattern, $number): void {
+                    $q->where('name', 'ilike', $pattern)
+                        ->orWhere('ean', 'ilike', $pattern)
+                        ->orWhereHas('brand', fn (Builder $brandQ) => $brandQ->where('name', 'ilike', $pattern))
+                        ->orWhereHas('categories', fn (Builder $catQ) => $catQ->where('name', 'ilike', $pattern))
+                        ->orWhereHas('ncm_code', function (Builder $ncmQ) use ($pattern, $digitsPattern): void {
+                            $ncmQ->where('code', 'ilike', $pattern);
+                            if ($digitsPattern !== null) {
+                                $ncmQ->orWhere('code', 'like', $digitsPattern);
+                            }
+                        });
+
+                    if ($number !== null) {
+                        $q->orWhere('number', $number);
+                    }
+                });
+            }
+        }
+
+        $request->applyOrderBy($query);
+
+        return ProductResource::collection($query->paginate($request->perPage()));
     }
 
     /**

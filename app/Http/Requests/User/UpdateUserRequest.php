@@ -34,6 +34,11 @@ class UpdateUserRequest extends BaseUpdateRequest
                 'email',
                 'max:255',
             ],
+            'password' => [
+                'sometimes',
+                'string',
+                'min:8',
+            ],
             'permissions' => [
                 'sometimes',
                 'array',

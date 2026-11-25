@@ -22,6 +22,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 
+/**
+ * @property Money $total
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SalesOrderItem> $items
+ */
 #[ScopedBy(OrganizationScope::class)]
 class SalesOrder extends Model implements HasStatus, MovesStock
 {
@@ -75,6 +79,9 @@ class SalesOrder extends Model implements HasStatus, MovesStock
         return $this->belongsTo(Seller::class);
     }
 
+    /**
+     * @return HasMany<SalesOrderItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class);
@@ -92,6 +99,8 @@ class SalesOrder extends Model implements HasStatus, MovesStock
 
     public function sumTotalByItems(): Money
     {
+        $this->load('items');
+
         $total = Money::zero();
         foreach ($this->items as $item) {
             $total = $total->add($item->subtotal);
